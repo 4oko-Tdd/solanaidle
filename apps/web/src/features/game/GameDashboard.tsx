@@ -92,7 +92,7 @@ export function GameDashboard({ isAuthenticated }: Props) {
         <div className="mx-auto w-full max-w-md space-y-4 p-4">
           {activeTab === "game" && (
             <>
-              {activeRun && <RunStatus run={activeRun} />}
+              {activeRun && <RunStatus run={activeRun} characterState={character.state} />}
 
               <CharacterCard
                 character={character}
