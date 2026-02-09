@@ -10,6 +10,7 @@ import { SkillTree } from "./SkillTree";
 import { GuildPanel } from "@/features/guild/GuildPanel";
 import { RaidPanel } from "@/features/guild/RaidPanel";
 import { MissionResultDialog } from "./MissionResultDialog";
+import { RunLog } from "./RunLog";
 import { LeaderboardPanel } from "./LeaderboardPanel";
 import { Button } from "@/components/ui/button";
 import {
@@ -116,6 +117,10 @@ export function GameDashboard({ isAuthenticated }: Props) {
                   classId={activeRun?.classId}
                   livesRemaining={activeRun?.livesRemaining}
                 />
+              )}
+
+              {activeRun && (
+                <RunLog runId={activeRun.id} weekStart={activeRun.weekStart} />
               )}
 
               {inventory && <InventoryPanel inventory={inventory} />}
