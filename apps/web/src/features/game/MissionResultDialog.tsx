@@ -28,11 +28,11 @@ export function MissionResultDialog({ result, onClose, livesRemaining }: Props) 
       <DialogContent className="max-w-sm">
         <DialogHeader className="items-center text-center">
           {isSuccess ? (
-            <Trophy className="h-12 w-12 text-yellow-500 mx-auto mb-2" />
+            <Trophy className="h-12 w-12 text-neon-amber animate-bounce-in mx-auto mb-2" />
           ) : (
-            <Skull className="h-12 w-12 text-red-500 mx-auto mb-2" />
+            <Skull className="h-12 w-12 text-neon-red animate-shake mx-auto mb-2" />
           )}
-          <DialogTitle className="text-xl">
+          <DialogTitle className={`text-xl font-display ${isRunOver ? "text-neon-red" : ""}`}>
             {isSuccess
               ? "Mission Success!"
               : isRunOver
@@ -50,7 +50,7 @@ export function MissionResultDialog({ result, onClose, livesRemaining }: Props) 
 
         {isSuccess && result.rewards && (
           <div className="space-y-2 py-2">
-            <p className="text-sm font-medium text-center">Rewards:</p>
+            <p className="text-sm font-medium text-center font-display uppercase tracking-wider">Rewards:</p>
             <div className="flex flex-wrap justify-center gap-2">
               <Badge variant="secondary">+{result.rewards.xp} XP</Badge>
               <Badge variant="secondary">+{result.rewards.scrap} Scrap</Badge>
@@ -65,8 +65,8 @@ export function MissionResultDialog({ result, onClose, livesRemaining }: Props) 
         )}
 
         {result.nftDrop && (
-          <div className="flex items-center justify-center gap-2 rounded-lg border border-yellow-500/50 bg-yellow-500/10 p-3">
-            <Sparkles className="h-5 w-5 text-yellow-500" />
+          <div className="flex items-center justify-center gap-2 rounded-lg border border-neon-amber/50 bg-neon-amber/10 p-3">
+            <Sparkles className="h-5 w-5 text-neon-amber animate-glow-pulse" />
             <span className="text-sm font-medium">NFT Drop: {result.nftDrop.nftName}</span>
           </div>
         )}
@@ -75,7 +75,7 @@ export function MissionResultDialog({ result, onClose, livesRemaining }: Props) 
           <div className="flex items-center justify-center gap-2 py-2">
             {Array.from({ length: 3 }, (_, i) =>
               i < livesRemaining ? (
-                <Heart key={i} className="h-5 w-5 fill-red-500 text-red-500" />
+                <Heart key={i} className="h-5 w-5 fill-neon-red text-neon-red" />
               ) : (
                 <HeartCrack key={i} className="h-5 w-5 text-muted-foreground/40" />
               )

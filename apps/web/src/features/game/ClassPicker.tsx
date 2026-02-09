@@ -20,9 +20,9 @@ interface Props {
 }
 
 const CLASS_ICONS: Record<ClassId, React.ReactNode> = {
-  scout: <Zap className="h-6 w-6 text-yellow-500" />,
-  guardian: <ShieldHalf className="h-6 w-6 text-blue-500" />,
-  mystic: <Sparkles className="h-6 w-6 text-purple-500" />,
+  scout: <Zap className="h-6 w-6 text-neon-amber" />,
+  guardian: <ShieldHalf className="h-6 w-6 text-neon-cyan" />,
+  mystic: <Sparkles className="h-6 w-6 text-neon-purple" />,
 };
 
 function getWeekNumber(): number {
@@ -78,7 +78,7 @@ export function ClassPicker({ classes, onSelect, signMessage }: Props) {
     <>
       <div className="mx-auto w-full max-w-md space-y-4 p-4">
         <div className="text-center space-y-2">
-          <h2 className="text-2xl font-bold">Week {weekNum} Run</h2>
+          <h2 className="text-2xl font-display text-gradient">Week {weekNum} Run</h2>
           <p className="text-sm text-muted-foreground">
             Choose your class. Each class has unique strengths and weaknesses.
           </p>
@@ -88,11 +88,11 @@ export function ClassPicker({ classes, onSelect, signMessage }: Props) {
           {classes.map((cls) => (
             <Card
               key={cls.id}
-              className="cursor-pointer transition-colors hover:border-primary"
+              className="cursor-pointer hover:border-neon-purple/50 hover:glow-purple transition-all"
               onClick={() => handleClassClick(cls.id)}
             >
               <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-2 text-lg">
+                <CardTitle className="flex items-center gap-2 text-lg font-display">
                   {CLASS_ICONS[cls.id]}
                   {cls.name}
                 </CardTitle>
@@ -131,7 +131,7 @@ export function ClassPicker({ classes, onSelect, signMessage }: Props) {
         <DialogContent className="max-w-sm">
           <DialogHeader className="items-center text-center">
             {selected && CLASS_ICONS[selected]}
-            <DialogTitle className="text-xl">Commit to This Run</DialogTitle>
+            <DialogTitle className="text-xl font-display">Commit to This Run</DialogTitle>
             <DialogDescription>
               You are about to begin Week {weekNum} as a <strong>{selectedClass?.name}</strong>. 3 lives. No turning back.
             </DialogDescription>
