@@ -10,13 +10,14 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@solanaidle/shared": "workspace:*",
-    "hono": "^4",
-    "better-sqlite3": "^11",
+    "@hono/node-server": "^1.19.9",
     "@solana/web3.js": "^1.98",
+    "@solanaidle/shared": "workspace:*",
+    "better-sqlite3": "^11",
+    "bs58": "^6",
+    "hono": "^4",
     "jsonwebtoken": "^9",
-    "tweetnacl": "^1.0",
-    "bs58": "^6"
+    "tweetnacl": "^1.0"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7",

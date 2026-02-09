@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
+import { serve } from "@hono/node-server";
 
 const app = new Hono().basePath("/api");
 
@@ -19,9 +20,6 @@ app.get("/health", (c) => {
 // app.route("/upgrades", upgradeRoutes);
 // app.route("/claims", claimRoutes);
 
-export default {
-  port: 3000,
-  fetch: app.fetch,
-};
-
-console.log("API server running on http://localhost:3000");
+serve({ fetch: app.fetch, port: 3000 }, (info) => {
+  console.log(`API server running on http://localhost:${info.port}`);
+});
