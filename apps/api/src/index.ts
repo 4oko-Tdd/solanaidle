@@ -28,6 +28,41 @@ app.route("/claims", claims);
 
 initSchema();
 
+// Dev-only routes (not available in production)
+if (process.env.NODE_ENV !== "production") {
+  app.post("/dev/skip-timer", async (c) => {
+    // Inline auth check
+    const header = c.req.header("Authorization");
+    if (!header?.startsWith("Bearer ")) {
+      return c.json({ error: "UNAUTHORIZED", message: "Missing token" }, 401);
+    }
+    const { verifyToken } = await import("./services/auth-service.js");
+    const payload = verifyToken(header.slice(7));
+    if (!payload) {
+      return c.json({ error: "UNAUTHORIZED", message: "Invalid token" }, 401);
+    }
+
+    const { getCharacter } = await import("./services/character-service.js");
+    const char = getCharacter(payload.wallet);
+    if (!char) {
+      return c.json({ error: "CHARACTER_NOT_FOUND", message: "No character" }, 404);
+    }
+
+    // Set active mission end time to now
+    const db = (await import("./db/database.js")).default;
+    const result = db
+      .prepare(
+        "UPDATE active_missions SET ends_at = datetime('now') WHERE character_id = ?"
+      )
+      .run(char.id);
+
+    if (result.changes === 0) {
+      return c.json({ message: "No active mission to skip" });
+    }
+    return c.json({ message: "Timer skipped! You can now claim." });
+  });
+}
+
 serve({ fetch: app.fetch, port: 3000 }, (info) => {
   console.log(`API server running on http://localhost:${info.port}`);
 });

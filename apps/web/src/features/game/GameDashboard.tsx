@@ -91,6 +91,7 @@ export function GameDashboard({ isAuthenticated }: Props) {
           activeMission={activeMission}
           missionDef={activeMissionDef}
           onClaim={claimMission}
+          onSkip={refresh}
         />
       ) : (
         <MissionPanel
