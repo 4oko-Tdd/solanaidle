@@ -17,6 +17,7 @@
     "@solana/connector": "^0",
     "@solana/web3.js": "^1.98",
     "@solanaidle/shared": "workspace:*",
+    "bs58": "^6.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.563.0",

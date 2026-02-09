@@ -24,4 +24,19 @@ auth.post("/verify", async (c) => {
   return c.json({ token });
 });
 
+// Dev-only login endpoint — skips signature verification
+auth.post("/dev-login", async (c) => {
+  if (process.env.NODE_ENV === "production") {
+    return c.json({ error: "UNAUTHORIZED", message: "Not available in production" }, 403);
+  }
+
+  const { publicKey } = await c.req.json();
+  if (!publicKey) {
+    return c.json({ error: "UNAUTHORIZED", message: "Missing publicKey" }, 400);
+  }
+
+  const token = createToken(publicKey);
+  return c.json({ token });
+});
+
 export default auth;
