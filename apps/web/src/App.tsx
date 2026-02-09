@@ -7,12 +7,12 @@ export default function App() {
   const { isAuthenticated, authLoading } = useAuth();
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="flex h-14 items-center justify-between border-b border-border px-4">
+    <div className="flex h-dvh flex-col">
+      <header className="flex h-14 shrink-0 items-center justify-between border-b border-border px-4">
         <h1 className="text-lg font-bold">Solana Idle</h1>
         {isAuthenticated && <ConnectButton compact />}
       </header>
-      <main className="flex flex-1 flex-col">
+      <main className="flex min-h-0 flex-1 flex-col">
         {authLoading ? (
           <div className="flex flex-1 items-center justify-center p-4">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />

@@ -12,8 +12,23 @@ import { RaidPanel } from "@/features/guild/RaidPanel";
 import { MissionResultDialog } from "./MissionResultDialog";
 import { LeaderboardPanel } from "./LeaderboardPanel";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, Loader2 } from "lucide-react";
+import {
+  Swords,
+  Sparkles,
+  Users,
+  Trophy,
+  Loader2,
+} from "lucide-react";
 import { useState } from "react";
+
+type Tab = "game" | "skills" | "guild" | "ranks";
+
+const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
+  { id: "game", label: "Game", icon: <Swords className="h-5 w-5" /> },
+  { id: "skills", label: "Skills", icon: <Sparkles className="h-5 w-5" /> },
+  { id: "guild", label: "Guild", icon: <Users className="h-5 w-5" /> },
+  { id: "ranks", label: "Ranks", icon: <Trophy className="h-5 w-5" /> },
+];
 
 interface Props {
   isAuthenticated: boolean;
@@ -39,16 +54,7 @@ export function GameDashboard({ isAuthenticated }: Props) {
     startRun,
   } = useGameState(isAuthenticated);
 
-  const [refreshing, setRefreshing] = useState(false);
-
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    try {
-      await refresh();
-    } finally {
-      setRefreshing(false);
-    }
-  };
+  const [activeTab, setActiveTab] = useState<Tab>("game");
 
   if (loading) {
     return (
@@ -63,7 +69,7 @@ export function GameDashboard({ isAuthenticated }: Props) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-3 p-8">
         <p className="text-destructive">{error}</p>
-        <Button variant="outline" size="sm" onClick={handleRefresh}>
+        <Button variant="outline" size="sm" onClick={refresh}>
           Try Again
         </Button>
       </div>
@@ -72,7 +78,6 @@ export function GameDashboard({ isAuthenticated }: Props) {
 
   if (!character) return null;
 
-  // Show class picker if no active run this week
   if (!activeRun && classes.length > 0) {
     return <ClassPicker classes={classes} onSelect={startRun} />;
   }
@@ -82,59 +87,92 @@ export function GameDashboard({ isAuthenticated }: Props) {
     : undefined;
 
   return (
-    <div className="mx-auto w-full max-w-md space-y-4 p-4">
-      <div className="flex items-center justify-end">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleRefresh}
-          disabled={refreshing}
-          className="h-9 w-9"
-          aria-label="Refresh game data"
-        >
-          <RefreshCw
-            className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`}
-          />
-        </Button>
+    <>
+      <div className="flex-1 overflow-y-auto pb-20">
+        <div className="mx-auto w-full max-w-md space-y-4 p-4">
+          {activeTab === "game" && (
+            <>
+              {activeRun && <RunStatus run={activeRun} />}
+
+              <CharacterCard
+                character={character}
+                classId={activeRun?.classId}
+                livesRemaining={activeRun?.livesRemaining}
+              />
+
+              {activeMission ? (
+                <MissionTimer
+                  activeMission={activeMission}
+                  missionDef={activeMissionDef}
+                  onClaim={claimMission}
+                  onSkip={refresh}
+                />
+              ) : (
+                <MissionPanel
+                  missions={missions}
+                  characterState={character.state}
+                  onStart={startMission}
+                  characterLevel={character.level}
+                  classId={activeRun?.classId}
+                />
+              )}
+
+              {inventory && <InventoryPanel inventory={inventory} />}
+            </>
+          )}
+
+          {activeTab === "skills" && (
+            <>
+              {activeRun && <SkillTree onUpdate={refresh} />}
+              {upgradeInfo && (
+                <UpgradePanel upgradeInfo={upgradeInfo} onUpgrade={upgradeGear} />
+              )}
+              {!activeRun && (
+                <div className="flex flex-col items-center justify-center gap-2 py-12 text-center">
+                  <Sparkles className="h-8 w-8 text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground">
+                    Start a weekly run to unlock skills.
+                  </p>
+                </div>
+              )}
+            </>
+          )}
+
+          {activeTab === "guild" && (
+            <>
+              <GuildPanel />
+              <RaidPanel />
+            </>
+          )}
+
+          {activeTab === "ranks" && <LeaderboardPanel />}
+        </div>
       </div>
 
-      {activeRun && <RunStatus run={activeRun} />}
-
-      <CharacterCard character={character} classId={activeRun?.classId} livesRemaining={activeRun?.livesRemaining} />
-
-      {activeMission ? (
-        <MissionTimer
-          activeMission={activeMission}
-          missionDef={activeMissionDef}
-          onClaim={claimMission}
-          onSkip={refresh}
-        />
-      ) : (
-        <MissionPanel
-          missions={missions}
-          characterState={character.state}
-          onStart={startMission}
-          characterLevel={character.level}
-          classId={activeRun?.classId}
-        />
-      )}
-
-      {inventory && <InventoryPanel inventory={inventory} />}
-      {upgradeInfo && (
-        <UpgradePanel upgradeInfo={upgradeInfo} onUpgrade={upgradeGear} />
-      )}
-
-      <GuildPanel />
-      <RaidPanel />
-
-      {activeRun && <SkillTree onUpdate={refresh} />}
-
-      <LeaderboardPanel />
+      {/* Bottom tab bar */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background">
+        <div className="mx-auto flex max-w-md">
+          {TABS.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-xs transition-colors ${
+                activeTab === tab.id
+                  ? "text-primary"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {tab.icon}
+              <span>{tab.label}</span>
+            </button>
+          ))}
+        </div>
+      </nav>
 
       <MissionResultDialog
         result={lastClaimResult}
         onClose={clearClaimResult}
       />
-    </div>
+    </>
   );
 }
