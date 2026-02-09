@@ -7,6 +7,7 @@ import { InventoryPanel } from "@/features/inventory/InventoryPanel";
 import { UpgradePanel } from "./UpgradePanel";
 import { RunStatus } from "./RunStatus";
 import { SkillTree } from "./SkillTree";
+import { GuildPanel } from "@/features/guild/GuildPanel";
 import { MissionResultDialog } from "./MissionResultDialog";
 import { Button } from "@/components/ui/button";
 import { RefreshCw, Loader2 } from "lucide-react";
@@ -118,6 +119,8 @@ export function GameDashboard({ isAuthenticated }: Props) {
       {upgradeInfo && (
         <UpgradePanel upgradeInfo={upgradeInfo} onUpgrade={upgradeGear} />
       )}
+
+      <GuildPanel />
 
       {activeRun && <SkillTree onUpdate={refresh} />}
 
