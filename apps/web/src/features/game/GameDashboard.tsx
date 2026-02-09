@@ -100,7 +100,7 @@ export function GameDashboard({ isAuthenticated }: Props) {
 
       {activeRun && <RunStatus run={activeRun} />}
 
-      <CharacterCard character={character} />
+      <CharacterCard character={character} classId={activeRun?.classId} livesRemaining={activeRun?.livesRemaining} />
 
       {activeMission ? (
         <MissionTimer
@@ -114,6 +114,8 @@ export function GameDashboard({ isAuthenticated }: Props) {
           missions={missions}
           characterState={character.state}
           onStart={startMission}
+          characterLevel={character.level}
+          classId={activeRun?.classId}
         />
       )}
 
