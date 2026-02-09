@@ -15,7 +15,7 @@ export interface Character {
 
 // ── Missions ──
 
-export type MissionId = "scout" | "expedition" | "deep_dive";
+export type MissionId = "scout" | "expedition" | "deep_dive" | "boss";
 
 export interface MissionType {
   id: MissionId;
@@ -119,9 +119,127 @@ export type ErrorCode =
   | "INSUFFICIENT_RESOURCES"
   | "MAX_GEAR_LEVEL"
   | "CLAIM_NOT_FOUND"
-  | "ALREADY_CLAIMED";
+  | "ALREADY_CLAIMED"
+  | "NO_ACTIVE_RUN"
+  | "RUN_ENDED"
+  | "CLASS_ALREADY_CHOSEN"
+  | "INSUFFICIENT_SKILL_POINTS"
+  | "SKILL_ALREADY_UNLOCKED"
+  | "SKILL_PREREQUISITE"
+  | "GUILD_NOT_FOUND"
+  | "GUILD_FULL"
+  | "ALREADY_IN_GUILD"
+  | "NOT_IN_GUILD"
+  | "RAID_IN_PROGRESS"
+  | "RAID_NOT_READY"
+  | "NO_LIVES"
+  | "BOSS_NOT_AVAILABLE";
 
 export interface ApiError {
   error: ErrorCode;
   message: string;
+}
+
+// ── Character Classes ──
+
+export type ClassId = "scout" | "guardian" | "mystic";
+
+export interface CharacterClass {
+  id: ClassId;
+  name: string;
+  description: string;
+  durationModifier: number;   // multiplier (0.85 = 15% faster)
+  failRateModifier: number;   // additive (5 = +5% fail)
+  lootModifier: number;       // multiplier (1.3 = +30% rare loot)
+  xpModifier: number;         // multiplier (0.9 = -10% XP)
+}
+
+// ── Skill Trees ──
+
+export interface SkillNode {
+  id: string;
+  classId: ClassId;
+  name: string;
+  description: string;
+  tier: number; // 1, 2, 3
+  cost: number; // skill points
+}
+
+export interface UnlockedSkill {
+  skillId: string;
+  unlockedAt: string;
+}
+
+// ── Weekly Runs ──
+
+export interface WeeklyRun {
+  id: string;
+  walletAddress: string;
+  classId: ClassId;
+  weekStart: string;
+  weekEnd: string;
+  livesRemaining: number;
+  score: number;
+  skillPoints: number;
+  missionsCompleted: number;
+  bossDefeated: boolean;
+  active: boolean;
+}
+
+// ── Guilds ──
+
+export interface Guild {
+  id: string;
+  name: string;
+  inviteCode: string;
+  createdBy: string;
+  memberCount: number;
+}
+
+export interface GuildMember {
+  walletAddress: string;
+  characterId: string;
+  joinedAt: string;
+}
+
+// ── Raids ──
+
+export type RaidId = "outpost" | "stronghold";
+
+export interface RaidMission {
+  id: RaidId;
+  name: string;
+  requiredPlayers: number;
+  duration: number;
+  lootMultiplier: number;
+  description: string;
+}
+
+export interface ActiveRaid {
+  id: string;
+  raidId: RaidId;
+  guildId: string;
+  startedAt: string;
+  endsAt: string;
+  committedPlayers: string[]; // wallet addresses
+  timeRemaining?: number;
+}
+
+// ── Leaderboard ──
+
+export interface LeaderboardEntry {
+  rank: number;
+  walletAddress: string;
+  classId: ClassId;
+  score: number;
+  missionsCompleted: number;
+  bossDefeated: boolean;
+}
+
+// ── Extended Character (adds class & run info) ──
+
+export interface CharacterWithRun extends Character {
+  classId: ClassId | null;
+  activeRun: WeeklyRun | null;
+  skills: UnlockedSkill[];
 }
