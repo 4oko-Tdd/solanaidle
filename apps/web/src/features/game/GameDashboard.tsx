@@ -64,7 +64,7 @@ export function GameDashboard({ isAuthenticated }: Props) {
   if (loading) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-3 p-8">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <Loader2 className="h-8 w-8 animate-spin text-neon-purple" />
         <p className="text-sm text-muted-foreground">Loading game data...</p>
       </div>
     );
@@ -165,20 +165,23 @@ export function GameDashboard({ isAuthenticated }: Props) {
       </div>
 
       {/* Bottom tab bar */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/[0.06] bg-black/60 backdrop-blur-xl">
         <div className="mx-auto flex max-w-md">
           {TABS.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-xs transition-colors ${
+              className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-xs transition-all relative ${
                 activeTab === tab.id
-                  ? "text-primary"
+                  ? "text-neon-green"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
               {tab.icon}
               <span>{tab.label}</span>
+              {activeTab === tab.id && (
+                <div className="absolute -bottom-px left-1/4 right-1/4 h-0.5 bg-gradient-to-r from-[#9945FF] to-[#14F195] rounded-full" />
+              )}
             </button>
           ))}
         </div>

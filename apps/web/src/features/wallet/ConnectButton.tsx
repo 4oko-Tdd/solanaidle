@@ -23,7 +23,7 @@ export function ConnectButton({ compact }: Props) {
     if (compact) {
       return (
         <div className="flex items-center gap-1.5">
-          <span className="text-xs font-mono text-muted-foreground">
+          <span className="text-xs font-mono text-neon-green/70">
             {formatted}
           </span>
           <Button
