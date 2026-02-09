@@ -1,0 +1,12 @@
+{
+  "name": "@solanaidle/shared",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "./src/types.ts",
+  "types": "./src/types.ts",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist"
+  }
+}

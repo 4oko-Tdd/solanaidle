@@ -1,0 +1,13 @@
+{
+  "name": "solanaidle",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --parallel --filter './apps/*' dev",
+    "build": "pnpm --filter '@solanaidle/*' build",
+    "lint": "pnpm --parallel --filter './apps/*' lint",
+    "clean": "pnpm --parallel --filter './apps/*' clean"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
