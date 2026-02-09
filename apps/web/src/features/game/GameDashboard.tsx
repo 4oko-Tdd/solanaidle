@@ -8,6 +8,7 @@ import { UpgradePanel } from "./UpgradePanel";
 import { RunStatus } from "./RunStatus";
 import { SkillTree } from "./SkillTree";
 import { GuildPanel } from "@/features/guild/GuildPanel";
+import { RaidPanel } from "@/features/guild/RaidPanel";
 import { MissionResultDialog } from "./MissionResultDialog";
 import { Button } from "@/components/ui/button";
 import { RefreshCw, Loader2 } from "lucide-react";
@@ -121,6 +122,7 @@ export function GameDashboard({ isAuthenticated }: Props) {
       )}
 
       <GuildPanel />
+      <RaidPanel />
 
       {activeRun && <SkillTree onUpdate={refresh} />}
 
