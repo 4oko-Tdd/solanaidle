@@ -91,22 +91,22 @@ export function RaidPanel() {
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle className="text-base">Raids</CardTitle>
+        <CardTitle className="text-base font-display">Raids</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         {activeRaid ? (
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="font-medium text-sm">
+              <span className="font-medium text-sm font-display">
                 {raids.find((r) => r.id === activeRaid.raidId)?.name || activeRaid.raidId}
               </span>
               <Badge variant={activeRaid.timeRemaining && activeRaid.timeRemaining > 0 ? "outline" : "default"}>
                 {activeRaid.timeRemaining && activeRaid.timeRemaining > 0
-                  ? formatTime(activeRaid.timeRemaining)
+                  ? <span className="font-mono">{formatTime(activeRaid.timeRemaining)}</span>
                   : "Complete!"}
               </Badge>
             </div>
-            <div className="text-xs text-muted-foreground">
+            <div className="text-xs text-muted-foreground font-mono">
               Players committed: {activeRaid.committedPlayers.length}
             </div>
             {activeRaid.timeRemaining && activeRaid.timeRemaining > 0 ? (
@@ -135,11 +135,11 @@ export function RaidPanel() {
             {raids.map((raid) => (
               <div
                 key={raid.id}
-                className="flex items-center justify-between rounded-lg border p-2"
+                className="flex items-center justify-between rounded-lg border border-white/[0.06] bg-white/[0.02] p-2"
               >
                 <div>
-                  <div className="font-medium text-sm">{raid.name}</div>
-                  <div className="text-xs text-muted-foreground">
+                  <div className="font-medium text-sm font-display">{raid.name}</div>
+                  <div className="text-xs text-muted-foreground font-mono">
                     {raid.requiredPlayers} players · {formatTime(raid.duration)} · {raid.lootMultiplier}x loot
                   </div>
                 </div>

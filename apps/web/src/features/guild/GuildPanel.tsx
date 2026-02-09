@@ -53,7 +53,7 @@ export function GuildPanel() {
     return (
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-base">Guild</CardTitle>
+          <CardTitle className="text-base font-display">Guild</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
           <p className="text-sm text-muted-foreground">
@@ -71,14 +71,14 @@ export function GuildPanel() {
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle className="flex items-center justify-between text-base">
+        <CardTitle className="flex items-center justify-between text-base font-display">
           <span>{guild.name}</span>
           <Badge variant="outline">{guild.memberCount}/5</Badge>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="flex items-center gap-2">
-          <code className="rounded bg-muted px-2 py-0.5 text-xs flex-1 font-mono">
+          <code className="rounded bg-white/[0.06] border border-white/[0.1] px-2 py-0.5 text-xs flex-1 font-mono">
             {guild.inviteCode}
           </code>
           <Button variant="outline" size="sm" onClick={handleCopyCode}>
@@ -87,7 +87,7 @@ export function GuildPanel() {
         </div>
 
         <div className="space-y-1">
-          <div className="text-xs font-medium text-muted-foreground">Members</div>
+          <div className="text-xs font-medium text-muted-foreground font-mono uppercase tracking-wider">Members</div>
           {members.map((m) => (
             <div key={m.walletAddress} className="text-sm font-mono">
               {truncateWallet(m.walletAddress)}

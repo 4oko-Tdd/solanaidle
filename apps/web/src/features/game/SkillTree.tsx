@@ -59,7 +59,7 @@ export function SkillTree({ onUpdate }: Props) {
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle className="text-base">Skill Tree</CardTitle>
+        <CardTitle className="text-base font-display">Skill Tree</CardTitle>
       </CardHeader>
       <CardContent className="space-y-2">
         {sortedSkills.map((skill, i) => {
@@ -71,21 +71,21 @@ export function SkillTree({ onUpdate }: Props) {
             <div key={skill.id}>
               {i > 0 && (
                 <div className="flex justify-center py-0.5">
-                  <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                  <ChevronDown className="h-3.5 w-3.5 text-neon-purple/30" />
                 </div>
               )}
               <div
                 className={`rounded-lg border p-3 ${
                   isUnlocked
-                    ? "border-primary bg-primary/10"
+                    ? "border-neon-green/50 bg-neon-green/5 glow-green"
                     : isAvailable && canAfford
-                      ? "border-dashed border-primary/50"
-                      : "border-muted opacity-60"
+                      ? "border-dashed border-neon-purple/50"
+                      : "border-white/[0.06] opacity-50"
                 }`}
               >
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="font-medium text-sm flex items-center gap-1.5">
+                    <div className="font-medium text-sm flex items-center gap-1.5 font-display">
                       {skill.name}
                       {isUnlocked && (
                         <Badge variant="default" className="text-xs py-0">
@@ -93,7 +93,7 @@ export function SkillTree({ onUpdate }: Props) {
                         </Badge>
                       )}
                     </div>
-                    <div className="text-xs text-muted-foreground mt-0.5">
+                    <div className="text-xs text-muted-foreground mt-0.5 font-mono">
                       {skill.description}
                     </div>
                   </div>
@@ -104,7 +104,7 @@ export function SkillTree({ onUpdate }: Props) {
                       disabled={!canAfford || unlocking !== null}
                       onClick={() => handleUnlock(skill.id)}
                     >
-                      {unlocking === skill.id ? "..." : `${skill.cost} SP`}
+                      {unlocking === skill.id ? "..." : <span className="font-mono">{skill.cost} SP</span>}
                     </Button>
                   )}
                 </div>

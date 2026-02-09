@@ -7,15 +7,15 @@ import { api } from "@/lib/api";
 import type { LeaderboardEntry, ClassId } from "@solanaidle/shared";
 
 const CLASS_ICONS: Record<ClassId, React.ReactNode> = {
-  scout: <Zap className="h-3.5 w-3.5 text-yellow-500" />,
-  guardian: <ShieldHalf className="h-3.5 w-3.5 text-blue-500" />,
-  mystic: <Sparkles className="h-3.5 w-3.5 text-purple-500" />,
+  scout: <Zap className="h-3.5 w-3.5 text-neon-amber" />,
+  guardian: <ShieldHalf className="h-3.5 w-3.5 text-neon-cyan" />,
+  mystic: <Sparkles className="h-3.5 w-3.5 text-neon-purple" />,
 };
 
 const RANK_ICONS: React.ReactNode[] = [
-  <Trophy key="1" className="h-4 w-4 text-yellow-500" />,
-  <Medal key="2" className="h-4 w-4 text-gray-400" />,
-  <Medal key="3" className="h-4 w-4 text-amber-600" />,
+  <Trophy key="1" className="h-4 w-4 text-neon-amber" />,
+  <Medal key="2" className="h-4 w-4 text-white/40" />,
+  <Medal key="3" className="h-4 w-4 text-neon-amber/60" />,
 ];
 
 function truncateWallet(addr: string): string {
@@ -49,7 +49,7 @@ export function LeaderboardPanel({ currentWallet }: Props) {
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle className="flex items-center justify-between text-base">
+        <CardTitle className="flex items-center justify-between text-base font-display">
           <span>Weekly Leaderboard</span>
           <Badge variant="outline">{entries.length} players</Badge>
         </CardTitle>
@@ -61,7 +61,7 @@ export function LeaderboardPanel({ currentWallet }: Props) {
             <div
               key={entry.rank}
               className={`flex items-center justify-between rounded-md px-2 py-1.5 text-sm ${
-                isMe ? "bg-primary/10 font-medium" : ""
+                isMe ? "bg-neon-purple/10 border border-neon-purple/20 rounded-lg font-medium" : ""
               }`}
             >
               <div className="flex items-center gap-2">
@@ -76,8 +76,8 @@ export function LeaderboardPanel({ currentWallet }: Props) {
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                {entry.bossDefeated && <Crown className="h-3.5 w-3.5 text-yellow-500" />}
-                <span className="font-bold">{entry.score}</span>
+                {entry.bossDefeated && <Crown className="h-3.5 w-3.5 text-neon-amber" />}
+                <span className="font-bold font-mono text-neon-green">{entry.score}</span>
               </div>
             </div>
           );

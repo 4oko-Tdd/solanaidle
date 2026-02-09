@@ -19,26 +19,26 @@ export function UpgradePanel({ upgradeInfo, onUpgrade }: Props) {
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-base">Gear Upgrade</CardTitle>
+        <CardTitle className="text-base font-display">Gear Upgrade</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         <p className="text-sm">
-          Current: <span className="font-bold">Level {currentGearLevel}</span>
+          Current: <span className="font-bold font-mono text-neon-green">Level {currentGearLevel}</span>
         </p>
         {nextUpgrade ? (
           <>
             <div className="text-xs text-muted-foreground space-y-1">
               <p>Next level cost:</p>
               <div className="flex gap-2 flex-wrap">
-                <span>{nextUpgrade.cost.scrap} Scrap</span>
+                <span className="font-mono">{nextUpgrade.cost.scrap} Scrap</span>
                 {nextUpgrade.cost.crystal ? (
-                  <span>{nextUpgrade.cost.crystal} Crystal</span>
+                  <span className="font-mono">{nextUpgrade.cost.crystal} Crystal</span>
                 ) : null}
                 {nextUpgrade.cost.artifact ? (
-                  <span>{nextUpgrade.cost.artifact} Artifact</span>
+                  <span className="font-mono">{nextUpgrade.cost.artifact} Artifact</span>
                 ) : null}
               </div>
-              <p>Fail rate reduction: -{nextUpgrade.failRateReduction}%</p>
+              <p>Fail rate reduction: <span className="font-mono text-neon-green">-{nextUpgrade.failRateReduction}%</span></p>
             </div>
             <Button
               size="sm"
@@ -46,7 +46,7 @@ export function UpgradePanel({ upgradeInfo, onUpgrade }: Props) {
               onClick={onUpgrade}
               className="w-full"
             >
-              <ArrowUp className="h-4 w-4 mr-1" />
+              <ArrowUp className="h-4 w-4 mr-1 text-neon-green" />
               Upgrade to Level {nextUpgrade.level}
             </Button>
           </>
