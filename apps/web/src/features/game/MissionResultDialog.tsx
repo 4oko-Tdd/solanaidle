@@ -9,17 +9,19 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { MissionClaimResponse } from "@solanaidle/shared";
-import { Trophy, Skull, Sparkles } from "lucide-react";
+import { Trophy, Skull, Sparkles, Heart, HeartCrack } from "lucide-react";
 
 interface Props {
   result: MissionClaimResponse | null;
   onClose: () => void;
+  livesRemaining?: number;
 }
 
-export function MissionResultDialog({ result, onClose }: Props) {
+export function MissionResultDialog({ result, onClose, livesRemaining }: Props) {
   if (!result) return null;
 
   const isSuccess = result.result === "success";
+  const isRunOver = livesRemaining !== undefined && livesRemaining <= 0;
 
   return (
     <Dialog open={!!result} onOpenChange={(open) => !open && onClose()}>
@@ -31,11 +33,17 @@ export function MissionResultDialog({ result, onClose }: Props) {
             <Skull className="h-12 w-12 text-red-500 mx-auto mb-2" />
           )}
           <DialogTitle className="text-xl">
-            {isSuccess ? "Mission Success!" : "Mission Failed"}
+            {isSuccess
+              ? "Mission Success!"
+              : isRunOver
+              ? "DEATH \u2014 Run Over"
+              : "Mission Failed"}
           </DialogTitle>
           <DialogDescription>
             {isSuccess
               ? "Your character returned with loot!"
+              : isRunOver
+              ? "No lives remaining. Your run has ended."
               : "Your character didn't make it back..."}
           </DialogDescription>
         </DialogHeader>
@@ -47,14 +55,10 @@ export function MissionResultDialog({ result, onClose }: Props) {
               <Badge variant="secondary">+{result.rewards.xp} XP</Badge>
               <Badge variant="secondary">+{result.rewards.scrap} Scrap</Badge>
               {result.rewards.crystal ? (
-                <Badge variant="secondary">
-                  +{result.rewards.crystal} Crystal
-                </Badge>
+                <Badge variant="secondary">+{result.rewards.crystal} Crystal</Badge>
               ) : null}
               {result.rewards.artifact ? (
-                <Badge variant="secondary">
-                  +{result.rewards.artifact} Artifact
-                </Badge>
+                <Badge variant="secondary">+{result.rewards.artifact} Artifact</Badge>
               ) : null}
             </div>
           </div>
@@ -63,21 +67,31 @@ export function MissionResultDialog({ result, onClose }: Props) {
         {result.nftDrop && (
           <div className="flex items-center justify-center gap-2 rounded-lg border border-yellow-500/50 bg-yellow-500/10 p-3">
             <Sparkles className="h-5 w-5 text-yellow-500" />
-            <span className="text-sm font-medium">
-              NFT Drop: {result.nftDrop.nftName}
-            </span>
+            <span className="text-sm font-medium">NFT Drop: {result.nftDrop.nftName}</span>
           </div>
         )}
 
-        {!isSuccess && (
+        {!isSuccess && !isRunOver && livesRemaining !== undefined && (
+          <div className="flex items-center justify-center gap-2 py-2">
+            {Array.from({ length: 3 }, (_, i) =>
+              i < livesRemaining ? (
+                <Heart key={i} className="h-5 w-5 fill-red-500 text-red-500" />
+              ) : (
+                <HeartCrack key={i} className="h-5 w-5 text-muted-foreground/40" />
+              )
+            )}
+          </div>
+        )}
+
+        {!isSuccess && !isRunOver && (
           <p className="text-center text-sm text-muted-foreground">
             Character is recovering. Check back in 1 hour.
           </p>
         )}
 
         <DialogFooter>
-          <Button onClick={onClose} className="w-full">
-            {isSuccess ? "Continue" : "Understood"}
+          <Button onClick={onClose} className="w-full" variant={isRunOver ? "destructive" : "default"}>
+            {isSuccess ? "Continue" : isRunOver ? "View Results" : "Understood"}
           </Button>
         </DialogFooter>
       </DialogContent>

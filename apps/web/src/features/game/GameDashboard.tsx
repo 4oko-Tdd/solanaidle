@@ -186,6 +186,7 @@ export function GameDashboard({ isAuthenticated }: Props) {
       <MissionResultDialog
         result={lastClaimResult}
         onClose={clearClaimResult}
+        livesRemaining={activeRun?.livesRemaining}
       />
     </>
   );
