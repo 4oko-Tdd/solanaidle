@@ -11,6 +11,7 @@ import { GuildPanel } from "@/features/guild/GuildPanel";
 import { RaidPanel } from "@/features/guild/RaidPanel";
 import { MissionResultDialog } from "./MissionResultDialog";
 import { RunLog } from "./RunLog";
+import { RunEndScreen } from "./RunEndScreen";
 import { LeaderboardPanel } from "./LeaderboardPanel";
 import { useWalletSign } from "@/hooks/useWalletSign";
 import { Button } from "@/components/ui/button";
@@ -48,6 +49,7 @@ export function GameDashboard({ isAuthenticated }: Props) {
     lastClaimResult,
     activeRun,
     classes,
+    endedRun,
     startMission,
     claimMission,
     upgradeGear,
@@ -83,6 +85,10 @@ export function GameDashboard({ isAuthenticated }: Props) {
 
   if (!activeRun && classes.length > 0) {
     return <ClassPicker classes={classes} onSelect={startRun} signMessage={signMessage} />;
+  }
+
+  if (!activeRun && endedRun && !endedRun.endSignature) {
+    return <RunEndScreen run={endedRun} signMessage={signMessage} onFinalized={refresh} />;
   }
 
   const activeMissionDef = activeMission

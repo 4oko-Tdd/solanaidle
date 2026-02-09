@@ -24,6 +24,7 @@ interface GameState {
   lastClaimResult: MissionClaimResponse | null;
   activeRun: WeeklyRun | null;
   classes: CharacterClass[];
+  endedRun: WeeklyRun | null;
 }
 
 export function useGameState(isAuthenticated: boolean) {
@@ -38,6 +39,7 @@ export function useGameState(isAuthenticated: boolean) {
     lastClaimResult: null,
     activeRun: null,
     classes: [],
+    endedRun: null,
   });
 
   const refresh = useCallback(async () => {
@@ -65,6 +67,14 @@ export function useGameState(isAuthenticated: boolean) {
           api<CharacterClass[]>("/runs/classes"),
         ]);
 
+      let endedRun: WeeklyRun | null = null;
+      if (!runData) {
+        try {
+          endedRun = await api<WeeklyRun | null>("/runs/ended");
+          if (endedRun?.endSignature) endedRun = null;
+        } catch { endedRun = null; }
+      }
+
       setState((s) => ({
         ...s,
         character: char,
@@ -74,6 +84,7 @@ export function useGameState(isAuthenticated: boolean) {
         upgradeInfo,
         activeRun: runData,
         classes: classData,
+        endedRun,
         loading: false,
       }));
     } catch (e: unknown) {
