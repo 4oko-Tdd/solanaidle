@@ -114,6 +114,7 @@ export function GameDashboard({ isAuthenticated }: Props) {
                   onStart={startMission}
                   characterLevel={character.level}
                   classId={activeRun?.classId}
+                  livesRemaining={activeRun?.livesRemaining}
                 />
               )}
 

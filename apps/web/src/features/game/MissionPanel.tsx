@@ -6,7 +6,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import type { MissionType, CharacterState, MissionId, ClassId } from "@solanaidle/shared";
-import { Clock, AlertTriangle, Lock } from "lucide-react";
+import { Clock, Skull, Lock, AlertTriangle } from "lucide-react";
 
 interface Props {
   missions: MissionType[];
@@ -15,6 +15,7 @@ interface Props {
   characterLevel?: number;
   classId?: ClassId | null;
   durationModifier?: number;
+  livesRemaining?: number;
 }
 
 function formatDuration(seconds: number): string {
@@ -22,8 +23,32 @@ function formatDuration(seconds: number): string {
   return `${Math.round(seconds / 60)}m`;
 }
 
-export function MissionPanel({ missions, characterState, onStart, characterLevel = 1, classId, durationModifier = 1 }: Props) {
+const RISK_LABELS: Record<string, Record<number, string>> = {
+  scout:     { 3: "Safe Run",     2: "Careful Run",      1: "Last Chance" },
+  expedition:{ 3: "Risky Expedition", 2: "High-Risk Mission", 1: "Suicide Mission" },
+  deep_dive: { 3: "Dangerous Dive",  2: "Perilous Dive",    1: "Death Wish" },
+  boss:      { 3: "Boss Fight",      2: "Do or Die",        1: "Final Stand" },
+};
+
+function getRiskLevel(missionId: string, lives: number): "safe" | "risky" | "dangerous" | "critical" {
+  const failMap: Record<string, number> = { scout: 10, expedition: 25, deep_dive: 40, boss: 50 };
+  const fail = failMap[missionId] ?? 10;
+  if (lives === 1) return fail >= 25 ? "critical" : "dangerous";
+  if (lives === 2) return fail >= 40 ? "dangerous" : "risky";
+  if (fail >= 40) return "risky";
+  return "safe";
+}
+
+const RISK_STYLES: Record<string, string> = {
+  safe: "border-border",
+  risky: "border-amber-500/50",
+  dangerous: "border-red-500/50",
+  critical: "border-red-500 bg-red-500/5",
+};
+
+export function MissionPanel({ missions, characterState, onStart, characterLevel = 1, classId, durationModifier = 1, livesRemaining = 3 }: Props) {
   const canStart = characterState === "idle";
+  const lives = Math.max(1, Math.min(3, livesRemaining));
 
   const isTierLocked = (missionId: string): boolean => {
     if (missionId === "expedition" && characterLevel < 3) return true;
@@ -49,22 +74,38 @@ export function MissionPanel({ missions, characterState, onStart, characterLevel
           const locked = isTierLocked(mission.id);
           const lockLabel = getTierLabel(mission.id);
           const displayDuration = Math.floor(mission.duration * durationModifier);
+          const riskLevel = getRiskLevel(mission.id, lives);
+          const dynamicLabel = RISK_LABELS[mission.id]?.[lives] ?? mission.name;
 
           return (
             <div
               key={mission.id}
-              className={`flex items-center justify-between rounded-lg border border-border p-3 ${locked ? "opacity-50" : ""}`}
+              className={`flex items-center justify-between rounded-lg border p-3 transition-colors ${
+                locked ? "opacity-50 border-border" : RISK_STYLES[riskLevel]
+              } ${riskLevel === "critical" && !locked ? "animate-pulse" : ""}`}
             >
               <div className="space-y-1">
-                <p className="font-medium text-sm">{mission.name}</p>
+                <div className="flex items-center gap-1.5">
+                  {riskLevel === "critical" && !locked && <Skull className="h-3.5 w-3.5 text-red-500" />}
+                  <p className={`font-medium text-sm ${
+                    riskLevel === "critical" && !locked ? "text-red-500" :
+                    riskLevel === "dangerous" && !locked ? "text-red-400" :
+                    riskLevel === "risky" && !locked ? "text-amber-500" : ""
+                  }`}>
+                    {locked ? mission.name : dynamicLabel}
+                  </p>
+                </div>
                 <div className="flex items-center gap-3 text-xs text-muted-foreground">
                   <span className="flex items-center gap-1">
                     <Clock className="h-3 w-3" />
                     {formatDuration(displayDuration)}
                   </span>
-                  <span className="flex items-center gap-1">
+                  <span className={`flex items-center gap-1 ${
+                    riskLevel === "critical" || riskLevel === "dangerous" ? "text-red-400 font-medium" :
+                    riskLevel === "risky" ? "text-amber-400" : ""
+                  }`}>
                     <AlertTriangle className="h-3 w-3" />
-                    {mission.failRate}% risk
+                    {mission.failRate}% chance of death
                   </span>
                 </div>
                 {lockLabel && (
@@ -78,6 +119,7 @@ export function MissionPanel({ missions, characterState, onStart, characterLevel
                 size="sm"
                 disabled={!canStart || locked}
                 onClick={() => onStart(mission.id)}
+                variant={riskLevel === "critical" || riskLevel === "dangerous" ? "destructive" : "default"}
               >
                 {locked ? "Locked" : "Start"}
               </Button>
