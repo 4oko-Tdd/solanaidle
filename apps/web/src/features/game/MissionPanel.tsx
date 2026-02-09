@@ -40,10 +40,10 @@ function getRiskLevel(missionId: string, lives: number): "safe" | "risky" | "dan
 }
 
 const RISK_STYLES: Record<string, string> = {
-  safe: "border-border",
-  risky: "border-amber-500/50",
-  dangerous: "border-red-500/50",
-  critical: "border-red-500 bg-red-500/5",
+  safe: "border-white/[0.06]",
+  risky: "border-neon-amber/40",
+  dangerous: "border-neon-red/40",
+  critical: "border-neon-red bg-neon-red/5",
 };
 
 export function MissionPanel({ missions, characterState, onStart, characterLevel = 1, classId, durationModifier = 1, livesRemaining = 3 }: Props) {
@@ -67,7 +67,7 @@ export function MissionPanel({ missions, characterState, onStart, characterLevel
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-base">Missions</CardTitle>
+        <CardTitle className="text-base font-display">Missions</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         {missions.map((mission) => {
@@ -80,17 +80,17 @@ export function MissionPanel({ missions, characterState, onStart, characterLevel
           return (
             <div
               key={mission.id}
-              className={`flex items-center justify-between rounded-lg border p-3 transition-colors ${
-                locked ? "opacity-50 border-border" : RISK_STYLES[riskLevel]
+              className={`flex items-center justify-between rounded-lg border p-3 transition-all bg-white/[0.02] ${
+                locked ? "opacity-50 border-white/[0.06]" : RISK_STYLES[riskLevel]
               } ${riskLevel === "critical" && !locked ? "animate-pulse" : ""}`}
             >
               <div className="space-y-1">
                 <div className="flex items-center gap-1.5">
-                  {riskLevel === "critical" && !locked && <Skull className="h-3.5 w-3.5 text-red-500" />}
+                  {riskLevel === "critical" && !locked && <Skull className="h-3.5 w-3.5 text-neon-red" />}
                   <p className={`font-medium text-sm ${
-                    riskLevel === "critical" && !locked ? "text-red-500" :
-                    riskLevel === "dangerous" && !locked ? "text-red-400" :
-                    riskLevel === "risky" && !locked ? "text-amber-500" : ""
+                    riskLevel === "critical" && !locked ? "text-neon-red" :
+                    riskLevel === "dangerous" && !locked ? "text-neon-red/80" :
+                    riskLevel === "risky" && !locked ? "text-neon-amber" : ""
                   }`}>
                     {locked ? mission.name : dynamicLabel}
                   </p>
@@ -98,14 +98,14 @@ export function MissionPanel({ missions, characterState, onStart, characterLevel
                 <div className="flex items-center gap-3 text-xs text-muted-foreground">
                   <span className="flex items-center gap-1">
                     <Clock className="h-3 w-3" />
-                    {formatDuration(displayDuration)}
+                    <span className="font-mono">{formatDuration(displayDuration)}</span>
                   </span>
                   <span className={`flex items-center gap-1 ${
-                    riskLevel === "critical" || riskLevel === "dangerous" ? "text-red-400 font-medium" :
-                    riskLevel === "risky" ? "text-amber-400" : ""
+                    riskLevel === "critical" || riskLevel === "dangerous" ? "text-neon-red font-medium" :
+                    riskLevel === "risky" ? "text-neon-amber" : ""
                   }`}>
                     <AlertTriangle className="h-3 w-3" />
-                    {mission.failRate}% chance of death
+                    <span className="font-mono">{mission.failRate}% chance of death</span>
                   </span>
                 </div>
                 {lockLabel && (

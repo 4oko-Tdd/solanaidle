@@ -55,14 +55,14 @@ export function MissionTimer({
   };
 
   return (
-    <Card className={isComplete ? "border-green-500/50" : ""}>
+    <Card className={isComplete ? "border-neon-green/50 glow-green" : ""}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-base">
+          <CardTitle className="text-base font-display">
             {missionDef?.name ?? "Mission"} in Progress
           </CardTitle>
           {isComplete && (
-            <span className="text-xs font-medium text-green-500">
+            <span className="text-xs font-medium text-neon-green font-mono uppercase tracking-wider">
               Complete!
             </span>
           )}
@@ -72,7 +72,7 @@ export function MissionTimer({
         <Progress value={progressPercent} className="h-2" />
         <div className="flex items-center justify-between text-sm">
           <span className="text-muted-foreground">
-            {isComplete ? "Ready to claim!" : formatTime(remaining)}
+            {isComplete ? "Ready to claim!" : <span className="font-mono">{formatTime(remaining)}</span>}
           </span>
           <div className="flex items-center gap-2">
             {import.meta.env.DEV && !isComplete && (
@@ -81,7 +81,7 @@ export function MissionTimer({
                 variant="outline"
                 onClick={handleSkipTimer}
                 disabled={skipping}
-                className="text-xs text-yellow-500 border-yellow-500/50 hover:bg-yellow-500/10"
+                className="text-xs text-neon-amber border-neon-amber/50 hover:bg-neon-amber/10"
               >
                 {skipping ? "Skipping..." : "Skip Timer (Dev)"}
               </Button>
