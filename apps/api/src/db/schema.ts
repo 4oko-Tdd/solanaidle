@@ -107,5 +107,24 @@ export function initSchema() {
       boss_defeated INTEGER NOT NULL DEFAULT 0,
       UNIQUE(wallet_address, week_start)
     );
+
+    CREATE TABLE IF NOT EXISTS run_events (
+      id TEXT PRIMARY KEY,
+      run_id TEXT NOT NULL REFERENCES weekly_runs(id),
+      event_type TEXT NOT NULL,
+      data TEXT NOT NULL DEFAULT '{}',
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_run_events_run ON run_events(run_id);
   `);
+
+  // Migrations — add columns if missing
+  const cols = db.prepare("PRAGMA table_info(weekly_runs)").all() as { name: string }[];
+  const colNames = cols.map(c => c.name);
+  if (!colNames.includes("start_signature")) {
+    db.exec("ALTER TABLE weekly_runs ADD COLUMN start_signature TEXT");
+  }
+  if (!colNames.includes("end_signature")) {
+    db.exec("ALTER TABLE weekly_runs ADD COLUMN end_signature TEXT");
+  }
 }
