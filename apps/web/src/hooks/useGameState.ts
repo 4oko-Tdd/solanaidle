@@ -139,10 +139,10 @@ export function useGameState(isAuthenticated: boolean) {
   }, []);
 
   const startRun = useCallback(
-    async (classId: ClassId) => {
+    async (classId: ClassId, signature?: string) => {
       await api("/runs/start", {
         method: "POST",
-        body: JSON.stringify({ classId }),
+        body: JSON.stringify({ classId, signature }),
       });
       await refresh();
     },

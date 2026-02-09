@@ -12,6 +12,7 @@ import { RaidPanel } from "@/features/guild/RaidPanel";
 import { MissionResultDialog } from "./MissionResultDialog";
 import { RunLog } from "./RunLog";
 import { LeaderboardPanel } from "./LeaderboardPanel";
+import { useWalletSign } from "@/hooks/useWalletSign";
 import { Button } from "@/components/ui/button";
 import {
   Swords,
@@ -55,6 +56,7 @@ export function GameDashboard({ isAuthenticated }: Props) {
     startRun,
   } = useGameState(isAuthenticated);
 
+  const { signMessage } = useWalletSign();
   const [activeTab, setActiveTab] = useState<Tab>("game");
 
   if (loading) {
@@ -80,7 +82,7 @@ export function GameDashboard({ isAuthenticated }: Props) {
   if (!character) return null;
 
   if (!activeRun && classes.length > 0) {
-    return <ClassPicker classes={classes} onSelect={startRun} />;
+    return <ClassPicker classes={classes} onSelect={startRun} signMessage={signMessage} />;
   }
 
   const activeMissionDef = activeMission
