@@ -88,6 +88,38 @@ export function GameDashboard({ isAuthenticated }: Props) {
     return <RunEndScreen run={endedRun} signMessage={signMessage} onFinalized={refresh} />;
   }
 
+  // Already finalized this week — show completed summary
+  if (!activeRun && endedRun && endedRun.endSignature) {
+    return (
+      <div className="mx-auto w-full max-w-md space-y-6 p-4 animate-fade-in-up">
+        <div className="text-center space-y-3">
+          <Trophy className="h-16 w-16 text-neon-amber mx-auto" />
+          <h2 className="text-3xl font-display text-gradient">Run Complete</h2>
+          <p className="text-sm text-muted-foreground">
+            Week {(() => {
+              const d = new Date(endedRun.weekStart);
+              const s = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+              return Math.ceil((d.getTime() - s.getTime()) / 604800000 + 1);
+            })()} score sealed. Come back next week for a new run.
+          </p>
+        </div>
+        <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] backdrop-blur-md p-4">
+          <div className="grid grid-cols-2 gap-3 text-center text-sm">
+            <div className="bg-white/[0.04] rounded-lg p-2">
+              <div className="text-muted-foreground text-xs font-mono uppercase tracking-wider">Score</div>
+              <div className="font-bold text-lg font-mono text-neon-green">{endedRun.score}</div>
+            </div>
+            <div className="bg-white/[0.04] rounded-lg p-2">
+              <div className="text-muted-foreground text-xs font-mono uppercase tracking-wider">Missions</div>
+              <div className="font-bold text-lg font-mono text-neon-green">{endedRun.missionsCompleted}</div>
+            </div>
+          </div>
+        </div>
+        <LeaderboardPanel />
+      </div>
+    );
+  }
+
   if (!activeRun && classes.length > 0) {
     return <ClassPicker classes={classes} onSelect={startRun} signMessage={signMessage} />;
   }

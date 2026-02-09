@@ -52,7 +52,7 @@ export function RunEndScreen({ run, signMessage, onFinalized }: Props) {
         method: "POST",
         body: JSON.stringify({ signature: signature ?? "dev-unsigned" }),
       });
-      onFinalized();
+      await onFinalized();
     } finally {
       setSigning(false);
     }

@@ -71,7 +71,6 @@ export function useGameState(isAuthenticated: boolean) {
       if (!runData) {
         try {
           endedRun = await api<WeeklyRun | null>("/runs/ended");
-          if (endedRun?.endSignature) endedRun = null;
         } catch { endedRun = null; }
       }
 
