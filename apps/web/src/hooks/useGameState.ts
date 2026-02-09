@@ -8,6 +8,9 @@ import type {
   UpgradeInfo,
   MissionClaimResponse,
   MissionId,
+  WeeklyRun,
+  CharacterClass,
+  ClassId,
 } from "@solanaidle/shared";
 
 interface GameState {
@@ -19,6 +22,8 @@ interface GameState {
   loading: boolean;
   error: string | null;
   lastClaimResult: MissionClaimResponse | null;
+  activeRun: WeeklyRun | null;
+  classes: CharacterClass[];
 }
 
 export function useGameState(isAuthenticated: boolean) {
@@ -31,6 +36,8 @@ export function useGameState(isAuthenticated: boolean) {
     loading: true,
     error: null,
     lastClaimResult: null,
+    activeRun: null,
+    classes: [],
   });
 
   const refresh = useCallback(async () => {
@@ -48,12 +55,15 @@ export function useGameState(isAuthenticated: boolean) {
         } else throw e;
       }
 
-      const [missions, activeRes, inventory, upgradeInfo] = await Promise.all([
-        api<MissionType[]>("/missions"),
-        api<{ activeMission: ActiveMission | null }>("/missions/active"),
-        api<Inventory>("/inventory"),
-        api<UpgradeInfo>("/upgrades"),
-      ]);
+      const [missions, activeRes, inventory, upgradeInfo, runData, classData] =
+        await Promise.all([
+          api<MissionType[]>("/missions"),
+          api<{ activeMission: ActiveMission | null }>("/missions/active"),
+          api<Inventory>("/inventory"),
+          api<UpgradeInfo>("/upgrades"),
+          api<WeeklyRun | null>("/runs/current"),
+          api<CharacterClass[]>("/runs/classes"),
+        ]);
 
       setState((s) => ({
         ...s,
@@ -62,6 +72,8 @@ export function useGameState(isAuthenticated: boolean) {
         activeMission: activeRes.activeMission,
         inventory,
         upgradeInfo,
+        activeRun: runData,
+        classes: classData,
         loading: false,
       }));
     } catch (e: unknown) {
@@ -126,6 +138,17 @@ export function useGameState(isAuthenticated: boolean) {
     setState((s) => ({ ...s, lastClaimResult: null }));
   }, []);
 
+  const startRun = useCallback(
+    async (classId: ClassId) => {
+      await api("/runs/start", {
+        method: "POST",
+        body: JSON.stringify({ classId }),
+      });
+      await refresh();
+    },
+    [refresh],
+  );
+
   return {
     ...state,
     startMission,
@@ -133,5 +156,6 @@ export function useGameState(isAuthenticated: boolean) {
     upgradeGear,
     refresh,
     clearClaimResult,
+    startRun,
   };
 }

@@ -1,5 +1,6 @@
 import { useGameState } from "@/hooks/useGameState";
 import { CharacterCard } from "./CharacterCard";
+import { ClassPicker } from "./ClassPicker";
 import { MissionPanel } from "./MissionPanel";
 import { MissionTimer } from "./MissionTimer";
 import { InventoryPanel } from "@/features/inventory/InventoryPanel";
@@ -23,11 +24,14 @@ export function GameDashboard({ isAuthenticated }: Props) {
     loading,
     error,
     lastClaimResult,
+    activeRun,
+    classes,
     startMission,
     claimMission,
     upgradeGear,
     refresh,
     clearClaimResult,
+    startRun,
   } = useGameState(isAuthenticated);
 
   const [refreshing, setRefreshing] = useState(false);
@@ -62,6 +66,11 @@ export function GameDashboard({ isAuthenticated }: Props) {
   }
 
   if (!character) return null;
+
+  // Show class picker if no active run this week
+  if (!activeRun && classes.length > 0) {
+    return <ClassPicker classes={classes} onSelect={startRun} />;
+  }
 
   const activeMissionDef = activeMission
     ? missions.find((m) => m.id === activeMission.missionId)
