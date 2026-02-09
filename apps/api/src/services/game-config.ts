@@ -1,4 +1,4 @@
-import type { MissionType, UpgradeCost } from "@solanaidle/shared";
+import type { MissionType, UpgradeCost, CharacterClass, SkillNode, RaidMission } from "@solanaidle/shared";
 
 export const MISSIONS: MissionType[] = [
   {
@@ -73,4 +73,78 @@ export function getGearUpgrade(level: number) {
 export function getFailRateReduction(gearLevel: number): number {
   const upgrade = GEAR_UPGRADES.find((u) => u.level === gearLevel);
   return upgrade?.failRateReduction ?? 0;
+}
+
+export const CLASSES: CharacterClass[] = [
+  {
+    id: "scout",
+    name: "Scout",
+    description: "Speed runner. Faster missions, slightly riskier.",
+    durationModifier: 0.85,
+    failRateModifier: 5,
+    lootModifier: 1.0,
+    xpModifier: 1.0,
+  },
+  {
+    id: "guardian",
+    name: "Guardian",
+    description: "Tank. Safer missions, takes longer.",
+    durationModifier: 1.2,
+    failRateModifier: -10,
+    lootModifier: 1.0,
+    xpModifier: 1.0,
+  },
+  {
+    id: "mystic",
+    name: "Mystic",
+    description: "Gambler. Higher rare loot, riskier, less XP.",
+    durationModifier: 1.0,
+    failRateModifier: 10,
+    lootModifier: 1.3,
+    xpModifier: 0.9,
+  },
+];
+
+export const SKILL_TREES: SkillNode[] = [
+  // Scout
+  { id: "scout_swift", classId: "scout", name: "Swift Feet", description: "-10% more duration reduction", tier: 1, cost: 1 },
+  { id: "scout_escape", classId: "scout", name: "Lucky Escape", description: "50% chance to survive a failed mission (1x/run)", tier: 2, cost: 2 },
+  { id: "scout_double", classId: "scout", name: "Double Run", description: "Can send 2 missions simultaneously (1x/day)", tier: 3, cost: 3 },
+  // Guardian
+  { id: "guardian_iron", classId: "guardian", name: "Iron Will", description: "+1 run life (4 total)", tier: 1, cost: 1 },
+  { id: "guardian_shield", classId: "guardian", name: "Resource Shield", description: "Keep 50% resources on death", tier: 2, cost: 2 },
+  { id: "guardian_fortify", classId: "guardian", name: "Fortify", description: "-5% fail rate on Tier 3 missions", tier: 3, cost: 3 },
+  // Mystic
+  { id: "mystic_eye", classId: "mystic", name: "Third Eye", description: "See mission outcome probability", tier: 1, cost: 1 },
+  { id: "mystic_ritual", classId: "mystic", name: "Ritual", description: "+15% NFT drop chance on Deep Dive", tier: 2, cost: 2 },
+  { id: "mystic_soul", classId: "mystic", name: "Soul Link", description: "On death, collect passive resources for 1h", tier: 3, cost: 3 },
+];
+
+export const BOSS_MISSION: MissionType = {
+  id: "boss",
+  name: "Shadow Boss",
+  duration: 43200, // 12h
+  failRate: 50,
+  rewards: { xpRange: [500, 1000], scrap: [200, 500], crystal: [50, 100], artifact: [2, 5], nftChance: 20 },
+};
+
+export const RAIDS: RaidMission[] = [
+  { id: "outpost", name: "Outpost Raid", requiredPlayers: 2, duration: 14400, lootMultiplier: 2, description: "2-player raid. 4h. 2x loot." },
+  { id: "stronghold", name: "Stronghold Siege", requiredPlayers: 3, duration: 43200, lootMultiplier: 3, description: "3-player raid. 12h. 3x loot + guaranteed Crystal." },
+];
+
+export const RUN_LIVES = 3;
+export const BOSS_UNLOCK_LEVEL = 5;
+export const TIER2_UNLOCK_LEVEL = 3;
+
+export function getClass(id: string): CharacterClass | undefined {
+  return CLASSES.find((c) => c.id === id);
+}
+
+export function getSkillsForClass(classId: string): SkillNode[] {
+  return SKILL_TREES.filter((s) => s.classId === classId);
+}
+
+export function getRaid(id: string): RaidMission | undefined {
+  return RAIDS.find((r) => r.id === id);
 }
