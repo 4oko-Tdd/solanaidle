@@ -184,6 +184,30 @@ export interface WeeklyRun {
   missionsCompleted: number;
   bossDefeated: boolean;
   active: boolean;
+  startSignature?: string | null;
+  endSignature?: string | null;
+}
+
+// ── Run Events ──
+
+export type RunEventType =
+  | "run_start"
+  | "mission_success"
+  | "mission_fail"
+  | "death"
+  | "revive"
+  | "level_up"
+  | "boss_kill"
+  | "skill_unlock"
+  | "nft_drop"
+  | "run_end";
+
+export interface RunEvent {
+  id: string;
+  runId: string;
+  eventType: RunEventType;
+  data: Record<string, unknown>;
+  createdAt: string;
 }
 
 // ── Guilds ──
