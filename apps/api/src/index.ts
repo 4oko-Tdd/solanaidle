@@ -11,6 +11,7 @@ import upgrades from "./routes/upgrades.js";
 import claims from "./routes/claims.js";
 import guilds from "./routes/guilds.js";
 import raids from "./routes/raids.js";
+import runs from "./routes/runs.js";
 
 const app = new Hono().basePath("/api");
 
@@ -29,6 +30,7 @@ app.route("/upgrades", upgrades);
 app.route("/claims", claims);
 app.route("/guilds", guilds);
 app.route("/raids", raids);
+app.route("/runs", runs);
 
 initSchema();
 
