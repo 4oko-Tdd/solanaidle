@@ -17,7 +17,11 @@ import skills from "./routes/skills.js";
 const app = new Hono().basePath("/api");
 
 app.use("*", logger());
-app.use("*", cors());
+app.use("*", cors({
+  origin: process.env.CORS_ORIGIN || "*",
+  allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowHeaders: ["Content-Type", "Authorization"],
+}));
 
 app.get("/health", (c) => {
   return c.json({ status: "ok", timestamp: new Date().toISOString() });
@@ -140,6 +144,7 @@ if (process.env.NODE_ENV !== "production") {
   });
 }
 
-serve({ fetch: app.fetch, port: 3000 }, (info) => {
+const port = Number(process.env.PORT) || 3000;
+serve({ fetch: app.fetch, port }, (info) => {
   console.log(`API server running on http://localhost:${info.port}`);
 });

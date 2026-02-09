@@ -47,12 +47,19 @@ export function RunEndScreen({ run, signMessage, onFinalized }: Props) {
     setSigning(true);
     try {
       const msg = `END_RUN:week${weekNum}:score:${run.score}:${Date.now()}`;
-      const signature = await signMessage(msg);
+      let signature: string | null = null;
+      try {
+        signature = await signMessage(msg);
+      } catch (e) {
+        console.warn("[RunEndScreen] signMessage failed, using fallback:", e);
+      }
       await api(`/runs/${run.id}/finalize`, {
         method: "POST",
-        body: JSON.stringify({ signature: signature ?? "dev-unsigned" }),
+        body: JSON.stringify({ signature: signature ?? "unsigned" }),
       });
       await onFinalized();
+    } catch (e) {
+      console.error("[RunEndScreen] finalize failed:", e);
     } finally {
       setSigning(false);
     }

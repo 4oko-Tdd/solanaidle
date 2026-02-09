@@ -14,6 +14,8 @@ export function getAuthToken() {
   return authToken;
 }
 
+const API_BASE = import.meta.env.VITE_API_URL || "/api";
+
 export async function api<T>(path: string, options?: RequestInit): Promise<T> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -21,7 +23,7 @@ export async function api<T>(path: string, options?: RequestInit): Promise<T> {
   if (authToken) {
     headers["Authorization"] = `Bearer ${authToken}`;
   }
-  const res = await fetch(`/api${path}`, {
+  const res = await fetch(`${API_BASE}${path}`, {
     ...options,
     headers: { ...headers, ...options?.headers },
   });
