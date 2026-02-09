@@ -16,9 +16,9 @@ interface Props {
 }
 
 const CLASS_DISPLAY: Record<ClassId, { icon: React.ReactNode; name: string }> = {
-  scout: { icon: <Zap className="h-4 w-4 text-yellow-500" />, name: "Scout" },
-  guardian: { icon: <ShieldHalf className="h-4 w-4 text-blue-500" />, name: "Guardian" },
-  mystic: { icon: <Sparkles className="h-4 w-4 text-purple-500" />, name: "Mystic" },
+  scout: { icon: <Zap className="h-4 w-4 text-neon-amber" />, name: "Scout" },
+  guardian: { icon: <ShieldHalf className="h-4 w-4 text-neon-cyan" />, name: "Guardian" },
+  mystic: { icon: <Sparkles className="h-4 w-4 text-neon-purple" />, name: "Mystic" },
 };
 
 export function CharacterCard({ character, classId, livesRemaining }: Props) {
@@ -34,7 +34,7 @@ export function CharacterCard({ character, classId, livesRemaining }: Props) {
   const cls = classId ? CLASS_DISPLAY[classId] : null;
 
   return (
-    <Card>
+    <Card className="animate-fade-in-up">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base flex items-center gap-1.5">
@@ -47,22 +47,22 @@ export function CharacterCard({ character, classId, livesRemaining }: Props) {
       <CardContent className="space-y-3">
         <div className="flex items-center justify-between text-sm">
           <div className="flex items-center gap-1.5">
-            <Star className="h-4 w-4 text-yellow-500" />
-            <span>Level {character.level}</span>
+            <Star className="h-4 w-4 text-neon-amber" />
+            <span className="font-display">Level {character.level}</span>
           </div>
-          <span className="text-muted-foreground">
+          <span className="font-mono text-muted-foreground">
             {character.xp} / {xpForNextLevel} XP
           </span>
         </div>
         <Progress value={xpPercent} className="h-2" />
         <div className="flex items-center gap-4 text-sm text-muted-foreground">
           <div className="flex items-center gap-1">
-            <Heart className="h-4 w-4" />
+            <Heart className="h-4 w-4 text-neon-red" />
             <span>{livesRemaining != null ? `${livesRemaining} Lives` : `${character.hp} HP`}</span>
           </div>
           <div className="flex items-center gap-1">
-            <Shield className="h-4 w-4" />
-            <span>Gear Lv.{character.gearLevel}</span>
+            <Shield className="h-4 w-4 text-neon-cyan" />
+            <span className="font-mono">Gear Lv.{character.gearLevel}</span>
           </div>
         </div>
         {character.state === "dead" && character.reviveAt && (

@@ -8,9 +8,9 @@ interface Props {
 }
 
 const CLASS_CONFIG: Record<ClassId, { icon: React.ReactNode; name: string }> = {
-  scout: { icon: <Zap className="h-4 w-4 text-yellow-500" />, name: "Scout" },
-  guardian: { icon: <ShieldHalf className="h-4 w-4 text-blue-500" />, name: "Guardian" },
-  mystic: { icon: <Sparkles className="h-4 w-4 text-purple-500" />, name: "Mystic" },
+  scout: { icon: <Zap className="h-4 w-4 text-neon-amber" />, name: "Scout" },
+  guardian: { icon: <ShieldHalf className="h-4 w-4 text-neon-cyan" />, name: "Guardian" },
+  mystic: { icon: <Sparkles className="h-4 w-4 text-neon-purple" />, name: "Mystic" },
 };
 
 function getWeekNumber(weekStart: string): number {
@@ -25,9 +25,9 @@ function getRunStatusBadge(run: WeeklyRun, characterState?: CharacterState) {
     return <Badge variant="secondary" className="bg-muted text-muted-foreground">RUN OVER</Badge>;
   }
   if (characterState === "dead") {
-    return <Badge variant="destructive" className="animate-pulse">DEAD</Badge>;
+    return <Badge variant="destructive" className="animate-pulse animate-glow-pulse bg-neon-red/20 text-neon-red">DEAD</Badge>;
   }
-  return <Badge className="bg-green-600 text-white">ALIVE</Badge>;
+  return <Badge className="bg-neon-green/20 text-neon-green">ALIVE</Badge>;
 }
 
 export function RunStatus({ run, characterState }: Props) {
@@ -35,11 +35,11 @@ export function RunStatus({ run, characterState }: Props) {
   const weekNum = getWeekNumber(run.weekStart);
 
   return (
-    <div className="rounded-lg border border-border bg-card p-3 space-y-2">
+    <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] backdrop-blur-md p-3 space-y-2">
       {/* Top row: Week + Class + Status */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-bold">Week {weekNum} Run</span>
+          <span className="text-sm font-bold font-display">Week {weekNum} Run</span>
           <span className="flex items-center gap-1 text-xs text-muted-foreground">
             {cls.icon}
             {cls.name}
@@ -53,30 +53,30 @@ export function RunStatus({ run, characterState }: Props) {
         <div className="flex items-center gap-1">
           {Array.from({ length: 3 }, (_, i) =>
             i < run.livesRemaining ? (
-              <Heart key={i} className="h-4 w-4 fill-red-500 text-red-500" />
+              <Heart key={i} className="h-4 w-4 fill-neon-red text-neon-red" />
             ) : (
               <HeartCrack key={i} className="h-4 w-4 text-muted-foreground/40" />
             )
           )}
           {run.livesRemaining === 1 && (
-            <span className="ml-1 text-xs font-bold text-red-500">LAST LIFE</span>
+            <span className="ml-1 text-xs font-bold text-neon-red">LAST LIFE</span>
           )}
         </div>
         <div className="flex items-center gap-3 text-xs">
-          <span className="text-muted-foreground">Score: <span className="font-bold text-foreground">{run.score}</span></span>
-          <span className="text-muted-foreground">Missions: <span className="font-bold text-foreground">{run.missionsCompleted}</span></span>
+          <span className="text-muted-foreground">Score: <span className="font-mono font-bold text-neon-green">{run.score}</span></span>
+          <span className="text-muted-foreground">Missions: <span className="font-mono font-bold text-neon-green">{run.missionsCompleted}</span></span>
         </div>
       </div>
 
       {/* Stakes text */}
       {run.livesRemaining === 1 && run.active && characterState !== "dead" && (
-        <div className="rounded bg-red-500/10 border border-red-500/30 px-2 py-1 text-center">
-          <span className="text-xs font-bold text-red-500">FAILURE MEANS DEATH. 1 LIFE REMAINING.</span>
+        <div className="rounded bg-neon-red/10 border border-neon-red/30 px-2 py-1 text-center animate-pulse">
+          <span className="text-xs font-bold text-neon-red">FAILURE MEANS DEATH. 1 LIFE REMAINING.</span>
         </div>
       )}
       {run.livesRemaining === 2 && run.active && (
-        <div className="rounded bg-amber-500/10 border border-amber-500/30 px-2 py-1 text-center">
-          <span className="text-xs font-medium text-amber-500">Careful. 2 lives remaining.</span>
+        <div className="rounded bg-neon-amber/10 border border-neon-amber/30 px-2 py-1 text-center">
+          <span className="text-xs font-medium text-neon-amber">Careful. 2 lives remaining.</span>
         </div>
       )}
     </div>
