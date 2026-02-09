@@ -10,6 +10,7 @@ import { SkillTree } from "./SkillTree";
 import { GuildPanel } from "@/features/guild/GuildPanel";
 import { RaidPanel } from "@/features/guild/RaidPanel";
 import { MissionResultDialog } from "./MissionResultDialog";
+import { LeaderboardPanel } from "./LeaderboardPanel";
 import { Button } from "@/components/ui/button";
 import { RefreshCw, Loader2 } from "lucide-react";
 import { useState } from "react";
@@ -125,6 +126,8 @@ export function GameDashboard({ isAuthenticated }: Props) {
       <RaidPanel />
 
       {activeRun && <SkillTree onUpdate={refresh} />}
+
+      <LeaderboardPanel />
 
       <MissionResultDialog
         result={lastClaimResult}
