@@ -5,19 +5,19 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-semibold tracking-wide transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground shadow hover:bg-primary/90",
+          "bg-gradient-to-r from-[#9945FF] to-[#14F195] text-white shadow-lg hover:shadow-[0_0_20px_rgba(153,69,255,0.3)] hover:brightness-110",
         destructive:
-          "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
+          "bg-neon-red/90 text-white shadow-lg hover:bg-neon-red hover:shadow-[0_0_20px_rgba(255,51,102,0.3)]",
         outline:
-          "border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground",
+          "border border-white/[0.1] bg-white/[0.03] backdrop-blur-sm shadow-sm hover:bg-white/[0.06] hover:border-white/[0.15] text-foreground",
         secondary:
-          "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
+          "bg-white/[0.06] text-secondary-foreground shadow-sm hover:bg-white/[0.1]",
+        ghost: "hover:bg-white/[0.06] hover:text-foreground",
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
