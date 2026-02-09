@@ -10,6 +10,7 @@ import inventory from "./routes/inventory.js";
 import upgrades from "./routes/upgrades.js";
 import claims from "./routes/claims.js";
 import guilds from "./routes/guilds.js";
+import raids from "./routes/raids.js";
 
 const app = new Hono().basePath("/api");
 
@@ -27,6 +28,7 @@ app.route("/inventory", inventory);
 app.route("/upgrades", upgrades);
 app.route("/claims", claims);
 app.route("/guilds", guilds);
+app.route("/raids", raids);
 
 initSchema();
 
