@@ -83,12 +83,13 @@ export function GameDashboard({ isAuthenticated }: Props) {
 
   if (!character) return null;
 
-  if (!activeRun && classes.length > 0) {
-    return <ClassPicker classes={classes} onSelect={startRun} signMessage={signMessage} />;
-  }
-
+  // Show RunEndScreen first (seal score before starting new run)
   if (!activeRun && endedRun && !endedRun.endSignature) {
     return <RunEndScreen run={endedRun} signMessage={signMessage} onFinalized={refresh} />;
+  }
+
+  if (!activeRun && classes.length > 0) {
+    return <ClassPicker classes={classes} onSelect={startRun} signMessage={signMessage} />;
   }
 
   const activeMissionDef = activeMission
