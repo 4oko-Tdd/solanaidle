@@ -13,6 +13,7 @@ import {
 } from "./game-config.js";
 import { addScore, addSkillPoint, addSkillPoints, incrementMissions, markBossDefeated, useLife } from "./run-service.js";
 import { hasSkill } from "./skill-service.js";
+import { insertEvent } from "./event-service.js";
 import type { ActiveMission, MissionClaimResponse, MissionId } from "@solanaidle/shared";
 
 interface MissionRow {
@@ -163,6 +164,11 @@ export function claimMission(
         // Lucky escape! Don't die, don't lose a life
         db.prepare("UPDATE characters SET state = 'idle' WHERE id = ?").run(characterId);
         const char = db.prepare("SELECT * FROM characters WHERE id = ?").get(characterId) as CharacterRow;
+        insertEvent(runId, "mission_fail", {
+          missionId: missionRow.mission_id,
+          livesRemaining: -1,
+          escaped: true,
+        });
         return {
           result: "success", // Treated as a narrow escape
           rewards: { xp: 0, scrap: 0 },
@@ -171,6 +177,19 @@ export function claimMission(
         };
       }
       useLife(runId);
+      const runAfterLife = db.prepare("SELECT lives_remaining FROM weekly_runs WHERE id = ?").get(runId) as any;
+      const livesLeft = runAfterLife?.lives_remaining ?? 0;
+      insertEvent(runId, "mission_fail", {
+        missionId: missionRow.mission_id,
+        livesRemaining: livesLeft,
+        escaped: false,
+      });
+      if (livesLeft <= 0) {
+        insertEvent(runId, "run_end", {
+          finalScore: 0,
+          cause: "death",
+        });
+      }
     }
 
     const reviveAt = new Date(
@@ -231,6 +250,9 @@ export function claimMission(
     newXp -= newLevel * XP_PER_LEVEL;
     newLevel++;
   }
+  if (newLevel > charRow.level && runId) {
+    insertEvent(runId, "level_up", { newLevel });
+  }
 
   db.prepare(
     "UPDATE characters SET state = 'idle', level = ?, xp = ?, revive_at = NULL WHERE id = ?"
@@ -252,6 +274,23 @@ export function claimMission(
       markBossDefeated(runId);
       addSkillPoints(runId, 2); // bonus 3 total (1 + 2)
     }
+    if (runId) {
+      insertEvent(runId, "mission_success", {
+        missionId: missionRow.mission_id,
+        xp: rewards.xp,
+        scrap: rewards.scrap,
+        crystal: rewards.crystal ?? 0,
+        artifact: rewards.artifact ?? 0,
+      });
+      if (missionRow.mission_id === "boss") {
+        insertEvent(runId, "boss_kill", {
+          xp: rewards.xp,
+          scrap: rewards.scrap,
+          crystal: rewards.crystal ?? 0,
+          artifact: rewards.artifact ?? 0,
+        });
+      }
+    }
   }
 
   // Check NFT drop
@@ -266,6 +305,9 @@ export function claimMission(
     db.prepare(
       "INSERT INTO nft_claims (id, character_id, mission_id, nft_name) VALUES (?, ?, ?, ?)"
     ).run(nftId, characterId, mission.id, nftName);
+    if (runId) {
+      insertEvent(runId, "nft_drop", { nftName, missionId: mission.id });
+    }
     nftDrop = {
       id: nftId,
       missionId: mission.id as MissionId,
