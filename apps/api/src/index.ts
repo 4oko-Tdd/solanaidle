@@ -8,6 +8,7 @@ import character from "./routes/character.js";
 import missions from "./routes/missions.js";
 import inventory from "./routes/inventory.js";
 import upgrades from "./routes/upgrades.js";
+import claims from "./routes/claims.js";
 
 const app = new Hono().basePath("/api");
 
@@ -23,9 +24,7 @@ app.route("/character", character);
 app.route("/missions", missions);
 app.route("/inventory", inventory);
 app.route("/upgrades", upgrades);
-
-// TODO: Mount remaining route modules
-// app.route("/claims", claimRoutes);
+app.route("/claims", claims);
 
 initSchema();
 
