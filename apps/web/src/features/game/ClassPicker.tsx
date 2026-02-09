@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Zap, ShieldHalf, Sparkles } from "lucide-react";
 import type { CharacterClass, ClassId } from "@solanaidle/shared";
 
 interface Props {
@@ -9,10 +10,10 @@ interface Props {
   onSelect: (classId: ClassId) => Promise<void>;
 }
 
-const CLASS_ICONS: Record<ClassId, string> = {
-  scout: "\u26A1",
-  guardian: "\uD83D\uDEE1\uFE0F",
-  mystic: "\uD83D\uDD2E",
+const CLASS_ICONS: Record<ClassId, React.ReactNode> = {
+  scout: <Zap className="h-6 w-6 text-yellow-500" />,
+  guardian: <ShieldHalf className="h-6 w-6 text-blue-500" />,
+  mystic: <Sparkles className="h-6 w-6 text-purple-500" />,
 };
 
 export function ClassPicker({ classes, onSelect }: Props) {
@@ -33,7 +34,6 @@ export function ClassPicker({ classes, onSelect }: Props) {
       const pct = Math.round((value - 1) * 100);
       return pct > 0 ? `+${pct}%` : `${pct}%`;
     }
-    // Additive (fail rate)
     if (value === 0) return null;
     return value > 0 ? `+${value}%` : `${value}%`;
   };
@@ -57,7 +57,7 @@ export function ClassPicker({ classes, onSelect }: Props) {
           >
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-lg">
-                <span className="text-2xl">{CLASS_ICONS[cls.id]}</span>
+                {CLASS_ICONS[cls.id]}
                 {cls.name}
               </CardTitle>
             </CardHeader>

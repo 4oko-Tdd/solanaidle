@@ -2,14 +2,21 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Zap, ShieldHalf, Sparkles, Trophy, Crown, Medal } from "lucide-react";
 import { api } from "@/lib/api";
 import type { LeaderboardEntry, ClassId } from "@solanaidle/shared";
 
-const CLASS_ICONS: Record<ClassId, string> = {
-  scout: "\u26A1",
-  guardian: "\uD83D\uDEE1\uFE0F",
-  mystic: "\uD83D\uDD2E",
+const CLASS_ICONS: Record<ClassId, React.ReactNode> = {
+  scout: <Zap className="h-3.5 w-3.5 text-yellow-500" />,
+  guardian: <ShieldHalf className="h-3.5 w-3.5 text-blue-500" />,
+  mystic: <Sparkles className="h-3.5 w-3.5 text-purple-500" />,
 };
+
+const RANK_ICONS: React.ReactNode[] = [
+  <Trophy key="1" className="h-4 w-4 text-yellow-500" />,
+  <Medal key="2" className="h-4 w-4 text-gray-400" />,
+  <Medal key="3" className="h-4 w-4 text-amber-600" />,
+];
 
 function truncateWallet(addr: string): string {
   return addr.slice(0, 4) + "..." + addr.slice(-4);
@@ -58,18 +65,18 @@ export function LeaderboardPanel({ currentWallet }: Props) {
               }`}
             >
               <div className="flex items-center gap-2">
-                <span className="w-6 text-center font-mono text-muted-foreground">
+                <span className="w-6 flex justify-center">
                   {entry.rank <= 3
-                    ? ["\uD83E\uDD47", "\uD83E\uDD48", "\uD83E\uDD49"][entry.rank - 1]
-                    : `#${entry.rank}`}
+                    ? RANK_ICONS[entry.rank - 1]
+                    : <span className="font-mono text-muted-foreground text-xs">#{entry.rank}</span>}
                 </span>
-                <span>{CLASS_ICONS[entry.classId]}</span>
+                {CLASS_ICONS[entry.classId]}
                 <span className="font-mono text-xs">
                   {isMe ? "You" : truncateWallet(entry.walletAddress)}
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                {entry.bossDefeated && <span className="text-xs">{"\uD83D\uDC51"}</span>}
+                {entry.bossDefeated && <Crown className="h-3.5 w-3.5 text-yellow-500" />}
                 <span className="font-bold">{entry.score}</span>
               </div>
             </div>

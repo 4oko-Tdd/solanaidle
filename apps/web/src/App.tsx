@@ -8,9 +8,9 @@ export default function App() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="flex items-center justify-between border-b border-border px-4 py-3">
+      <header className="flex h-14 items-center justify-between border-b border-border px-4">
         <h1 className="text-lg font-bold">Solana Idle</h1>
-        <ConnectButton />
+        {isAuthenticated && <ConnectButton compact />}
       </header>
       <main className="flex flex-1 flex-col">
         {authLoading ? (

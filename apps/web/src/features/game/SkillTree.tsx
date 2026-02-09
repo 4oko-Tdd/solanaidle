@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ChevronDown } from "lucide-react";
 import { api } from "@/lib/api";
 import type { SkillNode, UnlockedSkill } from "@solanaidle/shared";
 
@@ -70,9 +71,7 @@ export function SkillTree({ onUpdate }: Props) {
             <div key={skill.id}>
               {i > 0 && (
                 <div className="flex justify-center py-0.5">
-                  <span className="text-muted-foreground text-xs">
-                    {"\u2193"}
-                  </span>
+                  <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
                 </div>
               )}
               <div
