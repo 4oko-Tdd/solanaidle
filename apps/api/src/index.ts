@@ -5,6 +5,7 @@ import { serve } from "@hono/node-server";
 import { initSchema } from "./db/schema.js";
 import auth from "./routes/auth.js";
 import character from "./routes/character.js";
+import missions from "./routes/missions.js";
 
 const app = new Hono().basePath("/api");
 
@@ -17,9 +18,9 @@ app.get("/health", (c) => {
 
 app.route("/auth", auth);
 app.route("/character", character);
+app.route("/missions", missions);
 
 // TODO: Mount remaining route modules
-// app.route("/missions", missionRoutes);
 // app.route("/inventory", inventoryRoutes);
 // app.route("/upgrades", upgradeRoutes);
 // app.route("/claims", claimRoutes);
