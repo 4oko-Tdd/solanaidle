@@ -69,6 +69,75 @@ if (process.env.NODE_ENV !== "production") {
     }
     return c.json({ message: "Timer skipped! You can now claim." });
   });
+
+  // Dev: Advance week (end current run, simulate new week)
+  app.post("/dev/advance-week", async (c) => {
+    const header = c.req.header("Authorization");
+    if (!header?.startsWith("Bearer ")) {
+      return c.json({ error: "UNAUTHORIZED", message: "Missing token" }, 401);
+    }
+    const { verifyToken } = await import("./services/auth-service.js");
+    const payload = verifyToken(header.slice(7));
+    if (!payload) {
+      return c.json({ error: "UNAUTHORIZED", message: "Invalid token" }, 401);
+    }
+
+    const { getActiveRun, endRun } = await import("./services/run-service.js");
+    const run = getActiveRun(payload.wallet);
+    if (run) {
+      endRun(run.id);
+      return c.json({ message: "Week advanced! Run ended and leaderboard updated." });
+    }
+    return c.json({ message: "No active run to end." });
+  });
+
+  // Dev: Add resources for testing
+  app.post("/dev/add-resources", async (c) => {
+    const header = c.req.header("Authorization");
+    if (!header?.startsWith("Bearer ")) {
+      return c.json({ error: "UNAUTHORIZED", message: "Missing token" }, 401);
+    }
+    const { verifyToken } = await import("./services/auth-service.js");
+    const payload = verifyToken(header.slice(7));
+    if (!payload) {
+      return c.json({ error: "UNAUTHORIZED", message: "Invalid token" }, 401);
+    }
+
+    const { getCharacter } = await import("./services/character-service.js");
+    const char = getCharacter(payload.wallet);
+    if (!char) {
+      return c.json({ error: "CHARACTER_NOT_FOUND", message: "No character" }, 404);
+    }
+
+    const db = (await import("./db/database.js")).default;
+    db.prepare(
+      "UPDATE inventories SET scrap = scrap + 500, crystal = crystal + 100, artifact = artifact + 10 WHERE character_id = ?"
+    ).run(char.id);
+
+    return c.json({ message: "Added 500 scrap, 100 crystal, 10 artifact" });
+  });
+
+  // Dev: Add skill points for testing skill tree
+  app.post("/dev/add-skill-points", async (c) => {
+    const header = c.req.header("Authorization");
+    if (!header?.startsWith("Bearer ")) {
+      return c.json({ error: "UNAUTHORIZED", message: "Missing token" }, 401);
+    }
+    const { verifyToken } = await import("./services/auth-service.js");
+    const payload = verifyToken(header.slice(7));
+    if (!payload) {
+      return c.json({ error: "UNAUTHORIZED", message: "Invalid token" }, 401);
+    }
+
+    const { getActiveRun, addSkillPoints } = await import("./services/run-service.js");
+    const run = getActiveRun(payload.wallet);
+    if (!run) {
+      return c.json({ error: "NO_ACTIVE_RUN", message: "No active run" }, 400);
+    }
+
+    addSkillPoints(run.id, 10);
+    return c.json({ message: "Added 10 skill points" });
+  });
 }
 
 serve({ fetch: app.fetch, port: 3000 }, (info) => {

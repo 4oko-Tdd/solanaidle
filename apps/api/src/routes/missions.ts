@@ -7,6 +7,7 @@ import {
   claimMission,
 } from "../services/mission-service.js";
 import { MISSIONS } from "../services/game-config.js";
+import { getActiveRun } from "../services/run-service.js";
 
 type Env = { Variables: { wallet: string } };
 
@@ -61,7 +62,9 @@ missions.post("/start", async (c) => {
     );
   }
 
-  const activeMission = startMission(char.id, missionId);
+  // Get run context if available
+  const run = getActiveRun(wallet);
+  const activeMission = startMission(char.id, missionId, run?.classId, char.level);
   return c.json({ activeMission });
 });
 
@@ -89,7 +92,8 @@ missions.post("/claim", (c) => {
     );
   }
 
-  const result = claimMission(char.id, char.gearLevel);
+  const run = getActiveRun(wallet);
+  const result = claimMission(char.id, char.gearLevel, run?.classId, run?.id);
   return c.json(result);
 });
 
