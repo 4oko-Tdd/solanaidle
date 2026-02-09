@@ -2,6 +2,7 @@ import db from "../db/database.js";
 import crypto from "crypto";
 import type { WeeklyRun, ClassId } from "@solanaidle/shared";
 import { RUN_LIVES } from "./game-config.js";
+import { insertEvent } from "./event-service.js";
 
 // Returns current week Monday 00:00 UTC → Sunday 23:59:59 UTC
 export function getWeekBounds(): { weekStart: string; weekEnd: string } {
@@ -49,6 +50,8 @@ export function startRun(wallet: string, classId: ClassId): WeeklyRun {
      VALUES (?, ?, ?, ?, ?, ?)`
   ).run(id, wallet, classId, weekStart, weekEnd, RUN_LIVES);
 
+  insertEvent(id, "run_start", { classId, weekNumber: getWeekNumber() });
+
   return getActiveRun(wallet)!;
 }
 
@@ -58,6 +61,12 @@ export function endRun(runId: string): void {
     .prepare("SELECT * FROM weekly_runs WHERE id = ?")
     .get(runId) as any;
   if (!run) return;
+
+  insertEvent(runId, "run_end", {
+    finalScore: run.score,
+    missionsCompleted: run.missions_completed,
+    cause: "voluntary",
+  });
 
   db.prepare("UPDATE weekly_runs SET active = 0 WHERE id = ?").run(runId);
 
@@ -156,6 +165,25 @@ export function getLeaderboard(weekStart?: string) {
   }));
 }
 
+export function storeStartSignature(runId: string, signature: string): void {
+  db.prepare("UPDATE weekly_runs SET start_signature = ? WHERE id = ?").run(signature, runId);
+}
+
+export function storeEndSignature(runId: string, signature: string): void {
+  db.prepare("UPDATE weekly_runs SET end_signature = ? WHERE id = ?").run(signature, runId);
+}
+
+export function getEndedRun(wallet: string): WeeklyRun | null {
+  const { weekStart } = getWeekBounds();
+  const row = db
+    .prepare(
+      "SELECT * FROM weekly_runs WHERE wallet_address = ? AND week_start = ? AND active = 0 ORDER BY created_at DESC LIMIT 1"
+    )
+    .get(wallet, weekStart) as any;
+  if (!row) return null;
+  return mapRun(row);
+}
+
 // Helper: map DB row to WeeklyRun
 function mapRun(row: any): WeeklyRun {
   return {
@@ -170,5 +198,15 @@ function mapRun(row: any): WeeklyRun {
     missionsCompleted: row.missions_completed,
     bossDefeated: !!row.boss_defeated,
     active: !!row.active,
+    startSignature: row.start_signature ?? null,
+    endSignature: row.end_signature ?? null,
   };
+}
+
+function getWeekNumber(): number {
+  const now = new Date();
+  const start = new Date(Date.UTC(now.getUTCFullYear(), 0, 1));
+  const diff = now.getTime() - start.getTime();
+  const oneWeek = 604800000;
+  return Math.ceil((diff / oneWeek) + 1);
 }

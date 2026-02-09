@@ -3,6 +3,7 @@ import crypto from "crypto";
 import type { UnlockedSkill, SkillNode } from "@solanaidle/shared";
 import { SKILL_TREES, getSkillsForClass } from "./game-config.js";
 import { deductSkillPoints } from "./run-service.js";
+import { insertEvent } from "./event-service.js";
 
 // Get all skills unlocked in a run
 export function getUnlockedSkills(runId: string): UnlockedSkill[] {
@@ -70,4 +71,5 @@ export function unlockSkill(runId: string, classId: string, skillId: string): vo
   db.prepare(
     "INSERT INTO unlocked_skills (id, run_id, skill_id) VALUES (?, ?, ?)"
   ).run(crypto.randomUUID(), runId, skillId);
+  insertEvent(runId, "skill_unlock", { skillId, skillName: skill.name });
 }
