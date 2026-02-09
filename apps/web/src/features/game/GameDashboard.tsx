@@ -5,6 +5,8 @@ import { MissionPanel } from "./MissionPanel";
 import { MissionTimer } from "./MissionTimer";
 import { InventoryPanel } from "@/features/inventory/InventoryPanel";
 import { UpgradePanel } from "./UpgradePanel";
+import { RunStatus } from "./RunStatus";
+import { SkillTree } from "./SkillTree";
 import { MissionResultDialog } from "./MissionResultDialog";
 import { Button } from "@/components/ui/button";
 import { RefreshCw, Loader2 } from "lucide-react";
@@ -93,6 +95,8 @@ export function GameDashboard({ isAuthenticated }: Props) {
         </Button>
       </div>
 
+      {activeRun && <RunStatus run={activeRun} />}
+
       <CharacterCard character={character} />
 
       {activeMission ? (
@@ -114,6 +118,8 @@ export function GameDashboard({ isAuthenticated }: Props) {
       {upgradeInfo && (
         <UpgradePanel upgradeInfo={upgradeInfo} onUpgrade={upgradeGear} />
       )}
+
+      {activeRun && <SkillTree onUpdate={refresh} />}
 
       <MissionResultDialog
         result={lastClaimResult}
