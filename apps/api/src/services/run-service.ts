@@ -184,6 +184,18 @@ export function getEndedRun(wallet: string): WeeklyRun | null {
   return mapRun(row);
 }
 
+// Increment streak on mission success
+export function incrementStreak(runId: string): number {
+  db.prepare("UPDATE weekly_runs SET streak = streak + 1 WHERE id = ?").run(runId);
+  const row = db.prepare("SELECT streak FROM weekly_runs WHERE id = ?").get(runId) as any;
+  return row?.streak ?? 0;
+}
+
+// Reset streak on mission failure
+export function resetStreak(runId: string): void {
+  db.prepare("UPDATE weekly_runs SET streak = 0 WHERE id = ?").run(runId);
+}
+
 // Helper: map DB row to WeeklyRun
 function mapRun(row: any): WeeklyRun {
   return {
@@ -198,6 +210,7 @@ function mapRun(row: any): WeeklyRun {
     missionsCompleted: row.missions_completed,
     bossDefeated: !!row.boss_defeated,
     active: !!row.active,
+    streak: row.streak ?? 0,
     startSignature: row.start_signature ?? null,
     endSignature: row.end_signature ?? null,
   };

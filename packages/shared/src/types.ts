@@ -184,6 +184,7 @@ export interface WeeklyRun {
   missionsCompleted: number;
   bossDefeated: boolean;
   active: boolean;
+  streak: number; // consecutive mission successes
   startSignature?: string | null;
   endSignature?: string | null;
 }
