@@ -12,6 +12,9 @@ import { MissionResultDialog } from "./MissionResultDialog";
 import { RunLog } from "./RunLog";
 import { RunEndScreen } from "./RunEndScreen";
 import { LeaderboardPanel } from "./LeaderboardPanel";
+import { DailyLoginModal } from "./DailyLoginModal";
+import { api } from "@/lib/api";
+import type { DailyLoginStatus } from "@solanaidle/shared";
 import { useWalletSign } from "@/hooks/useWalletSign";
 import { useToast } from "@/components/ToastProvider";
 import { Button } from "@/components/ui/button";
@@ -63,10 +66,32 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
   const { signMessage } = useWalletSign();
   const { addToast } = useToast();
   const [activeTab, setActiveTab] = useState<Tab>("game");
+  const [dailyStatus, setDailyStatus] = useState<DailyLoginStatus | null>(null);
+  const [showDailyModal, setShowDailyModal] = useState(false);
 
   useEffect(() => {
     onInventoryChange?.(inventory);
   }, [inventory, onInventoryChange]);
+
+  useEffect(() => {
+    if (!activeRun) return;
+    const fetchDaily = async () => {
+      try {
+        const status = await api<DailyLoginStatus>("/daily/status");
+        setDailyStatus(status);
+        if (!status.claimedToday) {
+          setShowDailyModal(true);
+        }
+      } catch { /* ignore */ }
+    };
+    fetchDaily();
+  }, [activeRun?.id]);
+
+  const handleDailyClaim = async () => {
+    await api("/daily/claim", { method: "POST" });
+    addToast("Daily bonus claimed!", "success");
+    await refresh();
+  };
 
   useEffect(() => {
     if (!lastClaimResult) return;
@@ -242,6 +267,15 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
         onClose={clearClaimResult}
         livesRemaining={activeRun?.livesRemaining}
       />
+
+      {dailyStatus && (
+        <DailyLoginModal
+          status={dailyStatus}
+          open={showDailyModal}
+          onClaim={handleDailyClaim}
+          onClose={() => setShowDailyModal(false)}
+        />
+      )}
     </>
   );
 }
