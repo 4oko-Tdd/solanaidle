@@ -7,19 +7,20 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import type { Character, ClassId } from "@solanaidle/shared";
-import { Shield, Star, Heart, Zap, ShieldHalf, Sparkles } from "lucide-react";
+import { Shield, Star, Heart } from "lucide-react";
+import { ClassIcon } from "@/components/ClassIcon";
+
+const CLASS_NAMES: Record<ClassId, string> = {
+  scout: "Scout",
+  guardian: "Guardian",
+  mystic: "Mystic",
+};
 
 interface Props {
   character: Character;
   classId?: ClassId | null;
   livesRemaining?: number;
 }
-
-const CLASS_DISPLAY: Record<ClassId, { icon: React.ReactNode; name: string }> = {
-  scout: { icon: <Zap className="h-4 w-4 text-neon-amber" />, name: "Scout" },
-  guardian: { icon: <ShieldHalf className="h-4 w-4 text-neon-cyan" />, name: "Guardian" },
-  mystic: { icon: <Sparkles className="h-4 w-4 text-neon-purple" />, name: "Mystic" },
-};
 
 export function CharacterCard({ character, classId, livesRemaining }: Props) {
   const xpForNextLevel = character.level * 100;
@@ -31,15 +32,13 @@ export function CharacterCard({ character, classId, livesRemaining }: Props) {
     dead: { label: "Dead", variant: "destructive" as const },
   }[character.state];
 
-  const cls = classId ? CLASS_DISPLAY[classId] : null;
-
   return (
     <Card className="animate-fade-in-up">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base flex items-center gap-1.5">
-            {cls && cls.icon}
-            <span>{cls ? cls.name : "Character"}</span>
+            {classId && <ClassIcon classId={classId} className="h-5 w-5" />}
+            <span>{classId ? CLASS_NAMES[classId] : "Character"}</span>
           </CardTitle>
           <Badge variant={stateBadge.variant}>{stateBadge.label}</Badge>
         </div>

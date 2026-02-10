@@ -2,15 +2,10 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Zap, ShieldHalf, Sparkles, Trophy, Crown, Medal } from "lucide-react";
+import { Trophy, Crown, Medal } from "lucide-react";
 import { api } from "@/lib/api";
-import type { LeaderboardEntry, ClassId } from "@solanaidle/shared";
-
-const CLASS_ICONS: Record<ClassId, React.ReactNode> = {
-  scout: <Zap className="h-3.5 w-3.5 text-neon-amber" />,
-  guardian: <ShieldHalf className="h-3.5 w-3.5 text-neon-cyan" />,
-  mystic: <Sparkles className="h-3.5 w-3.5 text-neon-purple" />,
-};
+import type { LeaderboardEntry } from "@solanaidle/shared";
+import { ClassIcon } from "@/components/ClassIcon";
 
 const RANK_ICONS: React.ReactNode[] = [
   <Trophy key="1" className="h-4 w-4 text-neon-amber" />,
@@ -70,7 +65,7 @@ export function LeaderboardPanel({ currentWallet }: Props) {
                     ? RANK_ICONS[entry.rank - 1]
                     : <span className="font-mono text-muted-foreground text-xs">#{entry.rank}</span>}
                 </span>
-                {CLASS_ICONS[entry.classId]}
+                <ClassIcon classId={entry.classId} className="h-4 w-4" />
                 <span className="font-mono text-xs">
                   {isMe ? "You" : truncateWallet(entry.walletAddress)}
                 </span>

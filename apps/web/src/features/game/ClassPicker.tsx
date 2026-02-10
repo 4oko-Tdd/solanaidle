@@ -10,20 +10,15 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Zap, ShieldHalf, Sparkles, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import type { CharacterClass, ClassId } from "@solanaidle/shared";
+import { ClassIcon } from "@/components/ClassIcon";
 
 interface Props {
   classes: CharacterClass[];
   onSelect: (classId: ClassId, signature?: string) => Promise<void>;
   signMessage: (msg: string) => Promise<string | null>;
 }
-
-const CLASS_ICONS: Record<ClassId, React.ReactNode> = {
-  scout: <Zap className="h-6 w-6 text-neon-amber" />,
-  guardian: <ShieldHalf className="h-6 w-6 text-neon-cyan" />,
-  mystic: <Sparkles className="h-6 w-6 text-neon-purple" />,
-};
 
 function getWeekNumber(): number {
   const now = new Date();
@@ -93,7 +88,7 @@ export function ClassPicker({ classes, onSelect, signMessage }: Props) {
             >
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2 text-lg font-display">
-                  {CLASS_ICONS[cls.id]}
+                  <ClassIcon classId={cls.id} />
                   {cls.name}
                 </CardTitle>
               </CardHeader>
@@ -130,7 +125,7 @@ export function ClassPicker({ classes, onSelect, signMessage }: Props) {
       <Dialog open={confirming} onOpenChange={(open) => !open && handleCancel()}>
         <DialogContent className="max-w-sm">
           <DialogHeader className="items-center text-center">
-            {selected && CLASS_ICONS[selected]}
+            {selected && <ClassIcon classId={selected} className="h-8 w-8" />}
             <DialogTitle className="text-xl font-display">Commit to This Run</DialogTitle>
             <DialogDescription>
               You are about to begin Week {weekNum} as a <strong>{selectedClass?.name}</strong>. 3 lives. No turning back.
