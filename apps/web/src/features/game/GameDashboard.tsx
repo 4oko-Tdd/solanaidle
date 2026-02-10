@@ -3,7 +3,6 @@ import { CharacterCard } from "./CharacterCard";
 import { ClassPicker } from "./ClassPicker";
 import { MissionPanel } from "./MissionPanel";
 import { MissionTimer } from "./MissionTimer";
-import { InventoryPanel } from "@/features/inventory/InventoryPanel";
 import { UpgradePanel } from "./UpgradePanel";
 import { RunStatus } from "./RunStatus";
 import { SkillTree } from "./SkillTree";
@@ -14,6 +13,7 @@ import { RunLog } from "./RunLog";
 import { RunEndScreen } from "./RunEndScreen";
 import { LeaderboardPanel } from "./LeaderboardPanel";
 import { useWalletSign } from "@/hooks/useWalletSign";
+import { useToast } from "@/components/ToastProvider";
 import { Button } from "@/components/ui/button";
 import {
   Swords,
@@ -22,7 +22,8 @@ import {
   Trophy,
   Loader2,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import type { Inventory } from "@solanaidle/shared";
 
 type Tab = "game" | "skills" | "guild" | "ranks";
 
@@ -35,9 +36,10 @@ const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
 
 interface Props {
   isAuthenticated: boolean;
+  onInventoryChange?: (inventory: Inventory | null) => void;
 }
 
-export function GameDashboard({ isAuthenticated }: Props) {
+export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
   const {
     character,
     missions,
@@ -59,7 +61,25 @@ export function GameDashboard({ isAuthenticated }: Props) {
   } = useGameState(isAuthenticated);
 
   const { signMessage } = useWalletSign();
+  const { addToast } = useToast();
   const [activeTab, setActiveTab] = useState<Tab>("game");
+
+  useEffect(() => {
+    onInventoryChange?.(inventory);
+  }, [inventory, onInventoryChange]);
+
+  useEffect(() => {
+    if (!lastClaimResult) return;
+    if (lastClaimResult.result === "success" && lastClaimResult.rewards) {
+      const r = lastClaimResult.rewards;
+      addToast(`+${r.scrap} Scrap${r.crystal ? `, +${r.crystal} Crystal` : ""}${r.artifact ? `, +${r.artifact} Artifact` : ""}`, "success");
+      if (r.streakMultiplier && r.streakMultiplier > 1) {
+        addToast(`${r.streakMultiplier}x Streak Bonus!`, "warning");
+      }
+    } else if (lastClaimResult.result === "failure") {
+      addToast("Mission Failed!", "error");
+    }
+  }, [lastClaimResult, addToast]);
 
   if (loading) {
     return (
@@ -163,8 +183,6 @@ export function GameDashboard({ isAuthenticated }: Props) {
               {activeRun && (
                 <RunLog runId={activeRun.id} weekStart={activeRun.weekStart} />
               )}
-
-              {inventory && <InventoryPanel inventory={inventory} />}
             </>
           )}
 
