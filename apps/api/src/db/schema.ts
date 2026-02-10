@@ -116,6 +116,12 @@ export function initSchema() {
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
     CREATE INDEX IF NOT EXISTS idx_run_events_run ON run_events(run_id);
+
+    CREATE TABLE IF NOT EXISTS daily_logins (
+      wallet_address TEXT PRIMARY KEY,
+      streak_day INTEGER NOT NULL DEFAULT 1,
+      last_claim_date TEXT NOT NULL
+    );
   `);
 
   // Migrations — add columns if missing

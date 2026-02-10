@@ -13,6 +13,7 @@ import guilds from "./routes/guilds.js";
 import raids from "./routes/raids.js";
 import runs from "./routes/runs.js";
 import skills from "./routes/skills.js";
+import daily from "./routes/daily.js";
 
 const app = new Hono().basePath("/api");
 
@@ -37,6 +38,7 @@ app.route("/guilds", guilds);
 app.route("/raids", raids);
 app.route("/runs", runs);
 app.route("/skills", skills);
+app.route("/daily", daily);
 
 initSchema();
 
