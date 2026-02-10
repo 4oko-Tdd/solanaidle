@@ -60,6 +60,11 @@ export function MissionResultDialog({ result, onClose, livesRemaining }: Props) 
               {result.rewards.artifact ? (
                 <Badge variant="secondary">+{result.rewards.artifact} Artifact</Badge>
               ) : null}
+              {result.rewards?.streakMultiplier && result.rewards.streakMultiplier > 1 && (
+                <Badge className="bg-neon-amber/20 text-neon-amber animate-glow-pulse">
+                  {result.rewards.streakMultiplier}x Streak Bonus!
+                </Badge>
+              )}
             </div>
           </div>
         )}
@@ -81,6 +86,10 @@ export function MissionResultDialog({ result, onClose, livesRemaining }: Props) 
               )
             )}
           </div>
+        )}
+
+        {result.result === "failure" && (
+          <p className="text-xs text-muted-foreground text-center">Streak lost.</p>
         )}
 
         {!isSuccess && !isRunOver && (

@@ -1,17 +1,18 @@
 import { Badge } from "@/components/ui/badge";
-import { Zap, ShieldHalf, Sparkles, Heart, HeartCrack } from "lucide-react";
+import { Heart, HeartCrack } from "lucide-react";
 import type { WeeklyRun, ClassId, CharacterState } from "@solanaidle/shared";
+import { ClassIcon } from "@/components/ClassIcon";
+
+const CLASS_NAMES: Record<ClassId, string> = {
+  scout: "Scout",
+  guardian: "Guardian",
+  mystic: "Mystic",
+};
 
 interface Props {
   run: WeeklyRun;
   characterState?: CharacterState;
 }
-
-const CLASS_CONFIG: Record<ClassId, { icon: React.ReactNode; name: string }> = {
-  scout: { icon: <Zap className="h-4 w-4 text-neon-amber" />, name: "Scout" },
-  guardian: { icon: <ShieldHalf className="h-4 w-4 text-neon-cyan" />, name: "Guardian" },
-  mystic: { icon: <Sparkles className="h-4 w-4 text-neon-purple" />, name: "Mystic" },
-};
 
 function getWeekNumber(weekStart: string): number {
   const date = new Date(weekStart);
@@ -31,7 +32,6 @@ function getRunStatusBadge(run: WeeklyRun, characterState?: CharacterState) {
 }
 
 export function RunStatus({ run, characterState }: Props) {
-  const cls = CLASS_CONFIG[run.classId];
   const weekNum = getWeekNumber(run.weekStart);
 
   return (
@@ -41,8 +41,8 @@ export function RunStatus({ run, characterState }: Props) {
         <div className="flex items-center gap-2">
           <span className="text-sm font-bold font-display">Week {weekNum} Run</span>
           <span className="flex items-center gap-1 text-xs text-muted-foreground">
-            {cls.icon}
-            {cls.name}
+            <ClassIcon classId={run.classId} className="h-4 w-4" />
+            {CLASS_NAMES[run.classId]}
           </span>
         </div>
         {getRunStatusBadge(run, characterState)}
@@ -65,6 +65,15 @@ export function RunStatus({ run, characterState }: Props) {
         <div className="flex items-center gap-3 text-xs">
           <span className="text-muted-foreground">Score: <span className="font-mono font-bold text-neon-green">{run.score}</span></span>
           <span className="text-muted-foreground">Missions: <span className="font-mono font-bold text-neon-green">{run.missionsCompleted}</span></span>
+          {run.streak >= 2 && (
+            <span className="text-muted-foreground">
+              Streak: <span className={`font-mono font-bold ${
+                run.streak >= 6 ? "text-neon-amber" : run.streak >= 4 ? "text-neon-red" : "text-neon-green"
+              }`}>
+                {run.streak}x
+              </span>
+            </span>
+          )}
         </div>
       </div>
 
