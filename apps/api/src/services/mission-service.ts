@@ -10,11 +10,12 @@ import {
   BOSS_MISSION,
   BOSS_UNLOCK_LEVEL,
   TIER2_UNLOCK_LEVEL,
+  getStreakMultiplier,
 } from "./game-config.js";
-import { addScore, addSkillPoint, addSkillPoints, incrementMissions, markBossDefeated, useLife } from "./run-service.js";
+import { addScore, addSkillPoint, addSkillPoints, incrementMissions, markBossDefeated, useLife, incrementStreak, resetStreak } from "./run-service.js";
 import { hasSkill } from "./skill-service.js";
 import { insertEvent } from "./event-service.js";
-import type { ActiveMission, MissionClaimResponse, MissionId } from "@solanaidle/shared";
+import type { ActiveMission, MissionClaimResponse, MissionId, MissionRewards } from "@solanaidle/shared";
 
 interface MissionRow {
   id: string;
@@ -174,9 +175,11 @@ export function claimMission(
           rewards: { xp: 0, scrap: 0 },
           nftDrop: null,
           character: mapCharacter(char),
+          streak: 0,
         };
       }
       useLife(runId);
+      resetStreak(runId);
       const runAfterLife = db.prepare("SELECT lives_remaining FROM weekly_runs WHERE id = ?").get(runId) as any;
       const livesLeft = runAfterLife?.lives_remaining ?? 0;
       insertEvent(runId, "mission_fail", {
@@ -207,11 +210,12 @@ export function claimMission(
       rewards: null,
       nftDrop: null,
       character: mapCharacter(char),
+      streak: 0,
     };
   }
 
   // SUCCESS
-  const rewards = {
+  const rewards: MissionRewards = {
     xp: randomInt(mission.rewards.xpRange[0], mission.rewards.xpRange[1]),
     scrap: randomInt(mission.rewards.scrap[0], mission.rewards.scrap[1]),
     crystal: mission.rewards.crystal
@@ -238,6 +242,21 @@ export function claimMission(
       if (rewards.crystal) rewards.crystal = Math.floor(rewards.crystal * charClass.lootModifier);
       if (rewards.artifact) rewards.artifact = Math.floor(rewards.artifact * charClass.lootModifier);
     }
+  }
+
+  // Apply streak multiplier to loot (not XP)
+  let streakMultiplier = 1.0;
+  let currentStreak = 0;
+  if (runId) {
+    const newStreak = incrementStreak(runId);
+    currentStreak = newStreak;
+    streakMultiplier = getStreakMultiplier(newStreak);
+    if (streakMultiplier > 1.0) {
+      rewards.scrap = Math.floor(rewards.scrap * streakMultiplier);
+      if (rewards.crystal) rewards.crystal = Math.floor(rewards.crystal * streakMultiplier);
+      if (rewards.artifact) rewards.artifact = Math.floor(rewards.artifact * streakMultiplier);
+    }
+    rewards.streakMultiplier = streakMultiplier;
   }
 
   // Apply XP and check level up
@@ -324,6 +343,7 @@ export function claimMission(
     rewards,
     nftDrop,
     character: mapCharacter(updatedChar),
+    streak: currentStreak,
   };
 }
 

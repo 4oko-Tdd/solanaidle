@@ -47,6 +47,7 @@ export interface MissionClaimResponse {
   rewards: MissionRewards | null;
   nftDrop: NftDrop | null;
   character: Character;
+  streak: number; // current streak after this mission
 }
 
 export interface MissionRewards {
@@ -54,6 +55,7 @@ export interface MissionRewards {
   scrap: number;
   crystal?: number;
   artifact?: number;
+  streakMultiplier?: number; // multiplier that was applied
 }
 
 // ── Inventory ──
@@ -267,4 +269,20 @@ export interface CharacterWithRun extends Character {
   classId: ClassId | null;
   activeRun: WeeklyRun | null;
   skills: UnlockedSkill[];
+}
+
+// ── Daily Login ──
+
+export interface DailyReward {
+  day: number; // 1-7
+  scrap: number;
+  crystal: number;
+  artifact: number;
+}
+
+export interface DailyLoginStatus {
+  streakDay: number; // 1-7 (which day of the cycle)
+  claimedToday: boolean;
+  todayReward: DailyReward;
+  rewards: DailyReward[]; // all 7 days for calendar display
 }

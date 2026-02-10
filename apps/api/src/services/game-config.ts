@@ -148,3 +148,17 @@ export function getSkillsForClass(classId: string): SkillNode[] {
 export function getRaid(id: string): RaidMission | undefined {
   return RAIDS.find((r) => r.id === id);
 }
+
+export function getStreakMultiplier(streak: number): number {
+  if (streak >= 6) return 2.0;
+  if (streak >= 4) return 1.5;
+  if (streak >= 2) return 1.2;
+  return 1.0;
+}
+
+export function getStreakLabel(streak: number): string | null {
+  if (streak >= 6) return "Unstoppable";
+  if (streak >= 4) return "On Fire";
+  if (streak >= 2) return "Hot Streak";
+  return null;
+}
