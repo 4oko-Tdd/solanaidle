@@ -211,6 +211,9 @@ function mapRun(row: any): WeeklyRun {
     bossDefeated: !!row.boss_defeated,
     active: !!row.active,
     streak: row.streak ?? 0,
+    armorLevel: row.armor_level ?? 0,
+    engineLevel: row.engine_level ?? 0,
+    scannerLevel: row.scanner_level ?? 0,
     startSignature: row.start_signature ?? null,
     endSignature: row.end_signature ?? null,
   };

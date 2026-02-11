@@ -2,7 +2,9 @@ import { randomUUID } from "crypto";
 import db from "../db/database.js";
 import {
   getMission,
-  getFailRateReduction,
+  getArmorReduction,
+  getEngineReduction,
+  getScannerBonus,
   REVIVE_COOLDOWN_MS,
   XP_PER_LEVEL,
   NFT_NAMES,
@@ -31,7 +33,6 @@ interface CharacterRow {
   level: number;
   xp: number;
   hp: number;
-  gear_level: number;
   state: string;
   revive_at: string | null;
 }
@@ -62,7 +63,8 @@ export function startMission(
   characterId: string,
   missionId: string,
   classId?: string,
-  characterLevel?: number
+  characterLevel?: number,
+  runId?: string
 ): ActiveMission {
   // Boss mission handling
   let mission;
@@ -91,6 +93,15 @@ export function startMission(
     }
   }
 
+  // Apply engine upgrade reduction
+  if (runId) {
+    const runRow = db.prepare("SELECT engine_level FROM weekly_runs WHERE id = ?").get(runId) as { engine_level: number } | undefined;
+    const engineReduction = getEngineReduction(runRow?.engine_level ?? 0);
+    if (engineReduction > 0) {
+      duration = Math.floor(duration * (1 - engineReduction));
+    }
+  }
+
   const now = new Date();
   const endsAt = new Date(now.getTime() + duration * 1000);
 
@@ -112,7 +123,6 @@ export function startMission(
 
 export function claimMission(
   characterId: string,
-  gearLevel: number,
   classId?: string,
   runId?: string
 ): MissionClaimResponse {
@@ -133,7 +143,13 @@ export function claimMission(
   db.prepare("DELETE FROM active_missions WHERE id = ?").run(missionRow.id);
 
   // Roll for success
-  const failReduction = getFailRateReduction(gearLevel);
+  // Read armor level from run
+  let armorLevel = 0;
+  if (runId) {
+    const runRow = db.prepare("SELECT armor_level FROM weekly_runs WHERE id = ?").get(runId) as { armor_level: number } | undefined;
+    armorLevel = runRow?.armor_level ?? 0;
+  }
+  const failReduction = getArmorReduction(armorLevel);
   const adjustedFailRate = Math.max(0, mission.failRate - failReduction);
 
   // Apply class fail rate modifier
@@ -241,6 +257,17 @@ export function claimMission(
       rewards.scrap = Math.floor(rewards.scrap * charClass.lootModifier);
       if (rewards.crystal) rewards.crystal = Math.floor(rewards.crystal * charClass.lootModifier);
       if (rewards.artifact) rewards.artifact = Math.floor(rewards.artifact * charClass.lootModifier);
+    }
+  }
+
+  // Apply scanner upgrade bonus to loot
+  if (runId) {
+    const runRow = db.prepare("SELECT scanner_level FROM weekly_runs WHERE id = ?").get(runId) as { scanner_level: number } | undefined;
+    const scannerBonus = getScannerBonus(runRow?.scanner_level ?? 0);
+    if (scannerBonus > 0) {
+      rewards.scrap = Math.floor(rewards.scrap * (1 + scannerBonus));
+      if (rewards.crystal) rewards.crystal = Math.floor(rewards.crystal * (1 + scannerBonus));
+      if (rewards.artifact) rewards.artifact = Math.floor(rewards.artifact * (1 + scannerBonus));
     }
   }
 
@@ -354,7 +381,6 @@ function mapCharacter(char: CharacterRow) {
     level: char.level,
     xp: char.xp,
     hp: char.hp,
-    gearLevel: char.gear_level,
     state: char.state as "idle" | "on_mission" | "dead",
     reviveAt: char.revive_at,
   };

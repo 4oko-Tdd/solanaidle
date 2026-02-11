@@ -8,7 +8,6 @@ interface CharacterRow {
   level: number;
   xp: number;
   hp: number;
-  gear_level: number;
   state: string;
   revive_at: string | null;
 }
@@ -20,7 +19,6 @@ function rowToCharacter(row: CharacterRow): Character {
     level: row.level,
     xp: row.xp,
     hp: row.hp,
-    gearLevel: row.gear_level,
     state: row.state as Character["state"],
     reviveAt: row.revive_at,
   };

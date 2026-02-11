@@ -64,7 +64,7 @@ missions.post("/start", async (c) => {
 
   // Get run context if available
   const run = getActiveRun(wallet);
-  const activeMission = startMission(char.id, missionId, run?.classId, char.level);
+  const activeMission = startMission(char.id, missionId, run?.classId, char.level, run?.id);
   return c.json({ activeMission });
 });
 
@@ -93,7 +93,7 @@ missions.post("/claim", (c) => {
   }
 
   const run = getActiveRun(wallet);
-  const result = claimMission(char.id, char.gearLevel, run?.classId, run?.id);
+  const result = claimMission(char.id, run?.classId, run?.id);
   return c.json(result);
 });
 
