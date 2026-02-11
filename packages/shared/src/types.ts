@@ -144,7 +144,9 @@ export type ErrorCode =
   | "RAID_IN_PROGRESS"
   | "RAID_NOT_READY"
   | "NO_LIVES"
-  | "BOSS_NOT_AVAILABLE";
+  | "BOSS_NOT_AVAILABLE"
+  | "INVALID_MISSION"
+  | "MISSION_LOCKED";
 
 export interface ApiError {
   error: ErrorCode;

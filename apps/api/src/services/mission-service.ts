@@ -6,13 +6,17 @@ import {
   getEngineReduction,
   getScannerBonus,
   REVIVE_COOLDOWN_MS,
-  XP_PER_LEVEL,
+  xpForLevel,
   NFT_NAMES,
   getClass,
   BOSS_MISSION,
   BOSS_UNLOCK_LEVEL,
   TIER2_UNLOCK_LEVEL,
   getStreakMultiplier,
+  REROLL_COST_PER_STACK,
+  MAX_REROLL_STACKS,
+  INSURANCE_COST,
+  REROLL_REDUCTION_PER_STACK,
 } from "./game-config.js";
 import { addScore, addSkillPoint, addSkillPoints, incrementMissions, markBossDefeated, useLife, incrementStreak, resetStreak } from "./run-service.js";
 import { hasSkill } from "./skill-service.js";
@@ -25,6 +29,8 @@ interface MissionRow {
   mission_id: string;
   started_at: string;
   ends_at: string;
+  reroll_stacks: number;
+  insured: number;
 }
 
 interface CharacterRow {
@@ -64,7 +70,9 @@ export function startMission(
   missionId: string,
   classId?: string,
   characterLevel?: number,
-  runId?: string
+  runId?: string,
+  rerollStacks?: number,
+  insured?: boolean
 ): ActiveMission {
   // Boss mission handling
   let mission;
@@ -102,13 +110,34 @@ export function startMission(
     }
   }
 
+  // Validate and deduct reroll/insurance costs
+  const stacks = Math.min(Math.max(rerollStacks ?? 0, 0), MAX_REROLL_STACKS);
+  const useInsurance = insured ? 1 : 0;
+
+  if (stacks > 0 || useInsurance) {
+    const inv = db.prepare(
+      "SELECT scrap, crystal FROM inventories WHERE character_id = ?"
+    ).get(characterId) as { scrap: number; crystal: number };
+
+    const scrapCost = stacks * REROLL_COST_PER_STACK;
+    const crystalCost = useInsurance ? INSURANCE_COST : 0;
+    if (inv.scrap < scrapCost) throw new Error("INSUFFICIENT_RESOURCES");
+    if (inv.crystal < crystalCost) throw new Error("INSUFFICIENT_RESOURCES");
+
+    if (scrapCost > 0 || crystalCost > 0) {
+      db.prepare(
+        "UPDATE inventories SET scrap = scrap - ?, crystal = crystal - ? WHERE character_id = ?"
+      ).run(scrapCost, crystalCost, characterId);
+    }
+  }
+
   const now = new Date();
   const endsAt = new Date(now.getTime() + duration * 1000);
 
   const id = randomUUID();
   db.prepare(
-    "INSERT INTO active_missions (id, character_id, mission_id, started_at, ends_at) VALUES (?, ?, ?, ?, ?)"
-  ).run(id, characterId, missionId, now.toISOString(), endsAt.toISOString());
+    "INSERT INTO active_missions (id, character_id, mission_id, started_at, ends_at, reroll_stacks, insured) VALUES (?, ?, ?, ?, ?, ?, ?)"
+  ).run(id, characterId, missionId, now.toISOString(), endsAt.toISOString(), stacks, useInsurance);
 
   db.prepare("UPDATE characters SET state = 'on_mission' WHERE id = ?").run(
     characterId
@@ -169,6 +198,11 @@ export function claimMission(
     }
   }
 
+  // Apply reroll stacks (-2% per stack)
+  if (missionRow.reroll_stacks > 0) {
+    finalFailRate = Math.max(0, finalFailRate - missionRow.reroll_stacks * REROLL_REDUCTION_PER_STACK);
+  }
+
   const roll = Math.random() * 100;
 
   if (roll < finalFailRate) {
@@ -195,7 +229,10 @@ export function claimMission(
         };
       }
       useLife(runId);
-      resetStreak(runId);
+      // Insurance protects streak on failure
+      if (!missionRow.insured) {
+        resetStreak(runId);
+      }
       const runAfterLife = db.prepare("SELECT lives_remaining FROM weekly_runs WHERE id = ?").get(runId) as any;
       const livesLeft = runAfterLife?.lives_remaining ?? 0;
       insertEvent(runId, "mission_fail", {
@@ -292,12 +329,14 @@ export function claimMission(
     .get(characterId) as CharacterRow;
   let newXp = charRow.xp + rewards.xp;
   let newLevel = charRow.level;
-  while (newXp >= newLevel * XP_PER_LEVEL) {
-    newXp -= newLevel * XP_PER_LEVEL;
+  while (newXp >= xpForLevel(newLevel)) {
+    newXp -= xpForLevel(newLevel);
     newLevel++;
   }
   if (newLevel > charRow.level && runId) {
-    insertEvent(runId, "level_up", { newLevel });
+    const levelsGained = newLevel - charRow.level;
+    addSkillPoints(runId, levelsGained);
+    insertEvent(runId, "level_up", { newLevel, skillPointsAwarded: levelsGained });
   }
 
   db.prepare(

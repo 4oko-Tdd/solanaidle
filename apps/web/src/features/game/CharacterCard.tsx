@@ -26,7 +26,7 @@ interface Props {
 }
 
 export function CharacterCard({ character, classId, livesRemaining, armorLevel, engineLevel, scannerLevel }: Props) {
-  const xpForNextLevel = character.level * 100;
+  const xpForNextLevel = Math.floor(100 * Math.pow(1.5, character.level - 1));
   const xpPercent = Math.round((character.xp / xpForNextLevel) * 100);
 
   const stateBadge = {

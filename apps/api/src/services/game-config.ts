@@ -31,32 +31,42 @@ export const MISSIONS: MissionType[] = [
 ];
 
 export const ARMOR_UPGRADES = [
-  { level: 1, cost: { scrap: 10 }, failRateReduction: 2 },
-  { level: 2, cost: { scrap: 25, crystal: 5 }, failRateReduction: 3 },
-  { level: 3, cost: { scrap: 50, crystal: 15 }, failRateReduction: 5 },
-  { level: 4, cost: { scrap: 100, crystal: 30, artifact: 1 }, failRateReduction: 8 },
-  { level: 5, cost: { scrap: 200, crystal: 60, artifact: 3 }, failRateReduction: 12 },
+  { level: 1, cost: { scrap: 20 }, failRateReduction: 2 },
+  { level: 2, cost: { scrap: 50, crystal: 10 }, failRateReduction: 3 },
+  { level: 3, cost: { scrap: 120, crystal: 30 }, failRateReduction: 5 },
+  { level: 4, cost: { scrap: 250, crystal: 60, artifact: 2 }, failRateReduction: 8 },
+  { level: 5, cost: { scrap: 500, crystal: 120, artifact: 5 }, failRateReduction: 12 },
 ];
 
 export const ENGINE_UPGRADES = [
-  { level: 1, cost: { scrap: 10 }, durationReduction: 0.05 },
-  { level: 2, cost: { scrap: 25, crystal: 5 }, durationReduction: 0.08 },
-  { level: 3, cost: { scrap: 50, crystal: 15 }, durationReduction: 0.12 },
-  { level: 4, cost: { scrap: 100, crystal: 30, artifact: 1 }, durationReduction: 0.16 },
-  { level: 5, cost: { scrap: 200, crystal: 60, artifact: 3 }, durationReduction: 0.20 },
+  { level: 1, cost: { scrap: 20 }, durationReduction: 0.05 },
+  { level: 2, cost: { scrap: 50, crystal: 10 }, durationReduction: 0.08 },
+  { level: 3, cost: { scrap: 120, crystal: 30 }, durationReduction: 0.12 },
+  { level: 4, cost: { scrap: 250, crystal: 60, artifact: 2 }, durationReduction: 0.16 },
+  { level: 5, cost: { scrap: 500, crystal: 120, artifact: 5 }, durationReduction: 0.20 },
 ];
 
 export const SCANNER_UPGRADES = [
-  { level: 1, cost: { scrap: 10 }, lootBonus: 0.05 },
-  { level: 2, cost: { scrap: 25, crystal: 5 }, lootBonus: 0.10 },
-  { level: 3, cost: { scrap: 50, crystal: 15 }, lootBonus: 0.15 },
-  { level: 4, cost: { scrap: 100, crystal: 30, artifact: 1 }, lootBonus: 0.20 },
-  { level: 5, cost: { scrap: 200, crystal: 60, artifact: 3 }, lootBonus: 0.30 },
+  { level: 1, cost: { scrap: 20 }, lootBonus: 0.05 },
+  { level: 2, cost: { scrap: 50, crystal: 10 }, lootBonus: 0.10 },
+  { level: 3, cost: { scrap: 120, crystal: 30 }, lootBonus: 0.15 },
+  { level: 4, cost: { scrap: 250, crystal: 60, artifact: 2 }, lootBonus: 0.20 },
+  { level: 5, cost: { scrap: 500, crystal: 120, artifact: 5 }, lootBonus: 0.30 },
 ];
 
 export const MAX_TRACK_LEVEL = 5;
 export const REVIVE_COOLDOWN_MS = 60 * 60 * 1000; // 1 hour
-export const XP_PER_LEVEL = 100;
+
+// Gentle 1.5x XP curve: 100, 150, 225, 340, 500, 750, 1125...
+export function xpForLevel(level: number): number {
+  return Math.floor(100 * Math.pow(1.5, level - 1));
+}
+
+// Reroll & insurance costs
+export const REROLL_COST_PER_STACK = 10; // scrap per stack
+export const REROLL_REDUCTION_PER_STACK = 2; // -2% fail rate per stack
+export const MAX_REROLL_STACKS = 3;
+export const INSURANCE_COST = 5; // crystal
 
 export const NFT_NAMES = [
   "Shadow Explorer Badge",

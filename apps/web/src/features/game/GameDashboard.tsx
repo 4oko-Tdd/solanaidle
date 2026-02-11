@@ -206,6 +206,7 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
                   characterLevel={character.level}
                   classId={activeRun?.classId}
                   livesRemaining={activeRun?.livesRemaining}
+                  inventory={inventory}
                 />
               )}
 

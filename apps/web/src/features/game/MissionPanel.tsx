@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Card,
   CardContent,
@@ -5,20 +6,26 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import type { MissionType, CharacterState, MissionId, ClassId } from "@solanaidle/shared";
-import { Clock, Skull, Lock, AlertTriangle, Star, Sparkles } from "lucide-react";
+import type { MissionType, CharacterState, MissionId, ClassId, Inventory } from "@solanaidle/shared";
+import { Clock, Skull, Lock, AlertTriangle, Star, Sparkles, Shield, Minus, Plus } from "lucide-react";
 import scrapIcon from "@/assets/icons/19.png";
 import crystalIcon from "@/assets/icons/22.png";
 import artifactIcon from "@/assets/icons/25.png";
 
+const REROLL_COST_PER_STACK = 10;
+const MAX_REROLL_STACKS = 3;
+const REROLL_REDUCTION = 2; // -2% per stack
+const INSURANCE_COST = 5; // crystal
+
 interface Props {
   missions: MissionType[];
   characterState: CharacterState;
-  onStart: (missionId: MissionId) => void;
+  onStart: (missionId: MissionId, options?: { rerollStacks?: number; insured?: boolean }) => void;
   characterLevel?: number;
   classId?: ClassId | null;
   durationModifier?: number;
   livesRemaining?: number;
+  inventory?: Inventory | null;
 }
 
 function formatDuration(seconds: number): string {
@@ -49,9 +56,36 @@ const RISK_STYLES: Record<string, string> = {
   critical: "border-neon-red bg-neon-red/5",
 };
 
-export function MissionPanel({ missions, characterState, onStart, characterLevel = 1, classId, durationModifier = 1, livesRemaining = 3 }: Props) {
+export function MissionPanel({ missions, characterState, onStart, characterLevel = 1, classId, durationModifier = 1, livesRemaining = 3, inventory }: Props) {
   const canStart = characterState === "idle";
   const lives = Math.max(1, Math.min(3, livesRemaining));
+  const [expandedMission, setExpandedMission] = useState<string | null>(null);
+  const [rerollStacks, setRerollStacks] = useState(0);
+  const [insured, setInsured] = useState(false);
+
+  const scrapBalance = inventory?.scrap ?? 0;
+  const crystalBalance = inventory?.crystal ?? 0;
+  const rerollCost = rerollStacks * REROLL_COST_PER_STACK;
+  const insuranceCost = insured ? INSURANCE_COST : 0;
+  const canAffordReroll = scrapBalance >= (rerollStacks + 1) * REROLL_COST_PER_STACK;
+  const canAffordInsurance = crystalBalance >= INSURANCE_COST;
+
+  const handleStartMission = (missionId: MissionId) => {
+    onStart(missionId, rerollStacks > 0 || insured ? { rerollStacks, insured } : undefined);
+    setExpandedMission(null);
+    setRerollStacks(0);
+    setInsured(false);
+  };
+
+  const toggleExpanded = (missionId: string) => {
+    if (expandedMission === missionId) {
+      setExpandedMission(null);
+    } else {
+      setExpandedMission(missionId);
+      setRerollStacks(0);
+      setInsured(false);
+    }
+  };
 
   const isTierLocked = (missionId: string): boolean => {
     if (missionId === "expedition" && characterLevel < 3) return true;
@@ -125,10 +159,10 @@ export function MissionPanel({ missions, characterState, onStart, characterLevel
                 <Button
                   size="sm"
                   disabled={!canStart || locked}
-                  onClick={() => onStart(mission.id)}
+                  onClick={() => toggleExpanded(mission.id)}
                   variant={riskLevel === "critical" || riskLevel === "dangerous" ? "destructive" : "default"}
                 >
-                  {locked ? "Locked" : "Start"}
+                  {locked ? "Locked" : expandedMission === mission.id ? "Cancel" : "Start"}
                 </Button>
               </div>
 
@@ -161,6 +195,91 @@ export function MissionPanel({ missions, characterState, onStart, characterLevel
                       <span className="font-mono">{r.nftChance}%</span>
                     </span>
                   )}
+                </div>
+              )}
+
+              {/* Reroll & Insurance panel */}
+              {expandedMission === mission.id && !locked && (
+                <div className="border-t border-white/[0.06] pt-2 space-y-2 animate-fade-in-up">
+                  {/* Reroll stacks */}
+                  <div className="flex items-center justify-between">
+                    <div className="text-xs">
+                      <span className="text-muted-foreground">Reroll</span>
+                      <span className="text-neon-cyan ml-1 font-mono">-{rerollStacks * REROLL_REDUCTION}% fail</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6"
+                        disabled={rerollStacks <= 0}
+                        onClick={() => setRerollStacks(s => s - 1)}
+                      >
+                        <Minus className="h-3 w-3" />
+                      </Button>
+                      <span className="font-mono text-sm w-4 text-center">{rerollStacks}</span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6"
+                        disabled={rerollStacks >= MAX_REROLL_STACKS || !canAffordReroll}
+                        onClick={() => setRerollStacks(s => s + 1)}
+                      >
+                        <Plus className="h-3 w-3" />
+                      </Button>
+                      {rerollStacks > 0 && (
+                        <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <img src={scrapIcon} alt="" className="h-3 w-3" />
+                          <span className="font-mono">{rerollCost}</span>
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Insurance toggle */}
+                  <div className="flex items-center justify-between">
+                    <div className="text-xs">
+                      <span className="text-muted-foreground">Insurance</span>
+                      <span className="text-neon-amber ml-1">protect streak</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant={insured ? "default" : "ghost"}
+                        size="sm"
+                        className={`h-6 text-xs px-2 ${insured ? "bg-neon-amber/20 text-neon-amber border border-neon-amber/40" : ""}`}
+                        disabled={!insured && !canAffordInsurance}
+                        onClick={() => setInsured(!insured)}
+                      >
+                        <Shield className="h-3 w-3 mr-1" />
+                        {insured ? "ON" : "OFF"}
+                      </Button>
+                      {insured && (
+                        <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <img src={crystalIcon} alt="" className="h-3 w-3" />
+                          <span className="font-mono">{insuranceCost}</span>
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Adjusted fail rate preview */}
+                  {(rerollStacks > 0 || insured) && (
+                    <div className="text-xs text-center text-muted-foreground pt-1">
+                      Fail rate: <span className="line-through">{mission.failRate}%</span>{" "}
+                      <span className="text-neon-green font-mono">{Math.max(0, mission.failRate - rerollStacks * REROLL_REDUCTION)}%</span>
+                      {insured && <span className="text-neon-amber ml-2">+ streak safe</span>}
+                    </div>
+                  )}
+
+                  {/* Launch button */}
+                  <Button
+                    className="w-full"
+                    size="sm"
+                    variant={riskLevel === "critical" || riskLevel === "dangerous" ? "destructive" : "default"}
+                    onClick={() => handleStartMission(mission.id)}
+                  >
+                    Launch Mission
+                  </Button>
                 </div>
               )}
             </div>

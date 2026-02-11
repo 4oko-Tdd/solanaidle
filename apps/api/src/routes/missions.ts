@@ -54,18 +54,28 @@ missions.post("/start", async (c) => {
     );
   }
 
-  const { missionId } = await c.req.json();
-  if (!["scout", "expedition", "deep_dive"].includes(missionId)) {
+  const { missionId, rerollStacks, insured } = await c.req.json();
+  if (!["scout", "expedition", "deep_dive", "boss"].includes(missionId)) {
     return c.json(
-      { error: "MISSION_IN_PROGRESS", message: "Invalid mission type" },
+      { error: "INVALID_MISSION", message: "Invalid mission type" },
       400
     );
   }
 
   // Get run context if available
   const run = getActiveRun(wallet);
-  const activeMission = startMission(char.id, missionId, run?.classId, char.level, run?.id);
-  return c.json({ activeMission });
+  try {
+    const activeMission = startMission(char.id, missionId, run?.classId, char.level, run?.id, rerollStacks, insured);
+    return c.json({ activeMission });
+  } catch (e: any) {
+    if (e.message === "INSUFFICIENT_RESOURCES") {
+      return c.json({ error: "INSUFFICIENT_RESOURCES", message: "Not enough resources" }, 400);
+    }
+    if (e.message === "BOSS_NOT_AVAILABLE" || e.message === "Mission tier locked") {
+      return c.json({ error: "MISSION_LOCKED", message: e.message }, 400);
+    }
+    throw e;
+  }
 });
 
 missions.post("/claim", (c) => {

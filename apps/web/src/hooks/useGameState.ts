@@ -121,10 +121,10 @@ export function useGameState(isAuthenticated: boolean) {
   }, [state.activeMission?.missionId]);
 
   const startMission = useCallback(
-    async (missionId: MissionId) => {
+    async (missionId: MissionId, options?: { rerollStacks?: number; insured?: boolean }) => {
       await api<{ activeMission: ActiveMission }>("/missions/start", {
         method: "POST",
-        body: JSON.stringify({ missionId }),
+        body: JSON.stringify({ missionId, ...options }),
       });
       await refresh();
     },

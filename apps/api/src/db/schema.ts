@@ -145,4 +145,14 @@ export function initSchema() {
   if (!colNames.includes("scanner_level")) {
     db.exec("ALTER TABLE weekly_runs ADD COLUMN scanner_level INTEGER NOT NULL DEFAULT 0");
   }
+
+  // Migrations — active_missions columns
+  const missionCols = db.prepare("PRAGMA table_info(active_missions)").all() as { name: string }[];
+  const missionColNames = missionCols.map(c => c.name);
+  if (!missionColNames.includes("reroll_stacks")) {
+    db.exec("ALTER TABLE active_missions ADD COLUMN reroll_stacks INTEGER NOT NULL DEFAULT 0");
+  }
+  if (!missionColNames.includes("insured")) {
+    db.exec("ALTER TABLE active_missions ADD COLUMN insured INTEGER NOT NULL DEFAULT 0");
+  }
 }
