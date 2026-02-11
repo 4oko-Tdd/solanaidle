@@ -8,7 +8,7 @@ interface Props {
   inventory: Inventory;
 }
 
-function AnimatedNumber({ value }: { value: number }) {
+function AnimatedNumber({ value, onFlash }: { value: number; onFlash?: (flashing: boolean) => void }) {
   const [display, setDisplay] = useState(value);
   const [flash, setFlash] = useState(false);
   const prevRef = useRef(value);
@@ -19,6 +19,7 @@ function AnimatedNumber({ value }: { value: number }) {
     if (prev === value) return;
 
     setFlash(true);
+    onFlash?.(true);
     const diff = value - prev;
     const steps = Math.min(Math.abs(diff), 20);
     const stepTime = 400 / steps;
@@ -30,12 +31,15 @@ function AnimatedNumber({ value }: { value: number }) {
       if (step >= steps) {
         clearInterval(interval);
         setDisplay(value);
-        setTimeout(() => setFlash(false), 200);
+        setTimeout(() => {
+          setFlash(false);
+          onFlash?.(false);
+        }, 200);
       }
     }, stepTime);
 
     return () => clearInterval(interval);
-  }, [value]);
+  }, [value, onFlash]);
 
   return (
     <span
@@ -48,21 +52,27 @@ function AnimatedNumber({ value }: { value: number }) {
   );
 }
 
+function CurrencyItem({ icon, alt, value }: { icon: string; alt: string; value: number }) {
+  const [bouncing, setBouncing] = useState(false);
+
+  return (
+    <div className="flex items-center gap-1.5">
+      <img
+        src={icon}
+        alt={alt}
+        className={`h-6 w-6 transition-transform ${bouncing ? "animate-icon-bounce" : ""}`}
+      />
+      <AnimatedNumber value={value} onFlash={setBouncing} />
+    </div>
+  );
+}
+
 export function CurrencyBar({ inventory }: Props) {
   return (
     <div className="flex items-center gap-5">
-      <div className="flex items-center gap-1.5">
-        <img src={scrapIcon} alt="Scrap" className="h-6 w-6" />
-        <AnimatedNumber value={inventory.scrap} />
-      </div>
-      <div className="flex items-center gap-1.5">
-        <img src={crystalIcon} alt="Crystal" className="h-6 w-6" />
-        <AnimatedNumber value={inventory.crystal} />
-      </div>
-      <div className="flex items-center gap-1.5">
-        <img src={artifactIcon} alt="Artifact" className="h-6 w-6" />
-        <AnimatedNumber value={inventory.artifact} />
-      </div>
+      <CurrencyItem icon={scrapIcon} alt="Scrap" value={inventory.scrap} />
+      <CurrencyItem icon={crystalIcon} alt="Crystal" value={inventory.crystal} />
+      <CurrencyItem icon={artifactIcon} alt="Artifact" value={inventory.artifact} />
     </div>
   );
 }

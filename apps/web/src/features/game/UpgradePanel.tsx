@@ -5,54 +5,96 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import type { UpgradeInfo } from "@solanaidle/shared";
-import { ArrowUp } from "lucide-react";
+import type { UpgradeInfo, GearTrack } from "@solanaidle/shared";
+import { Shield, Zap, Search, ArrowUp } from "lucide-react";
+import scrapIcon from "@/assets/icons/19.png";
+import crystalIcon from "@/assets/icons/22.png";
+import artifactIcon from "@/assets/icons/25.png";
 
 interface Props {
   upgradeInfo: UpgradeInfo;
-  onUpgrade: () => void;
+  onUpgrade: (track: GearTrack) => void;
 }
 
-export function UpgradePanel({ upgradeInfo, onUpgrade }: Props) {
-  const { currentGearLevel, nextUpgrade } = upgradeInfo;
+const TRACKS: { id: GearTrack; label: string; icon: React.ReactNode; color: string }[] = [
+  { id: "armor", label: "Armor", icon: <Shield className="h-5 w-5" />, color: "text-neon-cyan" },
+  { id: "engine", label: "Engine", icon: <Zap className="h-5 w-5" />, color: "text-neon-amber" },
+  { id: "scanner", label: "Scanner", icon: <Search className="h-5 w-5" />, color: "text-neon-green" },
+];
 
+export function UpgradePanel({ upgradeInfo, onUpgrade }: Props) {
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-base font-display">Gear Upgrade</CardTitle>
+        <CardTitle className="text-base font-display">Gear Upgrades</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3">
-        <p className="text-sm">
-          Current: <span className="font-bold font-mono text-neon-green">Level {currentGearLevel}</span>
-        </p>
-        {nextUpgrade ? (
-          <>
-            <div className="text-xs text-muted-foreground space-y-1">
-              <p>Next level cost:</p>
-              <div className="flex gap-2 flex-wrap">
-                <span className="font-mono">{nextUpgrade.cost.scrap} Scrap</span>
-                {nextUpgrade.cost.crystal ? (
-                  <span className="font-mono">{nextUpgrade.cost.crystal} Crystal</span>
-                ) : null}
-                {nextUpgrade.cost.artifact ? (
-                  <span className="font-mono">{nextUpgrade.cost.artifact} Artifact</span>
-                ) : null}
+      <CardContent>
+        <div className="grid grid-cols-3 gap-2">
+          {TRACKS.map((track) => {
+            const info = upgradeInfo[track.id];
+            const isMaxed = info.next === null;
+
+            return (
+              <div
+                key={track.id}
+                className="flex flex-col items-center rounded-lg border border-white/[0.06] bg-white/[0.02] p-2.5 space-y-2"
+              >
+                <div className={track.color}>{track.icon}</div>
+                <span className="text-xs font-display font-bold">{track.label}</span>
+
+                <span className="text-xs font-mono text-muted-foreground">
+                  Lv {info.level}/{info.maxLevel}
+                </span>
+
+                <span className={`text-xs font-mono font-bold ${track.color}`}>
+                  {info.effectLabel}
+                </span>
+
+                {isMaxed ? (
+                  <span className="text-xs font-bold text-neon-green">MAX</span>
+                ) : (
+                  <>
+                    <div className="border-t border-white/[0.06] pt-2 w-full text-center">
+                      <span className="text-[10px] text-muted-foreground">Next:</span>
+                      <span className="block text-xs font-mono font-bold text-foreground">
+                        {info.next!.effectLabel}
+                      </span>
+                    </div>
+
+                    <div className="flex flex-col items-center gap-0.5">
+                      <div className="flex items-center gap-1">
+                        <img src={scrapIcon} alt="" className="h-3 w-3" />
+                        <span className="text-[10px] font-mono">{info.next!.cost.scrap}</span>
+                      </div>
+                      {info.next!.cost.crystal ? (
+                        <div className="flex items-center gap-1">
+                          <img src={crystalIcon} alt="" className="h-3 w-3" />
+                          <span className="text-[10px] font-mono">{info.next!.cost.crystal}</span>
+                        </div>
+                      ) : null}
+                      {info.next!.cost.artifact ? (
+                        <div className="flex items-center gap-1">
+                          <img src={artifactIcon} alt="" className="h-3 w-3" />
+                          <span className="text-[10px] font-mono">{info.next!.cost.artifact}</span>
+                        </div>
+                      ) : null}
+                    </div>
+
+                    <Button
+                      size="sm"
+                      disabled={!info.next!.canAfford}
+                      onClick={() => onUpgrade(track.id)}
+                      className="w-full text-xs h-7"
+                    >
+                      <ArrowUp className="h-3 w-3 mr-0.5" />
+                      Lv {info.next!.level}
+                    </Button>
+                  </>
+                )}
               </div>
-              <p>Fail rate reduction: <span className="font-mono text-neon-green">-{nextUpgrade.failRateReduction}%</span></p>
-            </div>
-            <Button
-              size="sm"
-              disabled={!nextUpgrade.canAfford}
-              onClick={onUpgrade}
-              className="w-full"
-            >
-              <ArrowUp className="h-4 w-4 mr-1 text-neon-green" />
-              Upgrade to Level {nextUpgrade.level}
-            </Button>
-          </>
-        ) : (
-          <p className="text-xs text-muted-foreground">Max level reached!</p>
-        )}
+            );
+          })}
+        </div>
       </CardContent>
     </Card>
   );

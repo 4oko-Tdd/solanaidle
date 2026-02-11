@@ -57,7 +57,7 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
     endedRun,
     startMission,
     claimMission,
-    upgradeGear,
+    upgradeTrack,
     refresh,
     clearClaimResult,
     startRun,
@@ -90,6 +90,7 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
   const handleDailyClaim = async () => {
     await api("/daily/claim", { method: "POST" });
     addToast("Daily bonus claimed!", "success");
+    setShowDailyModal(false);
     await refresh();
   };
 
@@ -178,13 +179,16 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
       <div className="flex-1 overflow-y-auto pb-20">
         <div className="mx-auto w-full max-w-md space-y-4 p-4">
           {activeTab === "game" && (
-            <>
+            <div className="animate-tab-in space-y-4">
               {activeRun && <RunStatus run={activeRun} characterState={character.state} />}
 
               <CharacterCard
                 character={character}
                 classId={activeRun?.classId}
                 livesRemaining={activeRun?.livesRemaining}
+                armorLevel={activeRun?.armorLevel}
+                engineLevel={activeRun?.engineLevel}
+                scannerLevel={activeRun?.scannerLevel}
               />
 
               {activeMission ? (
@@ -208,14 +212,14 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
               {activeRun && (
                 <RunLog runId={activeRun.id} weekStart={activeRun.weekStart} />
               )}
-            </>
+            </div>
           )}
 
           {activeTab === "skills" && (
-            <>
+            <div className="animate-tab-in space-y-4">
               {activeRun && <SkillTree onUpdate={refresh} />}
               {upgradeInfo && (
-                <UpgradePanel upgradeInfo={upgradeInfo} onUpgrade={upgradeGear} />
+                <UpgradePanel upgradeInfo={upgradeInfo} onUpgrade={upgradeTrack} />
               )}
               {!activeRun && (
                 <div className="flex flex-col items-center justify-center gap-2 py-12 text-center">
@@ -225,17 +229,17 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
                   </p>
                 </div>
               )}
-            </>
+            </div>
           )}
 
           {activeTab === "guild" && (
-            <>
+            <div className="animate-tab-in space-y-4">
               <GuildPanel />
               <RaidPanel />
-            </>
+            </div>
           )}
 
-          {activeTab === "ranks" && <LeaderboardPanel />}
+          {activeTab === "ranks" && <div className="animate-tab-in"><LeaderboardPanel /></div>}
         </div>
       </div>
 
@@ -252,11 +256,11 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              {tab.icon}
+              <span className="transition-transform duration-150">{tab.icon}</span>
               <span>{tab.label}</span>
-              {activeTab === tab.id && (
-                <div className="absolute -bottom-px left-1/4 right-1/4 h-0.5 bg-gradient-to-r from-[#9945FF] to-[#14F195] rounded-full" />
-              )}
+              <div className={`absolute -bottom-px left-1/4 right-1/4 h-0.5 bg-gradient-to-r from-[#9945FF] to-[#14F195] rounded-full transition-all duration-200 ${
+                activeTab === tab.id ? "opacity-100 scale-x-100" : "opacity-0 scale-x-0"
+              }`} />
             </button>
           ))}
         </div>

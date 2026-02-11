@@ -11,6 +11,7 @@ import type {
   WeeklyRun,
   CharacterClass,
   ClassId,
+  GearTrack,
 } from "@solanaidle/shared";
 
 interface GameState {
@@ -139,8 +140,8 @@ export function useGameState(isAuthenticated: boolean) {
     return result;
   }, [refresh]);
 
-  const upgradeGear = useCallback(async () => {
-    await api("/upgrades/gear", { method: "POST" });
+  const upgradeTrack = useCallback(async (track: GearTrack) => {
+    await api(`/upgrades/${track}`, { method: "POST" });
     await refresh();
   }, [refresh]);
 
@@ -163,7 +164,7 @@ export function useGameState(isAuthenticated: boolean) {
     ...state,
     startMission,
     claimMission,
-    upgradeGear,
+    upgradeTrack,
     refresh,
     clearClaimResult,
     startRun,

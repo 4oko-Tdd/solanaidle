@@ -6,7 +6,10 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import type { MissionType, CharacterState, MissionId, ClassId } from "@solanaidle/shared";
-import { Clock, Skull, Lock, AlertTriangle } from "lucide-react";
+import { Clock, Skull, Lock, AlertTriangle, Star, Sparkles } from "lucide-react";
+import scrapIcon from "@/assets/icons/19.png";
+import crystalIcon from "@/assets/icons/22.png";
+import artifactIcon from "@/assets/icons/25.png";
 
 interface Props {
   missions: MissionType[];
@@ -77,52 +80,89 @@ export function MissionPanel({ missions, characterState, onStart, characterLevel
           const riskLevel = getRiskLevel(mission.id, lives);
           const dynamicLabel = RISK_LABELS[mission.id]?.[lives] ?? mission.name;
 
+          const r = mission.rewards;
+
           return (
             <div
               key={mission.id}
-              className={`flex items-center justify-between rounded-lg border p-3 transition-all bg-white/[0.02] ${
-                locked ? "opacity-50 border-white/[0.06]" : RISK_STYLES[riskLevel]
+              className={`rounded-lg border p-3 transition-all duration-200 bg-white/[0.02] space-y-2 ${
+                locked ? "opacity-50 border-white/[0.06]" : `${RISK_STYLES[riskLevel]} ${!locked ? "hover:-translate-y-0.5 hover:bg-white/[0.04]" : ""}`
               } ${riskLevel === "critical" && !locked ? "animate-pulse" : ""}`}
             >
-              <div className="space-y-1">
-                <div className="flex items-center gap-1.5">
-                  {riskLevel === "critical" && !locked && <Skull className="h-3.5 w-3.5 text-neon-red" />}
-                  <p className={`font-medium text-sm ${
-                    riskLevel === "critical" && !locked ? "text-neon-red" :
-                    riskLevel === "dangerous" && !locked ? "text-neon-red/80" :
-                    riskLevel === "risky" && !locked ? "text-neon-amber" : ""
-                  }`}>
-                    {locked ? mission.name : dynamicLabel}
-                  </p>
-                </div>
-                <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1">
-                    <Clock className="h-3 w-3" />
-                    <span className="font-mono">{formatDuration(displayDuration)}</span>
-                  </span>
-                  <span className={`flex items-center gap-1 ${
-                    riskLevel === "critical" || riskLevel === "dangerous" ? "text-neon-red font-medium" :
-                    riskLevel === "risky" ? "text-neon-amber" : ""
-                  }`}>
-                    <AlertTriangle className="h-3 w-3" />
-                    <span className="font-mono">{mission.failRate}% chance of death</span>
-                  </span>
-                </div>
-                {lockLabel && (
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <Lock className="h-3 w-3" />
-                    <span>{lockLabel}</span>
+              {/* Top row: name + start button */}
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-1.5">
+                    {riskLevel === "critical" && !locked && <Skull className="h-3.5 w-3.5 text-neon-red" />}
+                    <p className={`font-medium text-sm ${
+                      riskLevel === "critical" && !locked ? "text-neon-red" :
+                      riskLevel === "dangerous" && !locked ? "text-neon-red/80" :
+                      riskLevel === "risky" && !locked ? "text-neon-amber" : ""
+                    }`}>
+                      {locked ? mission.name : dynamicLabel}
+                    </p>
                   </div>
-                )}
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      <span className="font-mono">{formatDuration(displayDuration)}</span>
+                    </span>
+                    <span className={`flex items-center gap-1 ${
+                      riskLevel === "critical" || riskLevel === "dangerous" ? "text-neon-red font-medium" :
+                      riskLevel === "risky" ? "text-neon-amber" : ""
+                    }`}>
+                      <AlertTriangle className="h-3 w-3" />
+                      <span className="font-mono">{mission.failRate}%</span>
+                    </span>
+                  </div>
+                  {lockLabel && (
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <Lock className="h-3 w-3" />
+                      <span>{lockLabel}</span>
+                    </div>
+                  )}
+                </div>
+                <Button
+                  size="sm"
+                  disabled={!canStart || locked}
+                  onClick={() => onStart(mission.id)}
+                  variant={riskLevel === "critical" || riskLevel === "dangerous" ? "destructive" : "default"}
+                >
+                  {locked ? "Locked" : "Start"}
+                </Button>
               </div>
-              <Button
-                size="sm"
-                disabled={!canStart || locked}
-                onClick={() => onStart(mission.id)}
-                variant={riskLevel === "critical" || riskLevel === "dangerous" ? "destructive" : "default"}
-              >
-                {locked ? "Locked" : "Start"}
-              </Button>
+
+              {/* Rewards row */}
+              {!locked && (
+                <div className="flex items-center gap-3 border-t border-white/[0.04] pt-2 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1">
+                    <Star className="h-3 w-3 text-neon-amber" />
+                    <span className="font-mono">{r.xpRange[0]}-{r.xpRange[1]}</span>
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <img src={scrapIcon} alt="" className="h-3.5 w-3.5" />
+                    <span className="font-mono">{r.scrap[0]}-{r.scrap[1]}</span>
+                  </span>
+                  {r.crystal && (
+                    <span className="flex items-center gap-1">
+                      <img src={crystalIcon} alt="" className="h-3.5 w-3.5" />
+                      <span className="font-mono">{r.crystal[0]}-{r.crystal[1]}</span>
+                    </span>
+                  )}
+                  {r.artifact && (
+                    <span className="flex items-center gap-1">
+                      <img src={artifactIcon} alt="" className="h-3.5 w-3.5" />
+                      <span className="font-mono">{r.artifact[0]}-{r.artifact[1]}</span>
+                    </span>
+                  )}
+                  {r.nftChance && r.nftChance > 0 && (
+                    <span className="flex items-center gap-1 text-neon-amber">
+                      <Sparkles className="h-3 w-3" />
+                      <span className="font-mono">{r.nftChance}%</span>
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
           );
         })}

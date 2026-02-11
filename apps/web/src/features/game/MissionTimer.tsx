@@ -41,6 +41,7 @@ export function MissionTimer({
     100,
     Math.round((elapsed / totalDuration) * 100),
   );
+  const isUrgent = !isComplete && progressPercent >= 90;
 
   const handleSkipTimer = async () => {
     setSkipping(true);
@@ -55,24 +56,41 @@ export function MissionTimer({
   };
 
   return (
-    <Card className={isComplete ? "border-neon-green/50 glow-green" : ""}>
+    <Card className={`transition-all duration-300 ${
+      isComplete
+        ? "border-neon-green/50 glow-green animate-glow-pulse"
+        : isUrgent
+        ? "border-neon-amber/40 glow-purple"
+        : ""
+    }`}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base font-display">
             {missionDef?.name ?? "Mission"} in Progress
           </CardTitle>
           {isComplete && (
-            <span className="text-xs font-medium text-neon-green font-mono uppercase tracking-wider">
+            <span className="text-xs font-medium text-neon-green font-mono uppercase tracking-wider animate-bounce-in">
               Complete!
+            </span>
+          )}
+          {isUrgent && !isComplete && (
+            <span className="text-xs font-medium text-neon-amber font-mono uppercase tracking-wider animate-urgency">
+              Almost...
             </span>
           )}
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
-        <Progress value={progressPercent} className="h-2" />
+        <div className={isUrgent ? "animate-glow-pulse rounded-full" : ""}>
+          <Progress value={progressPercent} className={`h-2.5 transition-all duration-500 ${isComplete ? "h-3" : ""}`} />
+        </div>
         <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">
-            {isComplete ? "Ready to claim!" : <span className="font-mono">{formatTime(remaining)}</span>}
+          <span className={`text-muted-foreground ${isUrgent ? "animate-urgency font-bold text-neon-amber" : ""}`}>
+            {isComplete ? (
+              <span className="text-neon-green font-bold animate-bounce-in">Ready to claim!</span>
+            ) : (
+              <span className="font-mono">{formatTime(remaining)}</span>
+            )}
           </span>
           <div className="flex items-center gap-2">
             {import.meta.env.DEV && !isComplete && (
@@ -83,10 +101,15 @@ export function MissionTimer({
                 disabled={skipping}
                 className="text-xs text-neon-amber border-neon-amber/50 hover:bg-neon-amber/10"
               >
-                {skipping ? "Skipping..." : "Skip Timer (Dev)"}
+                {skipping ? "Skipping..." : "Skip (Dev)"}
               </Button>
             )}
-            <Button size="sm" disabled={!isComplete} onClick={onClaim}>
+            <Button
+              size="sm"
+              disabled={!isComplete}
+              onClick={onClaim}
+              className={isComplete ? "btn-shimmer" : ""}
+            >
               {isComplete ? "Claim Reward" : "In Progress..."}
             </Button>
           </div>

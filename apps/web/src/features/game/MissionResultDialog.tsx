@@ -25,14 +25,19 @@ export function MissionResultDialog({ result, onClose, livesRemaining }: Props) 
 
   return (
     <Dialog open={!!result} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-sm">
+      <DialogContent className={`max-w-sm ${!isSuccess ? "border-neon-red/30" : "border-neon-green/30"}`}>
+        {/* Red flash overlay on failure */}
+        {!isSuccess && (
+          <div className="absolute inset-0 rounded-lg bg-neon-red/20 animate-red-flash pointer-events-none" />
+        )}
+
         <DialogHeader className="items-center text-center">
           {isSuccess ? (
-            <Trophy className="h-12 w-12 text-neon-amber animate-bounce-in mx-auto mb-2" />
+            <Trophy className="h-14 w-14 text-neon-amber animate-bounce-in mx-auto mb-2 drop-shadow-[0_0_12px_rgba(255,184,0,0.5)]" />
           ) : (
-            <Skull className="h-12 w-12 text-neon-red animate-shake mx-auto mb-2" />
+            <Skull className={`h-14 w-14 text-neon-red animate-shake mx-auto mb-2 ${isRunOver ? "drop-shadow-[0_0_16px_rgba(255,51,102,0.6)]" : ""}`} />
           )}
-          <DialogTitle className={`text-xl font-display ${isRunOver ? "text-neon-red" : ""}`}>
+          <DialogTitle className={`text-xl font-display ${isRunOver ? "text-neon-red animate-urgency" : isSuccess ? "text-gradient" : ""}`}>
             {isSuccess
               ? "Mission Success!"
               : isRunOver
@@ -52,16 +57,16 @@ export function MissionResultDialog({ result, onClose, livesRemaining }: Props) 
           <div className="space-y-2 py-2">
             <p className="text-sm font-medium text-center font-display uppercase tracking-wider">Rewards:</p>
             <div className="flex flex-wrap justify-center gap-2">
-              <Badge variant="secondary">+{result.rewards.xp} XP</Badge>
-              <Badge variant="secondary">+{result.rewards.scrap} Scrap</Badge>
+              <Badge variant="secondary" className="animate-stagger-in stagger-1">+{result.rewards.xp} XP</Badge>
+              <Badge variant="secondary" className="animate-stagger-in stagger-2">+{result.rewards.scrap} Scrap</Badge>
               {result.rewards.crystal ? (
-                <Badge variant="secondary">+{result.rewards.crystal} Crystal</Badge>
+                <Badge variant="secondary" className="animate-stagger-in stagger-3">+{result.rewards.crystal} Crystal</Badge>
               ) : null}
               {result.rewards.artifact ? (
-                <Badge variant="secondary">+{result.rewards.artifact} Artifact</Badge>
+                <Badge variant="secondary" className="animate-stagger-in stagger-4">+{result.rewards.artifact} Artifact</Badge>
               ) : null}
               {result.rewards?.streakMultiplier && result.rewards.streakMultiplier > 1 && (
-                <Badge className="bg-neon-amber/20 text-neon-amber animate-glow-pulse">
+                <Badge className="bg-neon-amber/20 text-neon-amber animate-stagger-in stagger-5 animate-glow-pulse">
                   {result.rewards.streakMultiplier}x Streak Bonus!
                 </Badge>
               )}
@@ -70,9 +75,9 @@ export function MissionResultDialog({ result, onClose, livesRemaining }: Props) 
         )}
 
         {result.nftDrop && (
-          <div className="flex items-center justify-center gap-2 rounded-lg border border-neon-amber/50 bg-neon-amber/10 p-3">
-            <Sparkles className="h-5 w-5 text-neon-amber animate-glow-pulse" />
-            <span className="text-sm font-medium">NFT Drop: {result.nftDrop.nftName}</span>
+          <div className="flex items-center justify-center gap-2 rounded-lg border border-neon-amber/50 bg-neon-amber/10 p-3 animate-golden-glow animate-stagger-in stagger-5">
+            <Sparkles className="h-5 w-5 text-neon-amber animate-scale-pop" />
+            <span className="text-sm font-bold text-neon-amber">NFT Drop: {result.nftDrop.nftName}</span>
           </div>
         )}
 
