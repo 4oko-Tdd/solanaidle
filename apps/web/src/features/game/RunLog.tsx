@@ -42,27 +42,27 @@ function formatEvent(event: RunEvent): string {
   const d = event.data as Record<string, any>;
   switch (event.eventType) {
     case "run_start":
-      return `Run started as ${d.classId}`;
+      return `Epoch started as ${d.classId}`;
     case "mission_success":
-      return `${d.missionId} succeeded. +${d.xp} XP, +${d.scrap} scrap${d.crystal ? `, +${d.crystal} crystal` : ""}`;
+      return `${d.missionId} confirmed. +${d.xp} XP, +${d.scrap} lamports${d.crystal ? `, +${d.crystal} tokens` : ""}`;
     case "mission_fail":
       return d.escaped
-        ? `${d.missionId} failed — Lucky Escape!`
+        ? `${d.missionId} failed — Failover!`
         : `${d.missionId} failed. Lost 1 life. (${d.livesRemaining} remaining)`;
     case "death":
-      return "Died. Recovering...";
+      return "Slashed. Recovering...";
     case "revive":
-      return "Revived.";
+      return "Back online.";
     case "level_up":
       return `Leveled up to Lv.${d.newLevel}`;
     case "boss_kill":
-      return "Shadow Boss defeated!";
+      return "Whale Hunt complete!";
     case "skill_unlock":
       return `Unlocked: ${d.skillName}`;
     case "nft_drop":
       return `RARE: NFT Drop — ${d.nftName}!`;
     case "run_end":
-      return `Run ended. ${d.cause === "death" ? "No lives remaining." : "Score sealed."}`;
+      return `Epoch ended. ${d.cause === "death" ? "No lives remaining." : "Score finalized."}`;
     default:
       return event.eventType;
   }
@@ -88,7 +88,7 @@ export function RunLog({ runId, weekStart }: Props) {
         onClick={() => setExpanded(!expanded)}
         className="flex w-full items-center justify-between p-3 text-sm font-medium"
       >
-        <span className="font-display">Run Log</span>
+        <span className="font-display">Epoch Log</span>
         {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
       </button>
       {expanded && (

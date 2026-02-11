@@ -3,21 +3,21 @@ import type { MissionType, CharacterClass, SkillNode, RaidMission } from "@solan
 export const MISSIONS: MissionType[] = [
   {
     id: "scout",
-    name: "Scout",
+    name: "Swap",
     duration: 3600,
     failRate: 10,
     rewards: { xpRange: [10, 25], scrap: [5, 15] },
   },
   {
     id: "expedition",
-    name: "Expedition",
+    name: "Stake",
     duration: 21600,
     failRate: 25,
     rewards: { xpRange: [50, 120], scrap: [20, 50], crystal: [3, 10] },
   },
   {
     id: "deep_dive",
-    name: "Deep Dive",
+    name: "Deep Farm",
     duration: 86400,
     failRate: 40,
     rewards: {
@@ -69,11 +69,11 @@ export const MAX_REROLL_STACKS = 3;
 export const INSURANCE_COST = 5; // crystal
 
 export const NFT_NAMES = [
-  "Shadow Explorer Badge",
-  "Abyssal Wanderer Mark",
-  "Deep Void Sigil",
-  "Phantom Diver Token",
-  "Obsidian Pathfinder Crest",
+  "Genesis Block Badge",
+  "Whale Wallet Mark",
+  "Diamond Hands Sigil",
+  "Phantom Token",
+  "Validator Crest",
 ];
 
 export function getMission(id: string): MissionType | undefined {
@@ -101,8 +101,8 @@ export function getScannerBonus(level: number): number {
 export const CLASSES: CharacterClass[] = [
   {
     id: "scout",
-    name: "Scout",
-    description: "Speed runner. Faster missions, slightly riskier.",
+    name: "Validator",
+    description: "Fast block producer. Shorter missions, slightly riskier.",
     durationModifier: 0.85,
     failRateModifier: 5,
     lootModifier: 1.0,
@@ -110,8 +110,8 @@ export const CLASSES: CharacterClass[] = [
   },
   {
     id: "guardian",
-    name: "Guardian",
-    description: "Tank. Safer missions, takes longer.",
+    name: "Staker",
+    description: "Secures the chain. Safer missions, takes longer.",
     durationModifier: 1.2,
     failRateModifier: -10,
     lootModifier: 1.0,
@@ -119,8 +119,8 @@ export const CLASSES: CharacterClass[] = [
   },
   {
     id: "mystic",
-    name: "Mystic",
-    description: "Gambler. Higher rare loot, riskier, less XP.",
+    name: "Oracle",
+    description: "Reads the mempool. Higher rare loot, riskier, less XP.",
     durationModifier: 1.0,
     failRateModifier: 10,
     lootModifier: 1.3,
@@ -129,31 +129,31 @@ export const CLASSES: CharacterClass[] = [
 ];
 
 export const SKILL_TREES: SkillNode[] = [
-  // Scout
-  { id: "scout_swift", classId: "scout", name: "Swift Feet", description: "-10% more duration reduction", tier: 1, cost: 1 },
-  { id: "scout_escape", classId: "scout", name: "Lucky Escape", description: "50% chance to survive a failed mission (1x/run)", tier: 2, cost: 2 },
-  { id: "scout_double", classId: "scout", name: "Double Run", description: "Can send 2 missions simultaneously (1x/day)", tier: 3, cost: 3 },
-  // Guardian
-  { id: "guardian_iron", classId: "guardian", name: "Iron Will", description: "+1 run life (4 total)", tier: 1, cost: 1 },
-  { id: "guardian_shield", classId: "guardian", name: "Resource Shield", description: "Keep 50% resources on death", tier: 2, cost: 2 },
-  { id: "guardian_fortify", classId: "guardian", name: "Fortify", description: "-5% fail rate on Tier 3 missions", tier: 3, cost: 3 },
-  // Mystic
-  { id: "mystic_eye", classId: "mystic", name: "Third Eye", description: "See mission outcome probability", tier: 1, cost: 1 },
-  { id: "mystic_ritual", classId: "mystic", name: "Ritual", description: "+15% NFT drop chance on Deep Dive", tier: 2, cost: 2 },
-  { id: "mystic_soul", classId: "mystic", name: "Soul Link", description: "On death, collect passive resources for 1h", tier: 3, cost: 3 },
+  // Validator
+  { id: "scout_swift", classId: "scout", name: "Fast Finality", description: "-10% more duration reduction", tier: 1, cost: 1 },
+  { id: "scout_escape", classId: "scout", name: "Failover", description: "50% chance to survive a failed mission (1x/run)", tier: 2, cost: 2 },
+  { id: "scout_double", classId: "scout", name: "Parallel Processing", description: "Can send 2 missions simultaneously (1x/day)", tier: 3, cost: 3 },
+  // Staker
+  { id: "guardian_iron", classId: "guardian", name: "Extra Stake", description: "+1 run life (4 total)", tier: 1, cost: 1 },
+  { id: "guardian_shield", classId: "guardian", name: "Slashing Protection", description: "Keep 50% resources on death", tier: 2, cost: 2 },
+  { id: "guardian_fortify", classId: "guardian", name: "Governance Vote", description: "-5% fail rate on Tier 3 missions", tier: 3, cost: 3 },
+  // Oracle
+  { id: "mystic_eye", classId: "mystic", name: "Price Feed", description: "See mission outcome probability", tier: 1, cost: 1 },
+  { id: "mystic_ritual", classId: "mystic", name: "Data Request", description: "+15% NFT drop chance on Deep Farm", tier: 2, cost: 2 },
+  { id: "mystic_soul", classId: "mystic", name: "Dead Man's Switch", description: "On death, collect passive resources for 1h", tier: 3, cost: 3 },
 ];
 
 export const BOSS_MISSION: MissionType = {
   id: "boss",
-  name: "Shadow Boss",
+  name: "Whale Hunt",
   duration: 43200, // 12h
   failRate: 50,
   rewards: { xpRange: [500, 1000], scrap: [200, 500], crystal: [50, 100], artifact: [2, 5], nftChance: 20 },
 };
 
 export const RAIDS: RaidMission[] = [
-  { id: "outpost", name: "Outpost Raid", requiredPlayers: 2, duration: 14400, lootMultiplier: 2, description: "2-player raid. 4h. 2x loot." },
-  { id: "stronghold", name: "Stronghold Siege", requiredPlayers: 3, duration: 43200, lootMultiplier: 3, description: "3-player raid. 12h. 3x loot + guaranteed Crystal." },
+  { id: "outpost", name: "Pool Raid", requiredPlayers: 2, duration: 14400, lootMultiplier: 2, description: "2-player raid. 4h. 2x loot." },
+  { id: "stronghold", name: "Protocol Siege", requiredPlayers: 3, duration: 43200, lootMultiplier: 3, description: "3-player raid. 12h. 3x loot + guaranteed Tokens." },
 ];
 
 export const RUN_LIVES = 3;
@@ -180,8 +180,8 @@ export function getStreakMultiplier(streak: number): number {
 }
 
 export function getStreakLabel(streak: number): string | null {
-  if (streak >= 6) return "Unstoppable";
-  if (streak >= 4) return "On Fire";
-  if (streak >= 2) return "Hot Streak";
+  if (streak >= 6) return "To The Moon";
+  if (streak >= 4) return "Diamond Hands";
+  if (streak >= 2) return "HODL Streak";
   return null;
 }

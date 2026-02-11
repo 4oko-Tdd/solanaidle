@@ -45,7 +45,7 @@ export default function App() {
                 Solana Idle
               </h2>
               <p className="text-sm text-muted-foreground max-w-xs leading-relaxed">
-                Send your character on missions, collect loot, upgrade gear, and
+                Run your node, stake on missions, collect rewards, upgrade your setup, and
                 earn NFTs -- all on Solana.
               </p>
             </div>

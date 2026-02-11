@@ -98,12 +98,12 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
     if (!lastClaimResult) return;
     if (lastClaimResult.result === "success" && lastClaimResult.rewards) {
       const r = lastClaimResult.rewards;
-      addToast(`+${r.scrap} Scrap${r.crystal ? `, +${r.crystal} Crystal` : ""}${r.artifact ? `, +${r.artifact} Artifact` : ""}`, "success");
+      addToast(`+${r.scrap} Lamports${r.crystal ? `, +${r.crystal} Tokens` : ""}${r.artifact ? `, +${r.artifact} Keys` : ""}`, "success");
       if (r.streakMultiplier && r.streakMultiplier > 1) {
         addToast(`${r.streakMultiplier}x Streak Bonus!`, "warning");
       }
     } else if (lastClaimResult.result === "failure") {
-      addToast("Mission Failed!", "error");
+      addToast("Transaction Failed!", "error");
     }
   }, [lastClaimResult, addToast]);
 
@@ -140,13 +140,13 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
       <div className="mx-auto w-full max-w-md space-y-6 p-4 animate-fade-in-up">
         <div className="text-center space-y-3">
           <Trophy className="h-16 w-16 text-neon-amber mx-auto" />
-          <h2 className="text-3xl font-display text-gradient">Run Complete</h2>
+          <h2 className="text-3xl font-display text-gradient">Epoch Complete</h2>
           <p className="text-sm text-muted-foreground">
-            Week {(() => {
+            Epoch {(() => {
               const d = new Date(endedRun.weekStart);
               const s = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
               return Math.ceil((d.getTime() - s.getTime()) / 604800000 + 1);
-            })()} score sealed. Come back next week for a new run.
+            })()} finalized. Come back next week for a new epoch.
           </p>
         </div>
         <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] backdrop-blur-md p-4">
@@ -226,7 +226,7 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
                 <div className="flex flex-col items-center justify-center gap-2 py-12 text-center">
                   <Sparkles className="h-8 w-8 text-muted-foreground" />
                   <p className="text-sm text-muted-foreground">
-                    Start a weekly run to unlock skills.
+                    Start an epoch to unlock skills.
                   </p>
                 </div>
               )}

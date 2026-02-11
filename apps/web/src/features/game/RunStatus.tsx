@@ -4,9 +4,9 @@ import type { WeeklyRun, ClassId, CharacterState } from "@solanaidle/shared";
 import { ClassIcon } from "@/components/ClassIcon";
 
 const CLASS_NAMES: Record<ClassId, string> = {
-  scout: "Scout",
-  guardian: "Guardian",
-  mystic: "Mystic",
+  scout: "Validator",
+  guardian: "Staker",
+  mystic: "Oracle",
 };
 
 interface Props {
@@ -23,12 +23,12 @@ function getWeekNumber(weekStart: string): number {
 
 function getRunStatusBadge(run: WeeklyRun, characterState?: CharacterState) {
   if (!run.active) {
-    return <Badge variant="secondary" className="bg-muted text-muted-foreground">RUN OVER</Badge>;
+    return <Badge variant="secondary" className="bg-muted text-muted-foreground">EPOCH OVER</Badge>;
   }
   if (characterState === "dead") {
-    return <Badge variant="destructive" className="animate-pulse animate-glow-pulse bg-neon-red/20 text-neon-red">DEAD</Badge>;
+    return <Badge variant="destructive" className="animate-pulse animate-glow-pulse bg-neon-red/20 text-neon-red">SLASHED</Badge>;
   }
-  return <Badge className="bg-neon-green/20 text-neon-green">ALIVE</Badge>;
+  return <Badge className="bg-neon-green/20 text-neon-green">ONLINE</Badge>;
 }
 
 export function RunStatus({ run, characterState }: Props) {
@@ -39,7 +39,7 @@ export function RunStatus({ run, characterState }: Props) {
       {/* Top row: Week + Class + Status */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-bold font-display">Week {weekNum} Run</span>
+          <span className="text-sm font-bold font-display">Epoch {weekNum}</span>
           <span className="flex items-center gap-1 text-xs text-muted-foreground">
             <ClassIcon classId={run.classId} className="h-4 w-4" />
             {CLASS_NAMES[run.classId]}
@@ -80,7 +80,7 @@ export function RunStatus({ run, characterState }: Props) {
       {/* Stakes text */}
       {run.livesRemaining === 1 && run.active && characterState !== "dead" && (
         <div className="rounded bg-neon-red/10 border border-neon-red/30 px-2 py-1 text-center animate-pulse">
-          <span className="text-xs font-bold text-neon-red">FAILURE MEANS DEATH. 1 LIFE REMAINING.</span>
+          <span className="text-xs font-bold text-neon-red">FAILURE MEANS SLASHING. 1 LIFE REMAINING.</span>
         </div>
       )}
       {run.livesRemaining === 2 && run.active && (

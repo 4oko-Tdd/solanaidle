@@ -17,8 +17,8 @@ interface Props {
 }
 
 const TRACKS: { id: GearTrack; label: string; icon: React.ReactNode; color: string }[] = [
-  { id: "armor", label: "Armor", icon: <Shield className="h-5 w-5" />, color: "text-neon-cyan" },
-  { id: "engine", label: "Engine", icon: <Zap className="h-5 w-5" />, color: "text-neon-amber" },
+  { id: "armor", label: "Firewall", icon: <Shield className="h-5 w-5" />, color: "text-neon-cyan" },
+  { id: "engine", label: "Turbo", icon: <Zap className="h-5 w-5" />, color: "text-neon-amber" },
   { id: "scanner", label: "Scanner", icon: <Search className="h-5 w-5" />, color: "text-neon-green" },
 ];
 
@@ -26,7 +26,7 @@ export function UpgradePanel({ upgradeInfo, onUpgrade }: Props) {
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-base font-display">Gear Upgrades</CardTitle>
+        <CardTitle className="text-base font-display">Node Upgrades</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-3 gap-2">

@@ -11,9 +11,9 @@ import { Shield, Star, Heart, Zap, Search } from "lucide-react";
 import { ClassIcon } from "@/components/ClassIcon";
 
 const CLASS_NAMES: Record<ClassId, string> = {
-  scout: "Scout",
-  guardian: "Guardian",
-  mystic: "Mystic",
+  scout: "Validator",
+  guardian: "Staker",
+  mystic: "Oracle",
 };
 
 interface Props {
@@ -30,9 +30,9 @@ export function CharacterCard({ character, classId, livesRemaining, armorLevel, 
   const xpPercent = Math.round((character.xp / xpForNextLevel) * 100);
 
   const stateBadge = {
-    idle: { label: "Idle", variant: "secondary" as const },
-    on_mission: { label: "On Mission", variant: "default" as const },
-    dead: { label: "Dead", variant: "destructive" as const },
+    idle: { label: "Online", variant: "secondary" as const },
+    on_mission: { label: "On Chain", variant: "default" as const },
+    dead: { label: "Slashed", variant: "destructive" as const },
   }[character.state];
 
   const classAccent = classId ? `class-${classId}` : "";
@@ -67,11 +67,11 @@ export function CharacterCard({ character, classId, livesRemaining, armorLevel, 
             <span>{livesRemaining != null ? `${livesRemaining} Lives` : `${character.hp} HP`}</span>
           </div>
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1" title="Armor">
+            <div className="flex items-center gap-1" title="Firewall">
               <Shield className="h-3.5 w-3.5 text-neon-cyan" />
               <span className="font-mono text-xs">{armorLevel ?? 0}</span>
             </div>
-            <div className="flex items-center gap-1" title="Engine">
+            <div className="flex items-center gap-1" title="Turbo">
               <Zap className="h-3.5 w-3.5 text-neon-amber" />
               <span className="font-mono text-xs">{engineLevel ?? 0}</span>
             </div>

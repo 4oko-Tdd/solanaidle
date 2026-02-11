@@ -70,9 +70,9 @@ function CurrencyItem({ icon, alt, value }: { icon: string; alt: string; value: 
 export function CurrencyBar({ inventory }: Props) {
   return (
     <div className="flex items-center gap-5">
-      <CurrencyItem icon={scrapIcon} alt="Scrap" value={inventory.scrap} />
-      <CurrencyItem icon={crystalIcon} alt="Crystal" value={inventory.crystal} />
-      <CurrencyItem icon={artifactIcon} alt="Artifact" value={inventory.artifact} />
+      <CurrencyItem icon={scrapIcon} alt="Lamports" value={inventory.scrap} />
+      <CurrencyItem icon={crystalIcon} alt="Tokens" value={inventory.crystal} />
+      <CurrencyItem icon={artifactIcon} alt="Keys" value={inventory.artifact} />
     </div>
   );
 }

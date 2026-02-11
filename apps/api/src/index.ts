@@ -92,9 +92,9 @@ if (process.env.NODE_ENV !== "production") {
     const run = getActiveRun(payload.wallet);
     if (run) {
       endRun(run.id);
-      return c.json({ message: "Week advanced! Run ended and leaderboard updated." });
+      return c.json({ message: "Epoch advanced! Run ended and leaderboard updated." });
     }
-    return c.json({ message: "No active run to end." });
+    return c.json({ message: "No active epoch to end." });
   });
 
   // Dev: Add resources for testing

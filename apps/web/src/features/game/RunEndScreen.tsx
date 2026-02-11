@@ -69,9 +69,9 @@ export function RunEndScreen({ run, signMessage, onFinalized }: Props) {
     <div className="mx-auto w-full max-w-md space-y-6 p-4">
       <div className="text-center space-y-3">
         <Skull className="h-16 w-16 text-neon-red animate-glow-pulse mx-auto" />
-        <h2 className="text-3xl font-display text-neon-red">Run Over</h2>
+        <h2 className="text-3xl font-display text-neon-red">Epoch Over</h2>
         <p className="text-sm text-muted-foreground">
-          Week {weekNum} has ended. Seal your score on the leaderboard.
+          Epoch {weekNum} has ended. Finalize your score on the leaderboard.
         </p>
       </div>
 
@@ -97,7 +97,7 @@ export function RunEndScreen({ run, signMessage, onFinalized }: Props) {
             <div className="font-bold text-lg font-mono text-neon-red">{deaths}</div>
           </div>
           <div className="bg-white/[0.04] rounded-lg p-2">
-            <div className="text-muted-foreground text-xs font-mono uppercase tracking-wider">Boss</div>
+            <div className="text-muted-foreground text-xs font-mono uppercase tracking-wider">Whale</div>
             <div className="font-bold text-lg">
               {run.bossDefeated ? (
                 <Badge className="bg-neon-amber/20 text-neon-amber">Defeated</Badge>
@@ -113,12 +113,12 @@ export function RunEndScreen({ run, signMessage, onFinalized }: Props) {
         {signing ? (
           <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Signing...</>
         ) : (
-          "Seal Your Fate"
+          "Finalize Epoch"
         )}
       </Button>
 
       <p className="text-xs text-center text-muted-foreground font-mono">
-        Sign with your wallet to finalize this score on the leaderboard.
+        Sign with your wallet to seal this epoch on the leaderboard.
       </p>
     </div>
   );

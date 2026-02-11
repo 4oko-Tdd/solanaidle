@@ -45,7 +45,7 @@ export function LeaderboardPanel({ currentWallet }: Props) {
     <Card>
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center justify-between text-base font-display">
-          <span>Weekly Leaderboard</span>
+          <span>Epoch Leaderboard</span>
           <Badge variant="outline">{entries.length} players</Badge>
         </CardTitle>
       </CardHeader>

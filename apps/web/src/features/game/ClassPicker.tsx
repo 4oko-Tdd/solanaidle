@@ -73,9 +73,9 @@ export function ClassPicker({ classes, onSelect, signMessage }: Props) {
     <>
       <div className="mx-auto w-full max-w-md space-y-4 p-4">
         <div className="text-center space-y-2">
-          <h2 className="text-2xl font-display text-gradient">Week {weekNum} Run</h2>
+          <h2 className="text-2xl font-display text-gradient">Epoch {weekNum}</h2>
           <p className="text-sm text-muted-foreground">
-            Choose your class. Each class has unique strengths and weaknesses.
+            Choose your node type. Each has unique strengths and trade-offs.
           </p>
         </div>
 
@@ -126,9 +126,9 @@ export function ClassPicker({ classes, onSelect, signMessage }: Props) {
         <DialogContent className="max-w-sm">
           <DialogHeader className="items-center text-center">
             {selected && <ClassIcon classId={selected} className="h-8 w-8" />}
-            <DialogTitle className="text-xl font-display">Commit to This Run</DialogTitle>
+            <DialogTitle className="text-xl font-display">Commit to Epoch</DialogTitle>
             <DialogDescription>
-              You are about to begin Week {weekNum} as a <strong>{selectedClass?.name}</strong>. 3 lives. No turning back.
+              You are about to begin Epoch {weekNum} as a <strong>{selectedClass?.name}</strong>. 3 lives. No turning back.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex-col gap-2 sm:flex-col">

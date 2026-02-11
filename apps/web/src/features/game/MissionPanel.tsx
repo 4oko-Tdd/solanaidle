@@ -34,10 +34,10 @@ function formatDuration(seconds: number): string {
 }
 
 const RISK_LABELS: Record<string, Record<number, string>> = {
-  scout:     { 3: "Safe Run",     2: "Careful Run",      1: "Last Chance" },
-  expedition:{ 3: "Risky Expedition", 2: "High-Risk Mission", 1: "Suicide Mission" },
-  deep_dive: { 3: "Dangerous Dive",  2: "Perilous Dive",    1: "Death Wish" },
-  boss:      { 3: "Boss Fight",      2: "Do or Die",        1: "Final Stand" },
+  scout:     { 3: "Easy Swap",     2: "Risky Swap",      1: "Last Swap" },
+  expedition:{ 3: "Safe Stake", 2: "Risky Stake", 1: "Degen Stake" },
+  deep_dive: { 3: "Yield Farm",  2: "Degen Farm",    1: "Rug Risk" },
+  boss:      { 3: "Whale Spotted",      2: "Do or Die",        1: "Final Stand" },
 };
 
 function getRiskLevel(missionId: string, lives: number): "safe" | "risky" | "dangerous" | "critical" {
@@ -104,7 +104,7 @@ export function MissionPanel({ missions, characterState, onStart, characterLevel
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-base font-display">Missions</CardTitle>
+        <CardTitle className="text-base font-display">Transactions</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         {missions.map((mission) => {
@@ -278,7 +278,7 @@ export function MissionPanel({ missions, characterState, onStart, characterLevel
                     variant={riskLevel === "critical" || riskLevel === "dangerous" ? "destructive" : "default"}
                     onClick={() => handleStartMission(mission.id)}
                   >
-                    Launch Mission
+                    Send Transaction
                   </Button>
                 </div>
               )}
@@ -288,8 +288,8 @@ export function MissionPanel({ missions, characterState, onStart, characterLevel
         {!canStart && (
           <p className="text-xs text-muted-foreground text-center">
             {characterState === "on_mission"
-              ? "Character is on a mission"
-              : "Character is recovering"}
+              ? "Node is processing on chain"
+              : "Node is recovering from slash"}
           </p>
         )}
       </CardContent>

@@ -22,17 +22,17 @@ export function InventoryPanel({ inventory }: Props) {
           <div className="flex flex-col items-center rounded-lg border border-white/[0.06] bg-white/[0.03] p-2">
             <Wrench className="h-4 w-4 text-neon-amber mb-1" />
             <span className="text-lg font-mono font-bold text-neon-green">{inventory.scrap}</span>
-            <span className="text-xs text-muted-foreground font-mono uppercase tracking-wider">Scrap</span>
+            <span className="text-xs text-muted-foreground font-mono uppercase tracking-wider">Lamports</span>
           </div>
           <div className="flex flex-col items-center rounded-lg border border-white/[0.06] bg-white/[0.03] p-2">
             <Gem className="h-4 w-4 text-neon-cyan mb-1" />
             <span className="text-lg font-mono font-bold text-neon-green">{inventory.crystal}</span>
-            <span className="text-xs text-muted-foreground font-mono uppercase tracking-wider">Crystal</span>
+            <span className="text-xs text-muted-foreground font-mono uppercase tracking-wider">Tokens</span>
           </div>
           <div className="flex flex-col items-center rounded-lg border border-white/[0.06] bg-white/[0.03] p-2">
             <Archive className="h-4 w-4 text-neon-purple mb-1" />
             <span className="text-lg font-mono font-bold text-neon-green">{inventory.artifact}</span>
-            <span className="text-xs text-muted-foreground font-mono uppercase tracking-wider">Artifact</span>
+            <span className="text-xs text-muted-foreground font-mono uppercase tracking-wider">Keys</span>
           </div>
         </div>
       </CardContent>

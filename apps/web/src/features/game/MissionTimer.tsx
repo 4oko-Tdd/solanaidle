@@ -66,7 +66,7 @@ export function MissionTimer({
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base font-display">
-            {missionDef?.name ?? "Mission"} in Progress
+            {missionDef?.name ?? "Transaction"} in Progress
           </CardTitle>
           {isComplete && (
             <span className="text-xs font-medium text-neon-green font-mono uppercase tracking-wider animate-bounce-in">

@@ -39,17 +39,17 @@ export function MissionResultDialog({ result, onClose, livesRemaining }: Props) 
           )}
           <DialogTitle className={`text-xl font-display ${isRunOver ? "text-neon-red animate-urgency" : isSuccess ? "text-gradient" : ""}`}>
             {isSuccess
-              ? "Mission Success!"
+              ? "Transaction Confirmed!"
               : isRunOver
-              ? "DEATH \u2014 Run Over"
-              : "Mission Failed"}
+              ? "SLASHED \u2014 Epoch Over"
+              : "Transaction Failed"}
           </DialogTitle>
           <DialogDescription>
             {isSuccess
-              ? "Your character returned with loot!"
+              ? "Your node returned with rewards!"
               : isRunOver
-              ? "No lives remaining. Your run has ended."
-              : "Your character didn't make it back..."}
+              ? "No lives remaining. Your epoch has ended."
+              : "Your node got slashed..."}
           </DialogDescription>
         </DialogHeader>
 
@@ -58,12 +58,12 @@ export function MissionResultDialog({ result, onClose, livesRemaining }: Props) 
             <p className="text-sm font-medium text-center font-display uppercase tracking-wider">Rewards:</p>
             <div className="flex flex-wrap justify-center gap-2">
               <Badge variant="secondary" className="animate-stagger-in stagger-1">+{result.rewards.xp} XP</Badge>
-              <Badge variant="secondary" className="animate-stagger-in stagger-2">+{result.rewards.scrap} Scrap</Badge>
+              <Badge variant="secondary" className="animate-stagger-in stagger-2">+{result.rewards.scrap} Lamports</Badge>
               {result.rewards.crystal ? (
-                <Badge variant="secondary" className="animate-stagger-in stagger-3">+{result.rewards.crystal} Crystal</Badge>
+                <Badge variant="secondary" className="animate-stagger-in stagger-3">+{result.rewards.crystal} Tokens</Badge>
               ) : null}
               {result.rewards.artifact ? (
-                <Badge variant="secondary" className="animate-stagger-in stagger-4">+{result.rewards.artifact} Artifact</Badge>
+                <Badge variant="secondary" className="animate-stagger-in stagger-4">+{result.rewards.artifact} Keys</Badge>
               ) : null}
               {result.rewards?.streakMultiplier && result.rewards.streakMultiplier > 1 && (
                 <Badge className="bg-neon-amber/20 text-neon-amber animate-stagger-in stagger-5 animate-glow-pulse">
@@ -99,7 +99,7 @@ export function MissionResultDialog({ result, onClose, livesRemaining }: Props) 
 
         {!isSuccess && !isRunOver && (
           <p className="text-center text-sm text-muted-foreground">
-            Character is recovering. Check back in 1 hour.
+            Node is recovering from slash. Check back in 1 hour.
           </p>
         )}
 
