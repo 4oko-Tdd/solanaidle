@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Swords, Shield, Gem, Loader2 } from "lucide-react";
 import { useState, useCallback } from "react";
 import type { Inventory } from "@solanaidle/shared";
+import bgCity from "@/assets/icons/bgcity.png";
 
 export default function App() {
   const { isAuthenticated, authLoading } = useAuth();
@@ -12,7 +13,13 @@ export default function App() {
   const handleInventoryChange = useCallback((inv: Inventory | null) => setInventory(inv), []);
 
   return (
-    <div className="flex h-dvh flex-col">
+    <div className="flex h-dvh flex-col relative">
+      {/* Background */}
+      <div
+        className="fixed inset-0 -z-10 bg-cover bg-bottom bg-no-repeat"
+        style={{ backgroundImage: `url(${bgCity})` }}
+      />
+      <div className="fixed inset-0 -z-10 bg-black/60" />
       <header className="shrink-0">
         <div className="flex h-14 items-center justify-between border-b border-white/[0.06] bg-black/40 backdrop-blur-xl px-4">
           <h1 className="text-lg font-display text-gradient">Solana Idle</h1>

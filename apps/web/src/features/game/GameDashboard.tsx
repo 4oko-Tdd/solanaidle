@@ -245,20 +245,20 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
       </div>
 
       {/* Bottom tab bar */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/[0.06] bg-black/60 backdrop-blur-xl">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-[#1a3a5c]/80 bg-[#0a1628]/90 backdrop-blur-lg">
         <div className="mx-auto flex max-w-md">
           {TABS.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-xs transition-all relative ${
+              className={`flex flex-1 flex-col items-center gap-0.5 py-2.5 text-xs transition-all relative ${
                 activeTab === tab.id
-                  ? "text-neon-green"
-                  : "text-muted-foreground hover:text-foreground"
+                  ? "text-[#14F195]"
+                  : "text-[#4a7a9b] hover:text-[#7ab8d9]"
               }`}
             >
-              <span className="transition-transform duration-150">{tab.icon}</span>
-              <span>{tab.label}</span>
+              <span className={`transition-all duration-200 ${activeTab === tab.id ? "scale-110 drop-shadow-[0_0_6px_rgba(20,241,149,0.4)]" : ""}`}>{tab.icon}</span>
+              <span className={`font-medium ${activeTab === tab.id ? "text-[#14F195]" : ""}`}>{tab.label}</span>
               <div className={`absolute -bottom-px left-1/4 right-1/4 h-0.5 bg-gradient-to-r from-[#9945FF] to-[#14F195] rounded-full transition-all duration-200 ${
                 activeTab === tab.id ? "opacity-100 scale-x-100" : "opacity-0 scale-x-0"
               }`} />
