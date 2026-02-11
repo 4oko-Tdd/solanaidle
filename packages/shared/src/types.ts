@@ -8,7 +8,6 @@ export interface Character {
   level: number;
   xp: number;
   hp: number;
-  gearLevel: number;
   state: CharacterState;
   reviveAt: string | null;
 }
@@ -74,14 +73,24 @@ export interface UpgradeCost {
   artifact?: number;
 }
 
-export interface UpgradeInfo {
-  currentGearLevel: number;
-  nextUpgrade: {
+export type GearTrack = "armor" | "engine" | "scanner";
+
+export interface TrackInfo {
+  level: number;
+  maxLevel: number;
+  effectLabel: string;
+  next: {
     level: number;
     cost: UpgradeCost;
-    failRateReduction: number;
+    effectLabel: string;
     canAfford: boolean;
   } | null;
+}
+
+export interface UpgradeInfo {
+  armor: TrackInfo;
+  engine: TrackInfo;
+  scanner: TrackInfo;
 }
 
 // ── NFT Claims ──
@@ -119,7 +128,7 @@ export type ErrorCode =
   | "MISSION_NOT_COMPLETE"
   | "CHARACTER_DEAD"
   | "INSUFFICIENT_RESOURCES"
-  | "MAX_GEAR_LEVEL"
+  | "MAX_LEVEL"
   | "CLAIM_NOT_FOUND"
   | "ALREADY_CLAIMED"
   | "NO_ACTIVE_RUN"
@@ -187,6 +196,9 @@ export interface WeeklyRun {
   bossDefeated: boolean;
   active: boolean;
   streak: number; // consecutive mission successes
+  armorLevel: number;
+  engineLevel: number;
+  scannerLevel: number;
   startSignature?: string | null;
   endSignature?: string | null;
 }

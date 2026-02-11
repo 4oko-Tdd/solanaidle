@@ -1,4 +1,4 @@
-import type { MissionType, UpgradeCost, CharacterClass, SkillNode, RaidMission } from "@solanaidle/shared";
+import type { MissionType, CharacterClass, SkillNode, RaidMission } from "@solanaidle/shared";
 
 export const MISSIONS: MissionType[] = [
   {
@@ -30,27 +30,31 @@ export const MISSIONS: MissionType[] = [
   },
 ];
 
-export const GEAR_UPGRADES: {
-  level: number;
-  cost: UpgradeCost;
-  failRateReduction: number;
-}[] = [
-  { level: 1, cost: { scrap: 10 }, failRateReduction: 0 },
-  { level: 2, cost: { scrap: 25, crystal: 5 }, failRateReduction: 2 },
+export const ARMOR_UPGRADES = [
+  { level: 1, cost: { scrap: 10 }, failRateReduction: 2 },
+  { level: 2, cost: { scrap: 25, crystal: 5 }, failRateReduction: 3 },
   { level: 3, cost: { scrap: 50, crystal: 15 }, failRateReduction: 5 },
-  {
-    level: 4,
-    cost: { scrap: 100, crystal: 30, artifact: 1 },
-    failRateReduction: 8,
-  },
-  {
-    level: 5,
-    cost: { scrap: 200, crystal: 60, artifact: 3 },
-    failRateReduction: 12,
-  },
+  { level: 4, cost: { scrap: 100, crystal: 30, artifact: 1 }, failRateReduction: 8 },
+  { level: 5, cost: { scrap: 200, crystal: 60, artifact: 3 }, failRateReduction: 12 },
 ];
 
-export const MAX_GEAR_LEVEL = 5;
+export const ENGINE_UPGRADES = [
+  { level: 1, cost: { scrap: 10 }, durationReduction: 0.05 },
+  { level: 2, cost: { scrap: 25, crystal: 5 }, durationReduction: 0.08 },
+  { level: 3, cost: { scrap: 50, crystal: 15 }, durationReduction: 0.12 },
+  { level: 4, cost: { scrap: 100, crystal: 30, artifact: 1 }, durationReduction: 0.16 },
+  { level: 5, cost: { scrap: 200, crystal: 60, artifact: 3 }, durationReduction: 0.20 },
+];
+
+export const SCANNER_UPGRADES = [
+  { level: 1, cost: { scrap: 10 }, lootBonus: 0.05 },
+  { level: 2, cost: { scrap: 25, crystal: 5 }, lootBonus: 0.10 },
+  { level: 3, cost: { scrap: 50, crystal: 15 }, lootBonus: 0.15 },
+  { level: 4, cost: { scrap: 100, crystal: 30, artifact: 1 }, lootBonus: 0.20 },
+  { level: 5, cost: { scrap: 200, crystal: 60, artifact: 3 }, lootBonus: 0.30 },
+];
+
+export const MAX_TRACK_LEVEL = 5;
 export const REVIVE_COOLDOWN_MS = 60 * 60 * 1000; // 1 hour
 export const XP_PER_LEVEL = 100;
 
@@ -66,13 +70,22 @@ export function getMission(id: string): MissionType | undefined {
   return MISSIONS.find((m) => m.id === id);
 }
 
-export function getGearUpgrade(level: number) {
-  return GEAR_UPGRADES.find((u) => u.level === level);
+export function getArmorReduction(level: number): number {
+  if (level <= 0) return 0;
+  const u = ARMOR_UPGRADES.find(u => u.level === level);
+  return u?.failRateReduction ?? 0;
 }
 
-export function getFailRateReduction(gearLevel: number): number {
-  const upgrade = GEAR_UPGRADES.find((u) => u.level === gearLevel);
-  return upgrade?.failRateReduction ?? 0;
+export function getEngineReduction(level: number): number {
+  if (level <= 0) return 0;
+  const u = ENGINE_UPGRADES.find(u => u.level === level);
+  return u?.durationReduction ?? 0;
+}
+
+export function getScannerBonus(level: number): number {
+  if (level <= 0) return 0;
+  const u = SCANNER_UPGRADES.find(u => u.level === level);
+  return u?.lootBonus ?? 0;
 }
 
 export const CLASSES: CharacterClass[] = [

@@ -136,4 +136,13 @@ export function initSchema() {
   if (!colNames.includes("streak")) {
     db.exec("ALTER TABLE weekly_runs ADD COLUMN streak INTEGER NOT NULL DEFAULT 0");
   }
+  if (!colNames.includes("armor_level")) {
+    db.exec("ALTER TABLE weekly_runs ADD COLUMN armor_level INTEGER NOT NULL DEFAULT 0");
+  }
+  if (!colNames.includes("engine_level")) {
+    db.exec("ALTER TABLE weekly_runs ADD COLUMN engine_level INTEGER NOT NULL DEFAULT 0");
+  }
+  if (!colNames.includes("scanner_level")) {
+    db.exec("ALTER TABLE weekly_runs ADD COLUMN scanner_level INTEGER NOT NULL DEFAULT 0");
+  }
 }
