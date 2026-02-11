@@ -87,8 +87,8 @@ export function ClassPicker({ classes, onSelect, signMessage }: Props) {
               onClick={() => handleClassClick(cls.id)}
             >
               <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-2 text-lg font-display">
-                  <ClassIcon classId={cls.id} />
+                <CardTitle className="flex items-center gap-3 text-lg font-display">
+                  <ClassIcon classId={cls.id} className="h-14 w-14 shrink-0" />
                   {cls.name}
                 </CardTitle>
               </CardHeader>
