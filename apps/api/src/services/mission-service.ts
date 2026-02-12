@@ -12,13 +12,14 @@ import {
   BOSS_MISSION,
   BOSS_UNLOCK_LEVEL,
   TIER2_UNLOCK_LEVEL,
+  TIER3_UNLOCK_LEVEL,
   getStreakMultiplier,
   REROLL_COST_PER_STACK,
   MAX_REROLL_STACKS,
   INSURANCE_COST,
   REROLL_REDUCTION_PER_STACK,
 } from "./game-config.js";
-import { addScore, addSkillPoint, addSkillPoints, incrementMissions, markBossDefeated, useLife, incrementStreak, resetStreak } from "./run-service.js";
+import { addScore, addSkillPoints, incrementMissions, markBossDefeated, useLife, incrementStreak, resetStreak } from "./run-service.js";
 import { hasSkill } from "./skill-service.js";
 import { insertEvent } from "./event-service.js";
 import { tryDropRandomLoot, getLootBonus, getBaseDropChance, getMaxDropChance } from "./loot-service.js";
@@ -89,7 +90,7 @@ export function startMission(
   if (missionId === "expedition" && characterLevel && characterLevel < TIER2_UNLOCK_LEVEL) {
     throw new Error("Mission tier locked");
   }
-  if (missionId === "deep_dive" && characterLevel && characterLevel < BOSS_UNLOCK_LEVEL) {
+  if (missionId === "deep_dive" && characterLevel && characterLevel < TIER3_UNLOCK_LEVEL) {
     throw new Error("Mission tier locked");
   }
 
@@ -108,6 +109,10 @@ export function startMission(
     const engineReduction = getEngineReduction(runRow?.engine_level ?? 0);
     if (engineReduction > 0) {
       duration = Math.floor(duration * (1 - engineReduction));
+    }
+    // Validator's Block Leader: -25% duration on all missions
+    if (hasSkill(runId, "scout_leader")) {
+      duration = Math.floor(duration * 0.75);
     }
   }
 
@@ -199,9 +204,13 @@ export function claimMission(
 
   // Apply skill effects on fail rate
   if (runId) {
-    // Guardian's Fortify: -5% fail on tier 3 missions (deep_dive, boss)
+    // Guardian's Governance Vote: -5% fail on tier 3+ missions (deep_dive, boss)
     if (hasSkill(runId, "guardian_fortify") && (missionRow.mission_id === "deep_dive" || missionRow.mission_id === "boss")) {
       finalFailRate = Math.max(0, finalFailRate - 5);
+    }
+    // Guardian's Consensus Shield: -10% fail on ALL missions
+    if (hasSkill(runId, "guardian_consensus")) {
+      finalFailRate = Math.max(0, finalFailRate - 10);
     }
   }
 
@@ -315,6 +324,23 @@ export function claimMission(
     }
   }
 
+  // Apply T4/T5 skill loot bonuses
+  if (runId) {
+    // Validator's MEV Boost: +20% lamports from Swap missions
+    if (hasSkill(runId, "scout_mev") && missionRow.mission_id === "scout") {
+      rewards.scrap = Math.floor(rewards.scrap * 1.2);
+    }
+    // Validator's Block Leader: -25% duration (applied at start, loot effect is passive)
+    // Staker's Delegation: +15% tokens from Stake missions
+    if (hasSkill(runId, "guardian_delegate") && missionRow.mission_id === "expedition") {
+      if (rewards.crystal) rewards.crystal = Math.floor(rewards.crystal * 1.15);
+    }
+    // Oracle's Alpha Leak: +25% keys from Deep Farm
+    if (hasSkill(runId, "mystic_alpha") && missionRow.mission_id === "deep_dive") {
+      if (rewards.artifact) rewards.artifact = Math.floor(rewards.artifact * 1.25);
+    }
+  }
+
   // Apply streak multiplier to loot (not XP)
   let streakMultiplier = 1.0;
   let currentStreak = 0;
@@ -366,13 +392,12 @@ export function claimMission(
   // Run-aware success handling
   if (runId) {
     addScore(runId, rewards.xp);
-    addSkillPoint(runId);
     incrementMissions(runId);
 
     // Boss-specific handling
     if (missionRow.mission_id === "boss") {
       markBossDefeated(runId);
-      addSkillPoints(runId, 2); // bonus 3 total (1 + 2)
+      addSkillPoints(runId, 2); // bonus SP for boss kill
     }
     if (runId) {
       insertEvent(runId, "mission_success", {
@@ -398,6 +423,10 @@ export function claimMission(
   let nftChance = mission.rewards.nftChance ?? 0;
   if (runId && hasSkill(runId, "mystic_ritual") && missionRow.mission_id === "deep_dive") {
     nftChance += 15;
+  }
+  // Oracle Network: 2x NFT drop chance on all missions
+  if (runId && hasSkill(runId, "mystic_network") && nftChance > 0) {
+    nftChance *= 2;
   }
   if (nftChance > 0 && Math.random() * 100 < nftChance) {
     const nftId = randomUUID();

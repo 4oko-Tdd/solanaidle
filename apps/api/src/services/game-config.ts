@@ -57,9 +57,9 @@ export const SCANNER_UPGRADES = [
 export const MAX_TRACK_LEVEL = 5;
 export const REVIVE_COOLDOWN_MS = 60 * 60 * 1000; // 1 hour
 
-// Gentle 1.5x XP curve: 100, 150, 225, 340, 500, 750, 1125...
+// Faster start, steeper ramp: 75, 120, 192, 307, 491, 786, 1258...
 export function xpForLevel(level: number): number {
-  return Math.floor(100 * Math.pow(1.5, level - 1));
+  return Math.floor(75 * Math.pow(1.6, level - 1));
 }
 
 // Reroll & insurance costs
@@ -133,14 +133,20 @@ export const SKILL_TREES: SkillNode[] = [
   { id: "scout_swift", classId: "scout", name: "Fast Finality", description: "-10% more duration reduction", tier: 1, cost: 1 },
   { id: "scout_escape", classId: "scout", name: "Failover", description: "50% chance to survive a failed mission (1x/run)", tier: 2, cost: 2 },
   { id: "scout_double", classId: "scout", name: "Parallel Processing", description: "Can send 2 missions simultaneously (1x/day)", tier: 3, cost: 3 },
+  { id: "scout_mev", classId: "scout", name: "MEV Boost", description: "+20% lamports from Swap missions", tier: 4, cost: 4 },
+  { id: "scout_leader", classId: "scout", name: "Block Leader", description: "-25% duration on all missions", tier: 5, cost: 5 },
   // Staker
   { id: "guardian_iron", classId: "guardian", name: "Extra Stake", description: "+1 run life (4 total)", tier: 1, cost: 1 },
   { id: "guardian_shield", classId: "guardian", name: "Slashing Protection", description: "Keep 50% resources on death", tier: 2, cost: 2 },
-  { id: "guardian_fortify", classId: "guardian", name: "Governance Vote", description: "-5% fail rate on Tier 3 missions", tier: 3, cost: 3 },
+  { id: "guardian_fortify", classId: "guardian", name: "Governance Vote", description: "-5% fail rate on Tier 3+ missions", tier: 3, cost: 3 },
+  { id: "guardian_delegate", classId: "guardian", name: "Delegation", description: "+15% tokens from Stake missions", tier: 4, cost: 4 },
+  { id: "guardian_consensus", classId: "guardian", name: "Consensus Shield", description: "-10% fail rate on ALL missions", tier: 5, cost: 5 },
   // Oracle
   { id: "mystic_eye", classId: "mystic", name: "Price Feed", description: "See mission outcome probability", tier: 1, cost: 1 },
   { id: "mystic_ritual", classId: "mystic", name: "Data Request", description: "+15% NFT drop chance on Deep Farm", tier: 2, cost: 2 },
   { id: "mystic_soul", classId: "mystic", name: "Dead Man's Switch", description: "On death, collect passive resources for 1h", tier: 3, cost: 3 },
+  { id: "mystic_alpha", classId: "mystic", name: "Alpha Leak", description: "+25% keys from Deep Farm", tier: 4, cost: 4 },
+  { id: "mystic_network", classId: "mystic", name: "Oracle Network", description: "2x NFT drop chance on all missions", tier: 5, cost: 5 },
 ];
 
 export const BOSS_MISSION: MissionType = {
@@ -158,7 +164,8 @@ export const RAIDS: RaidMission[] = [
 
 export const RUN_LIVES = 3;
 export const BOSS_UNLOCK_LEVEL = 5;
-export const TIER2_UNLOCK_LEVEL = 3;
+export const TIER2_UNLOCK_LEVEL = 2;
+export const TIER3_UNLOCK_LEVEL = 3;
 
 export function getClass(id: string): CharacterClass | undefined {
   return CLASSES.find((c) => c.id === id);

@@ -4,7 +4,7 @@ import { ClassPicker } from "./ClassPicker";
 import { MissionPanel } from "./MissionPanel";
 import { MissionTimer } from "./MissionTimer";
 import { UpgradePanel } from "./UpgradePanel";
-import { RunStatus } from "./RunStatus";
+
 import { SkillTree } from "./SkillTree";
 import { GuildPanel } from "@/features/guild/GuildPanel";
 import { RaidPanel } from "@/features/guild/RaidPanel";
@@ -183,15 +183,11 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
         <div className="mx-auto w-full max-w-md space-y-4 p-4">
           {activeTab === "game" && (
             <div className="animate-tab-in space-y-4">
-              {activeRun && <RunStatus run={activeRun} characterState={character.state} />}
-
               <CharacterCard
                 character={character}
                 classId={activeRun?.classId}
                 livesRemaining={activeRun?.livesRemaining}
-                armorLevel={activeRun?.armorLevel}
-                engineLevel={activeRun?.engineLevel}
-                scannerLevel={activeRun?.scannerLevel}
+                run={activeRun}
               />
 
               {activeMission ? (

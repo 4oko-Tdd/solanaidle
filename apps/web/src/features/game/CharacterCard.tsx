@@ -1,13 +1,7 @@
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import type { Character, ClassId } from "@solanaidle/shared";
-import { Shield, Star, Heart, Zap, Search } from "lucide-react";
+import type { Character, ClassId, WeeklyRun, CharacterState } from "@solanaidle/shared";
+import { Star, Heart, HeartCrack } from "lucide-react";
 import { ClassIcon } from "@/components/ClassIcon";
 
 const CLASS_NAMES: Record<ClassId, string> = {
@@ -20,73 +14,91 @@ interface Props {
   character: Character;
   classId?: ClassId | null;
   livesRemaining?: number;
-  armorLevel?: number;
-  engineLevel?: number;
-  scannerLevel?: number;
+  run?: WeeklyRun | null;
 }
 
-export function CharacterCard({ character, classId, livesRemaining, armorLevel, engineLevel, scannerLevel }: Props) {
-  const xpForNextLevel = Math.floor(100 * Math.pow(1.5, character.level - 1));
-  const xpPercent = Math.round((character.xp / xpForNextLevel) * 100);
+function getStatusBadge(state: CharacterState, runActive?: boolean) {
+  if (runActive === false) {
+    return <Badge variant="secondary" className="text-[10px] py-0 px-1.5 bg-muted text-muted-foreground">EPOCH OVER</Badge>;
+  }
+  if (state === "dead") {
+    return <Badge variant="destructive" className="text-[10px] py-0 px-1.5 animate-pulse bg-neon-red/20 text-neon-red">SLASHED</Badge>;
+  }
+  if (state === "on_mission") {
+    return <Badge className="text-[10px] py-0 px-1.5 bg-[#9945FF]/20 text-[#c4a0ff]">ON CHAIN</Badge>;
+  }
+  return <Badge className="text-[10px] py-0 px-1.5 bg-[#14F195]/15 text-[#14F195]">ONLINE</Badge>;
+}
 
-  const stateBadge = {
-    idle: { label: "Online", variant: "secondary" as const },
-    on_mission: { label: "On Chain", variant: "default" as const },
-    dead: { label: "Slashed", variant: "destructive" as const },
-  }[character.state];
-
-  const classAccent = classId ? `class-${classId}` : "";
+export function CharacterCard({ character, classId, livesRemaining, run }: Props) {
+  const xpForNextLevel = Math.floor(75 * Math.pow(1.6, character.level - 1));
+  const xpPercent = Math.min(100, Math.round((character.xp / xpForNextLevel) * 100));
+  const lives = livesRemaining ?? 3;
 
   return (
-    <Card className={`animate-fade-in-up transition-all duration-300 ${classAccent}`}>
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-base flex items-center gap-2">
-            {classId && <ClassIcon classId={classId} className="h-12 w-12 shrink-0" />}
-            <span className="font-display">{classId ? CLASS_NAMES[classId] : "Character"}</span>
-          </CardTitle>
-          <Badge variant={stateBadge.variant}>{stateBadge.label}</Badge>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <div className="flex items-center justify-between text-sm">
-          <div className="flex items-center gap-1.5">
-            <Star className="h-4 w-4 text-neon-amber" />
-            <span className="font-display font-bold">Level {character.level}</span>
-          </div>
-          <span className="font-mono text-muted-foreground text-xs">
-            {character.xp} / {xpForNextLevel} XP
+    <div className="rounded-xl border border-[#1a3a5c]/60 bg-[#0a1628]/80 backdrop-blur-lg p-3 space-y-2">
+      {/* Row 1: Class + Level + Status */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          {classId && <ClassIcon classId={classId} className="h-5 w-5" />}
+          <span className="text-sm font-display font-bold text-white">
+            {classId ? CLASS_NAMES[classId] : "Node"}
           </span>
-        </div>
-        <div className="xp-bar-animated">
-          <Progress value={xpPercent} className="h-2.5" />
-        </div>
-        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-          <div className="flex items-center gap-1">
-            <Heart className="h-4 w-4 text-neon-red" />
-            <span>{livesRemaining != null ? `${livesRemaining} Lives` : `${character.hp} HP`}</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1" title="Firewall">
-              <Shield className="h-3.5 w-3.5 text-neon-cyan" />
-              <span className="font-mono text-xs">{armorLevel ?? 0}</span>
-            </div>
-            <div className="flex items-center gap-1" title="Turbo">
-              <Zap className="h-3.5 w-3.5 text-neon-amber" />
-              <span className="font-mono text-xs">{engineLevel ?? 0}</span>
-            </div>
-            <div className="flex items-center gap-1" title="Scanner">
-              <Search className="h-3.5 w-3.5 text-neon-green" />
-              <span className="font-mono text-xs">{scannerLevel ?? 0}</span>
-            </div>
+          <div className="flex items-center gap-1 text-[#4a7a9b]">
+            <Star className="h-3 w-3 text-neon-amber" />
+            <span className="text-xs font-mono font-bold text-white">Lv {character.level}</span>
           </div>
         </div>
-        {character.state === "dead" && character.reviveAt && (
-          <p className="text-xs text-destructive">
-            Revives at {new Date(character.reviveAt).toLocaleTimeString()}
-          </p>
+        {getStatusBadge(character.state, run?.active)}
+      </div>
+
+      {/* Row 2: XP bar (thin) */}
+      <div className="flex items-center gap-2">
+        <Progress value={xpPercent} className="h-1.5 flex-1" />
+        <span className="text-[10px] font-mono text-[#4a7a9b] shrink-0">
+          {character.xp}/{xpForNextLevel}
+        </span>
+      </div>
+
+      {/* Row 3: Lives + Score/Streak */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1">
+          {Array.from({ length: 3 }, (_, i) =>
+            i < lives ? (
+              <Heart key={i} className="h-3.5 w-3.5 fill-neon-red text-neon-red" />
+            ) : (
+              <HeartCrack key={i} className="h-3.5 w-3.5 text-[#1a3a5c]" />
+            )
+          )}
+          {lives === 1 && (
+            <span className="ml-1 text-[10px] font-bold text-neon-red">LAST LIFE</span>
+          )}
+        </div>
+        {run && (
+          <div className="flex items-center gap-2.5 text-[10px]">
+            <span className="text-[#4a7a9b]">Score <span className="font-mono font-bold text-[#14F195]">{run.score}</span></span>
+            {run.streak >= 2 && (
+              <span className="text-[#4a7a9b]">
+                Streak <span className={`font-mono font-bold ${
+                  run.streak >= 6 ? "text-neon-amber" : run.streak >= 4 ? "text-neon-red" : "text-[#14F195]"
+                }`}>{run.streak}x</span>
+              </span>
+            )}
+          </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+
+      {/* Warning banners */}
+      {lives === 1 && run?.active && character.state !== "dead" && (
+        <div className="rounded bg-neon-red/10 border border-neon-red/30 px-2 py-0.5 text-center animate-pulse">
+          <span className="text-[10px] font-bold text-neon-red">FAILURE MEANS SLASHING. 1 LIFE REMAINING.</span>
+        </div>
+      )}
+      {character.state === "dead" && character.reviveAt && (
+        <p className="text-[10px] text-neon-red text-center">
+          Back online at {new Date(character.reviveAt).toLocaleTimeString()}
+        </p>
+      )}
+    </div>
   );
 }

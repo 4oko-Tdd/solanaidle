@@ -88,15 +88,15 @@ export function MissionPanel({ missions, characterState, onStart, characterLevel
   };
 
   const isTierLocked = (missionId: string): boolean => {
-    if (missionId === "expedition" && characterLevel < 3) return true;
-    if (missionId === "deep_dive" && characterLevel < 5) return true;
+    if (missionId === "expedition" && characterLevel < 2) return true;
+    if (missionId === "deep_dive" && characterLevel < 3) return true;
     if (missionId === "boss" && characterLevel < 5) return true;
     return false;
   };
 
   const getTierLabel = (missionId: string): string | null => {
-    if (missionId === "expedition" && characterLevel < 3) return "Unlocks at Lv.3";
-    if (missionId === "deep_dive" && characterLevel < 5) return "Unlocks at Lv.5";
+    if (missionId === "expedition" && characterLevel < 2) return "Unlocks at Lv.2";
+    if (missionId === "deep_dive" && characterLevel < 3) return "Unlocks at Lv.3";
     if (missionId === "boss" && characterLevel < 5) return "Unlocks at Lv.5";
     return null;
   };
