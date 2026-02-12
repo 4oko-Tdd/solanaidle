@@ -40,7 +40,7 @@ export function CharacterCard({ character, classId, livesRemaining, run }: Props
       {/* Row 1: Class + Level + Status */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          {classId && <ClassIcon classId={classId} className="h-5 w-5" />}
+          {classId && <ClassIcon classId={classId} className="h-10 w-10" />}
           <span className="text-sm font-display font-bold text-white">
             {classId ? CLASS_NAMES[classId] : "Node"}
           </span>
