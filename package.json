@@ -2,10 +2,10 @@
   "name": "solanaidle",
   "private": true,
   "scripts": {
-    "dev": "pnpm --parallel --filter './apps/*' dev",
+    "dev": "pnpm --parallel --filter @solanaidle/api --filter @solanaidle/web run dev",
     "build": "pnpm --filter '@solanaidle/*' build",
-    "lint": "pnpm --parallel --filter './apps/*' lint",
-    "clean": "pnpm --parallel --filter './apps/*' clean"
+    "lint": "pnpm --parallel --filter '@solanaidle/*' lint",
+    "clean": "pnpm --parallel --filter '@solanaidle/*' clean"
   },
   "engines": {
     "node": ">=20"
