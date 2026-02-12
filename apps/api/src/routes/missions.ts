@@ -6,8 +6,9 @@ import {
   startMission,
   claimMission,
 } from "../services/mission-service.js";
-import { MISSIONS } from "../services/game-config.js";
+import { MISSIONS, BOSS_MISSION } from "../services/game-config.js";
 import { getActiveRun } from "../services/run-service.js";
+import { forceBossDay } from "../index.js";
 
 type Env = { Variables: { wallet: string } };
 
@@ -15,7 +16,8 @@ const missions = new Hono<Env>();
 missions.use("*", authMiddleware);
 
 missions.get("/", (c) => {
-  return c.json(MISSIONS);
+  const isBossDay = forceBossDay === true || (forceBossDay === null && new Date().getDay() === 0);
+  return c.json(isBossDay ? [BOSS_MISSION] : MISSIONS);
 });
 
 missions.get("/active", (c) => {

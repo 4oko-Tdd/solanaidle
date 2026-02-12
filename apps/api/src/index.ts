@@ -15,6 +15,8 @@ import runs from "./routes/runs.js";
 import skills from "./routes/skills.js";
 import daily from "./routes/daily.js";
 
+export let forceBossDay: boolean | null = null; // null = auto (Sunday), true/false = override
+
 const app = new Hono().basePath("/api");
 
 app.use("*", logger());
@@ -145,6 +147,47 @@ if (process.env.NODE_ENV !== "production") {
 
     addSkillPoints(run.id, 10);
     return c.json({ message: "Added 10 skill points" });
+  });
+
+  // Dev: Add XP for testing level-ups
+  app.post("/dev/add-xp", async (c) => {
+    const header = c.req.header("Authorization");
+    if (!header?.startsWith("Bearer ")) {
+      return c.json({ error: "UNAUTHORIZED", message: "Missing token" }, 401);
+    }
+    const { verifyToken } = await import("./services/auth-service.js");
+    const payload = verifyToken(header.slice(7));
+    if (!payload) {
+      return c.json({ error: "UNAUTHORIZED", message: "Invalid token" }, 401);
+    }
+
+    const { getCharacter } = await import("./services/character-service.js");
+    const char = getCharacter(payload.wallet);
+    if (!char) {
+      return c.json({ error: "CHARACTER_NOT_FOUND", message: "No character" }, 404);
+    }
+
+    const { xpForLevel } = await import("./services/game-config.js");
+    const db = (await import("./db/database.js")).default;
+    const addXp = 500;
+    let newXp = char.xp + addXp;
+    let newLevel = char.level;
+    while (newXp >= xpForLevel(newLevel)) {
+      newXp -= xpForLevel(newLevel);
+      newLevel++;
+    }
+    db.prepare("UPDATE characters SET xp = ?, level = ? WHERE id = ?").run(newXp, newLevel, char.id);
+    return c.json({ message: `+${addXp} XP (now Lv.${newLevel})` });
+  });
+
+  // Dev: Toggle boss day on/off (overrides Sunday check)
+  app.post("/dev/toggle-boss-day", (c) => {
+    if (forceBossDay === true) {
+      forceBossDay = null; // back to auto
+    } else {
+      forceBossDay = true; // force on
+    }
+    return c.json({ bossDay: forceBossDay === true || (forceBossDay === null && new Date().getDay() === 0) });
   });
 }
 

@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import type { MissionType, CharacterState, MissionId, ClassId, Inventory } from "@solanaidle/shared";
-import { Clock, Skull, Lock, AlertTriangle, Star, Sparkles, Shield, Minus, Plus, Package } from "lucide-react";
+import { Clock, Skull, Lock, AlertTriangle, Star, Sparkles, Shield, Minus, Plus, Package, Crown, Fish } from "lucide-react";
 import scrapIcon from "@/assets/icons/19.png";
 import crystalIcon from "@/assets/icons/22.png";
 import artifactIcon from "@/assets/icons/25.png";
@@ -26,6 +26,7 @@ interface Props {
   durationModifier?: number;
   livesRemaining?: number;
   inventory?: Inventory | null;
+  bossDefeated?: boolean;
 }
 
 function formatDuration(seconds: number): string {
@@ -56,7 +57,7 @@ const RISK_STYLES: Record<string, string> = {
   critical: "border-neon-red bg-neon-red/5",
 };
 
-export function MissionPanel({ missions, characterState, onStart, characterLevel = 1, classId, durationModifier = 1, livesRemaining = 3, inventory }: Props) {
+export function MissionPanel({ missions, characterState, onStart, characterLevel = 1, classId, durationModifier = 1, livesRemaining = 3, inventory, bossDefeated }: Props) {
   const canStart = characterState === "idle";
   const lives = Math.max(1, Math.min(3, livesRemaining));
   const [expandedMission, setExpandedMission] = useState<string | null>(null);
@@ -100,6 +101,222 @@ export function MissionPanel({ missions, characterState, onStart, characterLevel
     if (missionId === "boss" && characterLevel < 5) return "Unlocks at Lv.5";
     return null;
   };
+
+  const isBossDay = missions.length === 1 && missions[0].id === "boss";
+  const bossLocked = characterLevel < 5;
+
+  if (isBossDay && bossDefeated) {
+    return (
+      <div className="space-y-4">
+        <div className="relative overflow-hidden rounded-xl border border-neon-amber/40 bg-gradient-to-b from-neon-amber/10 via-neon-amber/5 to-transparent backdrop-blur-md p-6">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(251,191,36,0.1),transparent_70%)] bg-black/30" />
+          <div className="relative text-center space-y-4">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-neon-amber/20 border-2 border-neon-amber/40 mx-auto">
+              <Crown className="h-10 w-10 text-neon-amber drop-shadow-[0_0_16px_rgba(251,191,36,0.6)]" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-display text-neon-amber tracking-wide">WHALE DEFEATED</h2>
+              <p className="text-xs font-mono text-neon-amber/60 mt-1 uppercase tracking-widest">Weekly boss slain</p>
+            </div>
+            <div className="grid grid-cols-3 gap-2 pt-2">
+              <div className="rounded-lg bg-white/[0.04] border border-white/[0.06] p-2.5 text-center">
+                <Sparkles className="h-4 w-4 text-neon-purple mx-auto mb-1" />
+                <div className="text-sm font-bold font-mono text-neon-purple">+2 SP</div>
+                <div className="text-[10px] text-muted-foreground">Claimed</div>
+              </div>
+              <div className="rounded-lg bg-white/[0.04] border border-white/[0.06] p-2.5 text-center">
+                <Crown className="h-4 w-4 text-neon-amber mx-auto mb-1" />
+                <div className="text-sm font-bold font-mono text-neon-amber">Crown</div>
+                <div className="text-[10px] text-muted-foreground">On ranks</div>
+              </div>
+              <div className="rounded-lg bg-white/[0.04] border border-white/[0.06] p-2.5 text-center">
+                <Fish className="h-4 w-4 text-neon-green mx-auto mb-1" />
+                <div className="text-sm font-bold font-mono text-neon-green">Slain</div>
+                <div className="text-[10px] text-muted-foreground">This epoch</div>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground pt-1">
+              Regular transactions return tomorrow.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isBossDay) {
+    const boss = missions[0];
+    const displayDuration = Math.floor(boss.duration * durationModifier);
+    const showExpanded = expandedMission === "boss";
+
+    return (
+      <div className="space-y-4">
+        {/* Event header */}
+        <div className="relative overflow-hidden rounded-xl border border-neon-amber/40 bg-gradient-to-b from-neon-amber/10 via-neon-amber/5 to-transparent backdrop-blur-md">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(251,191,36,0.08),transparent_70%)] bg-black/30" />
+          <div className="relative p-5 text-center space-y-3">
+            <p className="text-[10px] font-mono text-neon-amber/60 uppercase tracking-[0.2em]">Sunday Weekly Event</p>
+            <div className="flex items-center justify-center gap-3">
+              <Fish className="h-7 w-7 text-neon-amber drop-shadow-[0_0_12px_rgba(251,191,36,0.5)]" />
+              <h2 className="text-3xl font-display text-neon-amber tracking-wide">WHALE HUNT</h2>
+              <Fish className="h-7 w-7 text-neon-amber drop-shadow-[0_0_12px_rgba(251,191,36,0.5)] -scale-x-100" />
+            </div>
+            <p className="text-xs text-muted-foreground max-w-[260px] mx-auto">
+              A massive whale has surfaced. One chance per epoch to take it down.
+            </p>
+
+            {/* Key rewards - what matters */}
+            <div className="grid grid-cols-3 gap-2 pt-2">
+              <div className="rounded-lg bg-white/[0.04] border border-white/[0.06] p-2.5 text-center">
+                <Sparkles className="h-4 w-4 text-neon-purple mx-auto mb-1" />
+                <div className="text-sm font-bold font-mono text-neon-purple">+2 SP</div>
+                <div className="text-[10px] text-muted-foreground">Skill Points</div>
+              </div>
+              <div className="rounded-lg bg-white/[0.04] border border-white/[0.06] p-2.5 text-center">
+                <Crown className="h-4 w-4 text-neon-amber mx-auto mb-1" />
+                <div className="text-sm font-bold font-mono text-neon-amber">Crown</div>
+                <div className="text-[10px] text-muted-foreground">Leaderboard</div>
+              </div>
+              <div className="rounded-lg bg-white/[0.04] border border-white/[0.06] p-2.5 text-center">
+                <Sparkles className="h-4 w-4 text-neon-green mx-auto mb-1" />
+                <div className="text-sm font-bold font-mono text-neon-green">20%</div>
+                <div className="text-[10px] text-muted-foreground">NFT Drop</div>
+              </div>
+            </div>
+
+            {/* Bonus loot info */}
+            <div className="flex items-center justify-center gap-4 pt-1 text-xs text-muted-foreground">
+              <span className="flex items-center gap-1">
+                <Star className="h-3 w-3 text-neon-amber" />
+                <span className="font-mono">500-1000 XP</span>
+              </span>
+              <span className="flex items-center gap-1">
+                <img src={scrapIcon} alt="" className="h-3.5 w-3.5" />
+                <span className="font-mono">200-500</span>
+              </span>
+              <span className="flex items-center gap-1">
+                <img src={crystalIcon} alt="" className="h-3.5 w-3.5" />
+                <span className="font-mono">50-100</span>
+              </span>
+              <span className="flex items-center gap-1">
+                <img src={artifactIcon} alt="" className="h-3.5 w-3.5" />
+                <span className="font-mono">2-5</span>
+              </span>
+            </div>
+          </div>
+
+          {/* Boss stats bar */}
+          <div className="border-t border-neon-amber/20 bg-white/[0.02] px-5 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-4 text-xs">
+              <span className="flex items-center gap-1.5 text-muted-foreground">
+                <Clock className="h-3.5 w-3.5" />
+                <span className="font-mono">{formatDuration(displayDuration)}</span>
+              </span>
+              <span className="flex items-center gap-1.5 text-neon-red">
+                <Skull className="h-3.5 w-3.5" />
+                <span className="font-mono">{boss.failRate}% fail</span>
+              </span>
+            </div>
+            {bossLocked ? (
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Lock className="h-3.5 w-3.5" />
+                <span>Requires Lv.5</span>
+              </div>
+            ) : (
+              <Button
+                size="sm"
+                variant="default"
+                className="bg-neon-amber/20 text-neon-amber border border-neon-amber/40 hover:bg-neon-amber/30"
+                disabled={!canStart}
+                onClick={() => toggleExpanded("boss")}
+              >
+                {showExpanded ? "Cancel" : "Begin Hunt"}
+              </Button>
+            )}
+          </div>
+
+          {/* Expanded: reroll/insurance/launch */}
+          {showExpanded && !bossLocked && (
+            <div className="border-t border-neon-amber/20 bg-white/[0.02] px-5 py-3 space-y-2 animate-fade-in-up">
+              {/* Reroll stacks */}
+              <div className="flex items-center justify-between">
+                <div className="text-xs">
+                  <span className="text-muted-foreground">Reroll</span>
+                  <span className="text-neon-cyan ml-1 font-mono">-{rerollStacks * REROLL_REDUCTION}% fail</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button variant="ghost" size="icon" className="h-6 w-6" disabled={rerollStacks <= 0} onClick={() => setRerollStacks(s => s - 1)}>
+                    <Minus className="h-3 w-3" />
+                  </Button>
+                  <span className="font-mono text-sm w-4 text-center">{rerollStacks}</span>
+                  <Button variant="ghost" size="icon" className="h-6 w-6" disabled={rerollStacks >= MAX_REROLL_STACKS || !canAffordReroll} onClick={() => setRerollStacks(s => s + 1)}>
+                    <Plus className="h-3 w-3" />
+                  </Button>
+                  {rerollStacks > 0 && (
+                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <img src={scrapIcon} alt="" className="h-3 w-3" />
+                      <span className="font-mono">{rerollCost}</span>
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Insurance */}
+              <div className="flex items-center justify-between">
+                <div className="text-xs">
+                  <span className="text-muted-foreground">Insurance</span>
+                  <span className="text-neon-amber ml-1">protect streak</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant={insured ? "default" : "ghost"}
+                    size="sm"
+                    className={`h-6 text-xs px-2 ${insured ? "bg-neon-amber/20 text-neon-amber border border-neon-amber/40" : ""}`}
+                    disabled={!insured && !canAffordInsurance}
+                    onClick={() => setInsured(!insured)}
+                  >
+                    <Shield className="h-3 w-3 mr-1" />
+                    {insured ? "ON" : "OFF"}
+                  </Button>
+                  {insured && (
+                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <img src={crystalIcon} alt="" className="h-3 w-3" />
+                      <span className="font-mono">{insuranceCost}</span>
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Adjusted fail rate */}
+              {(rerollStacks > 0 || insured) && (
+                <div className="text-xs text-center text-muted-foreground pt-1">
+                  Fail rate: <span className="line-through">{boss.failRate}%</span>{" "}
+                  <span className="text-neon-green font-mono">{Math.max(0, boss.failRate - rerollStacks * REROLL_REDUCTION)}%</span>
+                  {insured && <span className="text-neon-amber ml-2">+ streak safe</span>}
+                </div>
+              )}
+
+              <Button
+                className="w-full bg-neon-amber/20 text-neon-amber border border-neon-amber/40 hover:bg-neon-amber/30"
+                size="sm"
+                onClick={() => handleStartMission("boss")}
+              >
+                Hunt the Whale
+              </Button>
+            </div>
+          )}
+        </div>
+
+        {!canStart && (
+          <p className="text-xs text-muted-foreground text-center">
+            {characterState === "on_mission"
+              ? "Node is processing on chain"
+              : "Node is recovering from slash"}
+          </p>
+        )}
+      </div>
+    );
+  }
 
   return (
     <Card>

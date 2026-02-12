@@ -25,6 +25,9 @@ import {
   Trophy,
   Loader2,
   Package,
+  ChevronDown,
+  ChevronUp,
+  Wrench,
 } from "lucide-react";
 import { InventoryPanel } from "@/features/inventory/InventoryPanel";
 import { useState, useEffect } from "react";
@@ -71,6 +74,7 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>("game");
   const [dailyStatus, setDailyStatus] = useState<DailyLoginStatus | null>(null);
   const [showDailyModal, setShowDailyModal] = useState(false);
+  const [devOpen, setDevOpen] = useState(false);
 
   useEffect(() => {
     onInventoryChange?.(inventory);
@@ -181,6 +185,48 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
     <>
       <div className="flex-1 overflow-y-auto pb-20">
         <div className="mx-auto w-full max-w-md space-y-4 p-4">
+          {activeTab === "game" && import.meta.env.DEV && (
+            <div className="mb-2">
+              <button
+                onClick={() => setDevOpen((o) => !o)}
+                className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <Wrench className="h-3 w-3" />
+                Dev
+                {devOpen ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+              </button>
+              {devOpen && (
+                <div className="flex flex-wrap gap-1.5 mt-1.5">
+                  <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2" onClick={async () => {
+                    const res = await api<{ bossDay: boolean }>("/dev/toggle-boss-day", { method: "POST" });
+                    addToast(res.bossDay ? "Boss Day ON" : "Boss Day OFF", "warning");
+                    await refresh();
+                  }}>Boss Day</Button>
+                  <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2" onClick={async () => {
+                    await api("/dev/skip-timer", { method: "POST" });
+                    addToast("Timer skipped", "success");
+                    await refresh();
+                  }}>Skip Timer</Button>
+                  <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2" onClick={async () => {
+                    await api("/dev/add-resources", { method: "POST" });
+                    addToast("+Resources", "success");
+                    await refresh();
+                  }}>+Resources</Button>
+                  <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2" onClick={async () => {
+                    await api("/dev/add-skill-points", { method: "POST" });
+                    addToast("+10 SP", "success");
+                    await refresh();
+                  }}>+SP</Button>
+                  <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2" onClick={async () => {
+                    const res = await api<{ message: string }>("/dev/add-xp", { method: "POST" });
+                    addToast(res.message, "success");
+                    await refresh();
+                  }}>+XP</Button>
+                </div>
+              )}
+            </div>
+          )}
+
           {activeTab === "game" && (
             <div className="animate-tab-in space-y-4">
               <CharacterCard
@@ -206,6 +252,7 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
                   classId={activeRun?.classId}
                   livesRemaining={activeRun?.livesRemaining}
                   inventory={inventory}
+                  bossDefeated={activeRun?.bossDefeated}
                 />
               )}
 
