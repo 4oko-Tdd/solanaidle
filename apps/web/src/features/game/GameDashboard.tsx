@@ -24,14 +24,17 @@ import {
   Users,
   Trophy,
   Loader2,
+  Package,
 } from "lucide-react";
+import { InventoryPanel } from "@/features/inventory/InventoryPanel";
 import { useState, useEffect } from "react";
 import type { Inventory } from "@solanaidle/shared";
 
-type Tab = "game" | "skills" | "guild" | "ranks";
+type Tab = "game" | "skills" | "guild" | "ranks" | "inventory";
 
 const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: "game", label: "Game", icon: <Swords className="h-5 w-5" /> },
+  { id: "inventory", label: "Inventory", icon: <Package className="h-5 w-5" /> },
   { id: "skills", label: "Skills", icon: <Sparkles className="h-5 w-5" /> },
   { id: "guild", label: "Guild", icon: <Users className="h-5 w-5" /> },
   { id: "ranks", label: "Ranks", icon: <Trophy className="h-5 w-5" /> },
@@ -241,6 +244,12 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
           )}
 
           {activeTab === "ranks" && <div className="animate-tab-in"><LeaderboardPanel /></div>}
+
+          {activeTab === "inventory" && (
+            <div className="animate-tab-in">
+              {inventory && <InventoryPanel inventory={inventory} onRefresh={refresh} />}
+            </div>
+          )}
         </div>
       </div>
 

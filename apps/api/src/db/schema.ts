@@ -122,6 +122,19 @@ export function initSchema() {
       streak_day INTEGER NOT NULL DEFAULT 1,
       last_claim_date TEXT NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS loot_items (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      image_path TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS character_loot (
+      character_id TEXT NOT NULL REFERENCES characters(id),
+      item_id TEXT NOT NULL REFERENCES loot_items(id),
+      quantity INTEGER NOT NULL DEFAULT 1,
+      PRIMARY KEY (character_id, item_id)
+    );
   `);
 
   // Migrations — add columns if missing
@@ -154,5 +167,12 @@ export function initSchema() {
   }
   if (!missionColNames.includes("insured")) {
     db.exec("ALTER TABLE active_missions ADD COLUMN insured INTEGER NOT NULL DEFAULT 0");
+  }
+
+  // Loot items: tier column for perks
+  const lootCols = db.prepare("PRAGMA table_info(loot_items)").all() as { name: string }[];
+  const lootColNames = lootCols.map((c) => c.name);
+  if (!lootColNames.includes("tier")) {
+    db.exec("ALTER TABLE loot_items ADD COLUMN tier INTEGER NOT NULL DEFAULT 1");
   }
 }

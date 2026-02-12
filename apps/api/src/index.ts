@@ -41,6 +41,8 @@ app.route("/skills", skills);
 app.route("/daily", daily);
 
 initSchema();
+const { seedLootItems } = await import("./services/loot-service.js");
+seedLootItems();
 
 // Dev-only routes (not available in production)
 if (process.env.NODE_ENV !== "production") {

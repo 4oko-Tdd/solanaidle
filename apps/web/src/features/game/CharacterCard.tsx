@@ -41,8 +41,8 @@ export function CharacterCard({ character, classId, livesRemaining, armorLevel, 
     <Card className={`animate-fade-in-up transition-all duration-300 ${classAccent}`}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-base flex items-center gap-1.5">
-            {classId && <ClassIcon classId={classId} className="h-5 w-5" />}
+          <CardTitle className="text-base flex items-center gap-2">
+            {classId && <ClassIcon classId={classId} className="h-12 w-12 shrink-0" />}
             <span className="font-display">{classId ? CLASS_NAMES[classId] : "Character"}</span>
           </CardTitle>
           <Badge variant={stateBadge.variant}>{stateBadge.label}</Badge>

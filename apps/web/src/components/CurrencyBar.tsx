@@ -43,7 +43,7 @@ function AnimatedNumber({ value, onFlash }: { value: number; onFlash?: (flashing
 
   return (
     <span
-      className={`text-sm font-mono font-bold transition-transform duration-200 ${
+      className={`text-base font-mono font-bold transition-transform duration-200 ${
         flash ? "text-white scale-110" : "text-neon-green"
       }`}
     >
@@ -56,11 +56,11 @@ function CurrencyItem({ icon, alt, value }: { icon: string; alt: string; value: 
   const [bouncing, setBouncing] = useState(false);
 
   return (
-    <div className="flex items-center gap-1.5">
+    <div className="flex items-center gap-2">
       <img
         src={icon}
         alt={alt}
-        className={`h-6 w-6 transition-transform ${bouncing ? "animate-icon-bounce" : ""}`}
+        className={`h-9 w-9 transition-transform ${bouncing ? "animate-icon-bounce" : ""}`}
       />
       <AnimatedNumber value={value} onFlash={setBouncing} />
     </div>
@@ -69,7 +69,7 @@ function CurrencyItem({ icon, alt, value }: { icon: string; alt: string; value: 
 
 export function CurrencyBar({ inventory }: Props) {
   return (
-    <div className="flex items-center gap-5">
+    <div className="flex items-center gap-6">
       <CurrencyItem icon={scrapIcon} alt="Lamports" value={inventory.scrap} />
       <CurrencyItem icon={crystalIcon} alt="Tokens" value={inventory.crystal} />
       <CurrencyItem icon={artifactIcon} alt="Keys" value={inventory.artifact} />

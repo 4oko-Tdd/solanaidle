@@ -63,6 +63,21 @@ export interface Inventory {
   scrap: number;
   crystal: number;
   artifact: number;
+  /** Loot items from missions (drops) */
+  loot?: LootEntry[];
+  /** Bonus from owned loot: +X% drop chance (base 20%) */
+  lootDropChancePercent?: number;
+  /** Bonus from owned loot: mission duration -X% */
+  lootSpeedPercent?: number;
+}
+
+export interface LootEntry {
+  itemId: string;
+  name: string;
+  imageUrl?: string | null;
+  quantity: number;
+  /** 1 = common, 2 = rare, 3 = epic. Higher = better perks. */
+  tier: number;
 }
 
 // ── Upgrades ──

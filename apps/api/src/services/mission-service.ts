@@ -21,6 +21,7 @@ import {
 import { addScore, addSkillPoint, addSkillPoints, incrementMissions, markBossDefeated, useLife, incrementStreak, resetStreak } from "./run-service.js";
 import { hasSkill } from "./skill-service.js";
 import { insertEvent } from "./event-service.js";
+import { tryDropRandomLoot, getLootBonus, getBaseDropChance, getMaxDropChance } from "./loot-service.js";
 import type { ActiveMission, MissionClaimResponse, MissionId, MissionRewards } from "@solanaidle/shared";
 
 interface MissionRow {
@@ -108,6 +109,12 @@ export function startMission(
     if (engineReduction > 0) {
       duration = Math.floor(duration * (1 - engineReduction));
     }
+  }
+
+  // Apply loot speed bonus (owned loot reduces mission duration)
+  const lootBonus = getLootBonus(characterId);
+  if (lootBonus.speedPercent > 0) {
+    duration = Math.max(1, Math.floor(duration * (1 - lootBonus.speedPercent / 100)));
   }
 
   // Validate and deduct reroll/insurance costs
@@ -347,6 +354,14 @@ export function claimMission(
   db.prepare(
     "UPDATE inventories SET scrap = scrap + ?, crystal = crystal + ?, artifact = artifact + ? WHERE character_id = ?"
   ).run(rewards.scrap, rewards.crystal ?? 0, rewards.artifact ?? 0, characterId);
+
+  // Random loot drop on success (base 20% + loot bonus, cap 55%)
+  const lootBonus = getLootBonus(characterId);
+  const effectiveDrop = Math.min(
+    getMaxDropChance(),
+    getBaseDropChance() + lootBonus.dropChancePercent
+  );
+  tryDropRandomLoot(characterId, effectiveDrop);
 
   // Run-aware success handling
   if (runId) {
