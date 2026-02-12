@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { api } from "@/lib/api";
+import { Swords, Clock, Users, Loader2, Trophy } from "lucide-react";
 import type { RaidMission, ActiveRaid } from "@solanaidle/shared";
 
 function formatTime(seconds: number): string {
@@ -89,72 +89,98 @@ export function RaidPanel() {
   if (raids.length === 0 && !activeRaid) return null;
 
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base font-display">Raids</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        {activeRaid ? (
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="font-medium text-sm font-display">
-                {raids.find((r) => r.id === activeRaid.raidId)?.name || activeRaid.raidId}
-              </span>
-              <Badge variant={activeRaid.timeRemaining && activeRaid.timeRemaining > 0 ? "outline" : "default"}>
-                {activeRaid.timeRemaining && activeRaid.timeRemaining > 0
-                  ? <span className="font-mono">{formatTime(activeRaid.timeRemaining)}</span>
-                  : "Complete!"}
-              </Badge>
-            </div>
-            <div className="text-xs text-muted-foreground font-mono">
-              Players committed: {activeRaid.committedPlayers.length}
-            </div>
-            {activeRaid.timeRemaining && activeRaid.timeRemaining > 0 ? (
-              <Button
-                size="sm"
-                variant="outline"
-                className="w-full"
-                onClick={handleCommit}
-                disabled={loading}
-              >
-                {loading ? "..." : "Join Raid"}
-              </Button>
-            ) : (
-              <Button
-                size="sm"
-                className="w-full"
-                onClick={handleClaim}
-                disabled={loading}
-              >
-                {loading ? "..." : "Claim Rewards"}
-              </Button>
-            )}
+    <div className="rounded-xl border border-[#1a3a5c]/60 bg-[#0a1628]/80 backdrop-blur-lg p-4 space-y-3">
+      <div className="flex items-center gap-2.5">
+        <Swords className="h-5 w-5 text-neon-amber" />
+        <h3 className="text-base font-display font-semibold text-white">Raids</h3>
+      </div>
+      <p className="text-[11px] text-[#4a7a9b] leading-relaxed">
+        Co-op missions for your guild. Start a raid and wait for members to join before time runs out.
+      </p>
+
+      {activeRaid ? (
+        <div className="rounded-lg border border-neon-amber/30 bg-neon-amber/[0.05] p-3 space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="font-medium text-sm font-display text-white">
+              {raids.find((r) => r.id === activeRaid.raidId)?.name || activeRaid.raidId}
+            </span>
+            <Badge className={`text-[10px] py-0 px-2 ${
+              activeRaid.timeRemaining && activeRaid.timeRemaining > 0
+                ? "bg-[#1a3a5c]/40 text-[#4a7a9b] border-[#1a3a5c]/60"
+                : "bg-[#14F195]/15 text-[#14F195] border-[#14F195]/30"
+            }`}>
+              {activeRaid.timeRemaining && activeRaid.timeRemaining > 0
+                ? <span className="font-mono">{formatTime(activeRaid.timeRemaining)}</span>
+                : "Complete!"}
+            </Badge>
           </div>
-        ) : (
-          <div className="space-y-2">
-            {raids.map((raid) => (
-              <div
-                key={raid.id}
-                className="flex items-center justify-between rounded-lg border border-white/[0.06] bg-white/[0.02] p-2"
-              >
-                <div>
-                  <div className="font-medium text-sm font-display">{raid.name}</div>
-                  <div className="text-xs text-muted-foreground font-mono">
-                    {raid.requiredPlayers} players · {formatTime(raid.duration)} · {raid.lootMultiplier}x loot
-                  </div>
-                </div>
-                <Button
-                  size="sm"
-                  onClick={() => handleStart(raid.id)}
-                  disabled={loading}
-                >
-                  Start
-                </Button>
+
+          <div className="flex items-center gap-2 text-xs text-[#4a7a9b]">
+            <Users className="h-3 w-3" />
+            <span className="font-mono">
+              {activeRaid.committedPlayers.length} committed
+            </span>
+          </div>
+
+          {activeRaid.timeRemaining && activeRaid.timeRemaining > 0 ? (
+            <Button
+              size="sm"
+              className="w-full text-xs bg-neon-amber/20 text-neon-amber border border-neon-amber/40 hover:bg-neon-amber/30"
+              onClick={handleCommit}
+              disabled={loading}
+            >
+              {loading ? <Loader2 className="h-3 w-3 animate-spin mr-1.5" /> : <Swords className="h-3 w-3 mr-1.5" />}
+              Join Raid
+            </Button>
+          ) : (
+            <Button
+              size="sm"
+              className="w-full text-xs bg-[#14F195]/20 text-[#14F195] border border-[#14F195]/40 hover:bg-[#14F195]/30"
+              onClick={handleClaim}
+              disabled={loading}
+            >
+              {loading ? <Loader2 className="h-3 w-3 animate-spin mr-1.5" /> : <Trophy className="h-3 w-3 mr-1.5" />}
+              Claim Rewards
+            </Button>
+          )}
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {raids.map((raid) => (
+            <div
+              key={raid.id}
+              className="rounded-lg border border-[#1a3a5c]/40 bg-[#0d1f35]/60 p-3 space-y-2"
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-sm font-display text-white">{raid.name}</span>
+                <Badge className="text-[10px] py-0 px-2 bg-neon-amber/15 text-neon-amber border-neon-amber/30">
+                  {raid.lootMultiplier}x loot
+                </Badge>
               </div>
-            ))}
-          </div>
-        )}
-      </CardContent>
-    </Card>
+              <div className="flex items-center gap-3 text-[10px] text-[#4a7a9b]">
+                <span className="flex items-center gap-1">
+                  <Users className="h-3 w-3" />
+                  <span className="font-mono">{raid.requiredPlayers}p</span>
+                </span>
+                <span className="flex items-center gap-1">
+                  <Clock className="h-3 w-3" />
+                  <span className="font-mono">{formatTime(raid.duration)}</span>
+                </span>
+              </div>
+              <p className="text-[10px] text-[#4a7a9b]/70">{raid.description}</p>
+              <Button
+                size="sm"
+                className="w-full text-xs h-7"
+                onClick={() => handleStart(raid.id)}
+                disabled={loading}
+              >
+                {loading ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
+                Start Raid
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }

@@ -1,10 +1,4 @@
 import { useState, useCallback } from "react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { Inventory, LootEntry } from "@solanaidle/shared";
@@ -22,10 +16,14 @@ import {
   Merge,
   X,
   Loader2,
+  Clock,
+  ArrowUpDown,
 } from "lucide-react";
-import { CurrencyBar } from "@/components/CurrencyBar";
 import { api } from "@/lib/api";
 import { useToast } from "@/components/ToastProvider";
+import scrapIcon from "@/assets/icons/19.png";
+import crystalIcon from "@/assets/icons/22.png";
+import artifactIcon from "@/assets/icons/25.png";
 
 const LOOT_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   ram_stick: Cpu,
@@ -47,10 +45,16 @@ const TIER_PERK_TEXT: Record<number, string> = {
   3: "+15% loot, -3% time",
 };
 
-const TIER_STYLE: Record<number, string> = {
-  1: "border-white/20 text-muted-foreground",
-  2: "border-neon-cyan/50 text-neon-cyan",
-  3: "border-neon-purple/50 text-neon-purple",
+const TIER_BORDER: Record<number, string> = {
+  1: "border-[#4a7a9b]/40",
+  2: "border-neon-cyan/50",
+  3: "border-[#9945FF]/50",
+};
+
+const TIER_BADGE: Record<number, string> = {
+  1: "bg-[#1a3a5c]/60 text-[#4a7a9b] border-[#4a7a9b]/30",
+  2: "bg-neon-cyan/15 text-neon-cyan border-neon-cyan/30",
+  3: "bg-[#9945FF]/15 text-[#c4a0ff] border-[#9945FF]/30",
 };
 
 /** Sell price per 1 item (match backend) */
@@ -64,10 +68,10 @@ function formatPrice(tier: number): string {
   const p = SELL_PRICES[tier];
   if (!p) return "";
   const parts = [];
-  if (p.scrap) parts.push(`${p.scrap} Lamports`);
-  if (p.crystal) parts.push(`${p.crystal} Tokens`);
-  if (p.artifact) parts.push(`${p.artifact} Keys`);
-  return parts.join(", ");
+  if (p.scrap) parts.push(`${p.scrap}`);
+  if (p.crystal) parts.push(`${p.crystal}`);
+  if (p.artifact) parts.push(`${p.artifact}`);
+  return parts.join(" / ");
 }
 
 interface LootItemCardProps {
@@ -84,45 +88,41 @@ function LootItemCard({ entry, selectedCount, onToggle }: LootItemCardProps) {
     <button
       type="button"
       onClick={onToggle}
-      className={`flex flex-col items-center rounded-xl border p-4 transition text-left w-full ${
+      className={`flex flex-col items-center rounded-xl border p-3 transition-all text-left w-full ${
         isSelected
-          ? "border-neon-green/60 bg-neon-green/10 ring-2 ring-neon-green/40"
-          : "border-white/[0.08] bg-white/[0.04] hover:border-neon-purple/30 hover:bg-white/[0.06]"
+          ? "border-[#14F195]/60 bg-[#14F195]/[0.08] ring-1 ring-[#14F195]/30"
+          : `${TIER_BORDER[tier] ?? TIER_BORDER[1]} bg-[#0d1f35]/60 hover:bg-[#0d1f35]/80`
       }`}
     >
-      <div className="relative mb-2 flex h-14 w-14 items-center justify-center rounded-lg bg-white/[0.06]">
+      <div className="relative mb-1.5 flex h-11 w-11 items-center justify-center rounded-lg bg-[#1a3a5c]/30">
         {entry.imageUrl ? (
           <img
             src={entry.imageUrl}
             alt={entry.name}
-            className="h-10 w-10 object-contain"
+            className="h-8 w-8 object-contain"
           />
         ) : (
-          <Icon className="h-8 w-8 text-neon-cyan" />
+          <Icon className={`h-6 w-6 ${tier === 3 ? "text-[#c4a0ff]" : tier === 2 ? "text-neon-cyan" : "text-[#7ab8d9]"}`} />
         )}
         <Badge
-          variant="outline"
-          className={`absolute -right-1 -top-1 h-5 w-5 rounded-full p-0 text-[10px] font-bold ${TIER_STYLE[tier] ?? TIER_STYLE[1]}`}
+          className={`absolute -right-1.5 -top-1.5 h-4 min-w-4 rounded-full px-1 py-0 text-[9px] font-bold ${TIER_BADGE[tier] ?? TIER_BADGE[1]}`}
         >
           {TIER_LABEL[tier] ?? "I"}
         </Badge>
         {isSelected && (
-          <span className="absolute bottom-0 right-0 rounded bg-neon-green px-1 font-mono text-[10px] text-black">
-            ×{selectedCount}
+          <span className="absolute -bottom-1 -right-1 rounded bg-[#14F195] px-1 font-mono text-[9px] font-bold text-black">
+            x{selectedCount}
           </span>
         )}
       </div>
-      <span className="text-center text-sm font-medium text-white line-clamp-2">
+      <span className="text-center text-xs font-medium text-white line-clamp-1">
         {entry.name}
       </span>
-      <span className="mt-0.5 font-mono text-xs text-muted-foreground">
-        ×{entry.quantity}
+      <span className="font-mono text-[10px] text-[#4a7a9b]">
+        x{entry.quantity}
       </span>
-      <span className="mt-1 text-[10px] text-muted-foreground">
+      <span className="mt-0.5 text-[9px] text-[#4a7a9b]/70">
         {TIER_PERK_TEXT[tier]}
-      </span>
-      <span className="mt-0.5 text-[10px] text-neon-green/90">
-        Sell: {formatPrice(tier)}
       </span>
     </button>
   );
@@ -197,7 +197,7 @@ export function InventoryPanel({ inventory, onRefresh }: Props) {
         method: "POST",
         body: JSON.stringify({ items }),
       });
-      addToast("3× T1 → 1× T2 merged!", "success");
+      addToast("3x T1 → 1x T2 merged!", "success");
       setSelected({});
       onRefresh?.();
     } catch (e: unknown) {
@@ -212,78 +212,146 @@ export function InventoryPanel({ inventory, onRefresh }: Props) {
 
   return (
     <div className="space-y-4">
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base font-display">Resources</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <CurrencyBar inventory={inventory} />
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base font-display flex items-center gap-2">
-            <Package className="h-4 w-4" />
-            Loot
-          </CardTitle>
-          <p className="text-xs text-muted-foreground">
-            Tap items to select. Sell for currency or merge 3× T1 → 1× T2.
-          </p>
-          {(dropChance > 20 || speedPercent > 0) && (
-            <div className="flex flex-wrap gap-2 text-xs">
-              <span className="flex items-center gap-1 rounded bg-white/[0.06] px-2 py-0.5 font-mono text-neon-green">
-                <Zap className="h-3 w-3" />
-                Loot chance {dropChance}%
-              </span>
-              {speedPercent > 0 && (
-                <span className="flex items-center gap-1 rounded bg-white/[0.06] px-2 py-0.5 font-mono text-neon-cyan">
-                  Missions {speedPercent}% faster
-                </span>
-              )}
+      {/* Loot bonuses (if any) */}
+      {(dropChance > 20 || speedPercent > 0) && (
+        <div className="flex flex-wrap gap-2">
+          <div className="flex items-center gap-1.5 rounded-lg bg-[#14F195]/[0.08] border border-[#14F195]/20 px-2.5 py-1">
+            <Zap className="h-3 w-3 text-[#14F195]" />
+            <span className="text-[11px] font-mono text-[#14F195]">Loot {dropChance}%</span>
+          </div>
+          {speedPercent > 0 && (
+            <div className="flex items-center gap-1.5 rounded-lg bg-neon-cyan/[0.08] border border-neon-cyan/20 px-2.5 py-1">
+              <Clock className="h-3 w-3 text-neon-cyan" />
+              <span className="text-[11px] font-mono text-neon-cyan">-{speedPercent}% time</span>
             </div>
           )}
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {loot.length === 0 ? (
-            <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-white/10 bg-white/[0.02] py-10 text-center">
-              <ScanSearch className="h-10 w-10 text-muted-foreground/50" />
-              <p className="text-sm text-muted-foreground">No loot yet</p>
-              <p className="text-xs text-muted-foreground/80">
-                Complete missions to get random drops (base 20%).
+        </div>
+      )}
+
+      {/* Loot section */}
+      <div className="rounded-xl border border-[#1a3a5c]/60 bg-[#0a1628]/80 backdrop-blur-lg p-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <Package className="h-5 w-5 text-[#9945FF]" />
+            <h3 className="text-base font-display font-semibold text-white">Loot</h3>
+          </div>
+          {loot.length > 0 && (
+            <Badge className="text-[10px] py-0 px-2 bg-[#1a3a5c]/40 text-[#4a7a9b] border-[#1a3a5c]/60">
+              {loot.reduce((s, e) => s + e.quantity, 0)} items
+            </Badge>
+          )}
+        </div>
+        <p className="text-[11px] text-[#4a7a9b] leading-relaxed">
+          Tap to select. Sell for resources or merge 3x T1 into a random T2.
+        </p>
+
+        {loot.length === 0 ? (
+          <div className="space-y-4">
+            {/* Empty state */}
+            <div className="rounded-xl border border-dashed border-[#1a3a5c]/60 bg-[#0a1628]/40 p-8 text-center space-y-3">
+              <ScanSearch className="h-10 w-10 text-[#4a7a9b]/40 mx-auto" />
+              <p className="text-sm font-medium text-[#4a7a9b]">No loot yet</p>
+              <p className="text-xs text-[#4a7a9b]/70 max-w-[240px] mx-auto leading-relaxed">
+                Complete missions to find hardware drops. Base drop chance is 20% per success.
               </p>
             </div>
-          ) : (
-            <>
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                {loot.map((entry) => (
-                  <LootItemCard
-                    key={entry.itemId}
-                    entry={entry}
-                    selectedCount={selected[entry.itemId] ?? 0}
-                    onToggle={() => handleToggle(entry)}
-                  />
-                ))}
-              </div>
 
-              {totalSelected > 0 && (
-                <div className="flex flex-wrap items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] p-3">
-                  <span className="text-xs text-muted-foreground">
-                    Selected: {totalSelected}
-                    {allSelectedTier1 && " (3× T1 → Merge)"}
+            {/* How loot works */}
+            <div className="space-y-2">
+              <h4 className="text-xs font-display font-semibold text-white">How Loot Works</h4>
+              <div className="space-y-2">
+                <div className="flex items-start gap-2.5">
+                  <Package className="h-3.5 w-3.5 text-[#14F195] shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-[11px] font-medium text-white">Random Drops</p>
+                    <p className="text-[10px] text-[#4a7a9b]">Every successful mission has a chance to drop hardware components (T1, T2, T3).</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2.5">
+                  <Zap className="h-3.5 w-3.5 text-neon-amber shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-[11px] font-medium text-white">Passive Bonuses</p>
+                    <p className="text-[10px] text-[#4a7a9b]">Each loot item gives passive bonuses: increased drop chance and faster mission times.</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2.5">
+                  <ArrowUpDown className="h-3.5 w-3.5 text-[#9945FF] shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-[11px] font-medium text-white">Sell or Merge</p>
+                    <p className="text-[10px] text-[#4a7a9b]">Sell loot for Lamports/Tokens/Keys, or merge 3x Tier I into a random Tier II upgrade.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Sell prices reference */}
+            <div className="space-y-1.5">
+              <h4 className="text-xs font-display font-semibold text-white">Sell Prices</h4>
+              <div className="rounded-lg border border-[#1a3a5c]/30 overflow-hidden">
+                {[1, 2, 3].map((tier, i) => {
+                  const p = SELL_PRICES[tier]!;
+                  return (
+                    <div key={tier} className={`flex items-center justify-between px-3 py-1.5 ${i < 2 ? "border-b border-[#1a3a5c]/20" : ""}`}>
+                      <span className="text-[10px] text-[#4a7a9b] font-mono">Tier {TIER_LABEL[tier]}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="flex items-center gap-0.5">
+                          <img src={scrapIcon} alt="" className="h-3 w-3" />
+                          <span className="text-[10px] font-mono text-white">{p.scrap}</span>
+                        </span>
+                        {p.crystal && (
+                          <span className="flex items-center gap-0.5">
+                            <img src={crystalIcon} alt="" className="h-3 w-3" />
+                            <span className="text-[10px] font-mono text-white">{p.crystal}</span>
+                          </span>
+                        )}
+                        {p.artifact && (
+                          <span className="flex items-center gap-0.5">
+                            <img src={artifactIcon} alt="" className="h-3 w-3" />
+                            <span className="text-[10px] font-mono text-white">{p.artifact}</span>
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-3 gap-2">
+              {loot.map((entry) => (
+                <LootItemCard
+                  key={entry.itemId}
+                  entry={entry}
+                  selectedCount={selected[entry.itemId] ?? 0}
+                  onToggle={() => handleToggle(entry)}
+                />
+              ))}
+            </div>
+
+            {/* Selection action bar */}
+            {totalSelected > 0 && (
+              <div className="rounded-lg border border-[#1a3a5c]/40 bg-[#0d1f35]/80 p-2.5 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-[#4a7a9b]">
+                    {totalSelected} selected
+                    {allSelectedTier1 && <span className="text-neon-cyan ml-1">— ready to merge</span>}
                   </span>
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-7 text-xs"
+                    className="h-6 text-[10px] text-[#4a7a9b] hover:text-white px-2"
                     onClick={clearSelection}
                   >
-                    <X className="h-3 w-3 mr-1" />
+                    <X className="h-3 w-3 mr-0.5" />
                     Clear
                   </Button>
+                </div>
+                <div className="flex gap-2">
                   <Button
                     size="sm"
-                    className="h-7 text-xs bg-neon-green text-black hover:bg-neon-green/90"
+                    className="flex-1 h-8 text-xs bg-[#14F195]/20 text-[#14F195] border border-[#14F195]/40 hover:bg-[#14F195]/30"
                     disabled={selling}
                     onClick={handleSell}
                   >
@@ -292,21 +360,24 @@ export function InventoryPanel({ inventory, onRefresh }: Props) {
                   </Button>
                   <Button
                     size="sm"
-                    variant="secondary"
-                    className="h-7 text-xs"
+                    className={`flex-1 h-8 text-xs ${
+                      allSelectedTier1
+                        ? "bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/40 hover:bg-neon-cyan/30"
+                        : "bg-[#1a3a5c]/30 text-[#4a7a9b] border border-[#1a3a5c]/40"
+                    }`}
                     disabled={!allSelectedTier1 || merging}
                     onClick={handleMerge}
                     title="Merge 3 tier-1 items into 1 random tier-2"
                   >
                     {merging ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <Merge className="h-3 w-3 mr-1" />}
-                    Merge (3×T1→T2)
+                    Merge 3xT1
                   </Button>
                 </div>
-              )}
-            </>
-          )}
-        </CardContent>
-      </Card>
+              </div>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }
