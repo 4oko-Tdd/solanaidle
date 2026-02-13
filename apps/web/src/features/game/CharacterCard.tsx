@@ -3,6 +3,9 @@ import { Progress } from "@/components/ui/progress";
 import type { Character, ClassId, WeeklyRun, CharacterState } from "@solanaidle/shared";
 import { Star, Heart, HeartCrack } from "lucide-react";
 import { ClassIcon } from "@/components/ClassIcon";
+import expIcon from "@/assets/icons/exp.png"
+
+
 
 const CLASS_NAMES: Record<ClassId, string> = {
   scout: "Validator",
@@ -45,7 +48,8 @@ export function CharacterCard({ character, classId, livesRemaining, run }: Props
             {classId ? CLASS_NAMES[classId] : "Node"}
           </span>
           <div className="flex items-center gap-1 text-[#4a7a9b]">
-            <Star className="h-3 w-3 text-neon-amber" />
+
+            <img src={expIcon} alt="" className="h-6 w-6" />
             <span className="text-xs font-mono font-bold text-white">Lv {character.level}</span>
           </div>
         </div>
@@ -79,9 +83,8 @@ export function CharacterCard({ character, classId, livesRemaining, run }: Props
             <span className="text-[#4a7a9b]">Score <span className="font-mono font-bold text-[#14F195]">{run.score}</span></span>
             {run.streak >= 2 && (
               <span className="text-[#4a7a9b]">
-                Streak <span className={`font-mono font-bold ${
-                  run.streak >= 6 ? "text-neon-amber" : run.streak >= 4 ? "text-neon-red" : "text-[#14F195]"
-                }`}>{run.streak}x</span>
+                Streak <span className={`font-mono font-bold ${run.streak >= 6 ? "text-neon-amber" : run.streak >= 4 ? "text-neon-red" : "text-[#14F195]"
+                  }`}>{run.streak}x</span>
               </span>
             )}
           </div>

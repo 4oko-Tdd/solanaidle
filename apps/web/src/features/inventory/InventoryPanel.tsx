@@ -21,14 +21,14 @@ import {
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { useToast } from "@/components/ToastProvider";
-import scrapIcon from "@/assets/icons/19.png";
-import crystalIcon from "@/assets/icons/22.png";
+import scrapIcon from "@/assets/icons/res1.png";
+import crystalIcon from "@/assets/icons/res2.png";
 import artifactIcon from "@/assets/icons/25.png";
-import ramStickIcon from "art/ram_stick.png";
-import lanCableIcon from "art/lan_cable.png";
-import nvmeFragmentIcon from "art/NVMe_fragment.png";
-import coolingFanIcon from "art/cooling_fan.png";
-import validatorKeyShardIcon from "art/Validator_key_shard.png";
+import ramStickIcon from "@/assets/icons/loot/ram_stick.png";
+import lanCableIcon from "@/assets/icons/loot/lan_cable.png";
+import nvmeFragmentIcon from "@/assets/icons/loot/NVMe_fragment.png";
+import coolingFanIcon from "@/assets/icons/loot/cooling_fan.png";
+import validatorKeyShardIcon from "@/assets/icons/loot/Validator_key_shard.png";
 
 /** Custom loot images (art folder). Missing = fallback to LOOT_ICONS. */
 const LOOT_IMAGES: Record<string, string> = {

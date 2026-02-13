@@ -11,7 +11,7 @@ Player sends a character on timed missions (7h/12h/24h/48h), waits real time, cl
 - **Frontend:** React 19 + Vite + TypeScript + Tailwind CSS + shadcn/ui (`apps/web`)
 - **Backend:** Hono (TypeScript) on Node.js (`apps/api`)
 - **Database:** SQLite via better-sqlite3
-- **Wallet:** @solana/connector (ConnectorKit) — Solana Foundation's official wallet lib
+- **Wallet:** @solana/wallet-adapter-react + @solana-mobile/wallet-adapter-mobile (MWA)
 - **Shared types:** `packages/shared`
 - **Target:** PWA → Bubblewrap → APK for Solana dApp Store
 
@@ -76,6 +76,7 @@ pnpm build            # Build all packages
 
 - All timers are SERVER-side (prevent client manipulation)
 - RNG is server-side (can upgrade to commit-reveal later)
-- Wallet interactions use ConnectorKit's `useConnector` and `useAccount` hooks
-- Mobile Wallet Adapter is handled automatically by ConnectorKit when `enableMobile: true`
+- Wallet interactions use `useWallet()` from `@solana/wallet-adapter-react`
+- Mobile Wallet Adapter (MWA) is provided via `SolanaMobileWalletAdapter` in the wallets array
+- Browser wallets (Phantom, etc.) self-register via Wallet Standard — no explicit adapter needed
 - SQLite DB file lives at `apps/api/data/game.db` (gitignored)

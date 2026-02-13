@@ -7,8 +7,8 @@ import {
 import { Button } from "@/components/ui/button";
 import type { UpgradeInfo, GearTrack } from "@solanaidle/shared";
 import { Shield, Zap, Search, ArrowUp } from "lucide-react";
-import scrapIcon from "@/assets/icons/19.png";
-import crystalIcon from "@/assets/icons/22.png";
+import scrapIcon from "@/assets/icons/res1.png";
+import crystalIcon from "@/assets/icons/res2.png";
 import artifactIcon from "@/assets/icons/25.png";
 
 interface Props {

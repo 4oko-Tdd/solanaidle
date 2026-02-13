@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useConnector, useAccount } from "@solana/connector";
+import { useWallet } from "@solana/wallet-adapter-react";
 import { api, setAuthToken, clearAuthToken, getAuthToken } from "@/lib/api";
 import type { AuthNonceResponse, AuthVerifyResponse } from "@solanaidle/shared";
 
 export function useAuth() {
-  const { connected, disconnect, selectedWallet } = useConnector();
-  const { address } = useAccount();
+  const { publicKey, connected, disconnect, signMessage } = useWallet();
+  const address = publicKey?.toBase58();
   const [isAuthenticated, setIsAuthenticated] = useState(!!getAuthToken());
   const [authLoading, setAuthLoading] = useState(false);
   const authInFlight = useRef(false);
@@ -21,33 +21,14 @@ export function useAuth() {
 
       let token: string;
 
-      // Step 2: try to sign message with wallet
-      const signFeature =
-        selectedWallet?.features?.["solana:signMessage"] ??
-        selectedWallet?.features?.["standard:signMessage"];
-
-      if (
-        signFeature &&
-        typeof (signFeature as { signMessage?: unknown }).signMessage ===
-          "function"
-      ) {
+      if (signMessage) {
         // Real wallet signing flow
         const messageBytes = new TextEncoder().encode(nonce);
-        const result = await (
-          signFeature as {
-            signMessage: (opts: {
-              message: Uint8Array;
-              account: unknown;
-            }) => Promise<{ signature: Uint8Array }>;
-          }
-        ).signMessage({
-          message: messageBytes,
-          account: selectedWallet?.accounts?.[0],
-        });
+        const signature = await signMessage(messageBytes);
 
         const bs58Module = await import("bs58");
         const signatureB58 = bs58Module.default.encode(
-          new Uint8Array(result.signature),
+          new Uint8Array(signature),
         );
 
         const verifyRes = await api<AuthVerifyResponse>("/auth/verify", {
@@ -60,7 +41,7 @@ export function useAuth() {
         });
         token = verifyRes.token;
       } else {
-        // Dev fallback: wallet doesn't expose signMessage (common in dev without browser extension)
+        // Dev fallback: wallet doesn't expose signMessage
         console.warn("[useAuth] signMessage not available, using dev auth");
         const res = await api<{ token: string }>("/auth/dev-login", {
           method: "POST",
@@ -88,7 +69,7 @@ export function useAuth() {
       setAuthLoading(false);
       authInFlight.current = false;
     }
-  }, [address, isAuthenticated, selectedWallet]);
+  }, [address, isAuthenticated, signMessage]);
 
   // Auto-authenticate when wallet connects
   useEffect(() => {

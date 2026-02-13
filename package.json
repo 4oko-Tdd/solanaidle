@@ -16,6 +16,9 @@
       "esbuild",
       "bufferutil",
       "utf-8-validate"
-    ]
+    ],
+    "peerDependencyRules": {
+      "allowAny": ["react", "react-dom"]
+    }
   }
 }

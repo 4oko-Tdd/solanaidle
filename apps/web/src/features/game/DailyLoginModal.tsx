@@ -9,8 +9,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Loader2, Gift, Check } from "lucide-react";
 import type { DailyLoginStatus } from "@solanaidle/shared";
-import scrapIcon from "@/assets/icons/19.png";
-import crystalIcon from "@/assets/icons/22.png";
+import scrapIcon from "@/assets/icons/res1.png";
+import crystalIcon from "@/assets/icons/res2.png";
 import artifactIcon from "@/assets/icons/25.png";
 
 interface Props {

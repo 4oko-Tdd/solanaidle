@@ -8,8 +8,8 @@ import {
 import { Button } from "@/components/ui/button";
 import type { MissionType, CharacterState, MissionId, ClassId, Inventory } from "@solanaidle/shared";
 import { Clock, Skull, Lock, AlertTriangle, Star, Sparkles, Shield, Minus, Plus, Package, Crown, Fish } from "lucide-react";
-import scrapIcon from "@/assets/icons/19.png";
-import crystalIcon from "@/assets/icons/22.png";
+import scrapIcon from "@/assets/icons/res1.png";
+import crystalIcon from "@/assets/icons/res2.png";
 import artifactIcon from "@/assets/icons/25.png";
 
 const REROLL_COST_PER_STACK = 10;
@@ -35,10 +35,10 @@ function formatDuration(seconds: number): string {
 }
 
 const RISK_LABELS: Record<string, Record<number, string>> = {
-  scout:     { 3: "Easy Swap",     2: "Risky Swap",      1: "Last Swap" },
-  expedition:{ 3: "Safe Stake", 2: "Risky Stake", 1: "Degen Stake" },
-  deep_dive: { 3: "Yield Farm",  2: "Degen Farm",    1: "Rug Risk" },
-  boss:      { 3: "Whale Spotted",      2: "Do or Die",        1: "Final Stand" },
+  scout: { 3: "Easy Swap", 2: "Risky Swap", 1: "Last Swap" },
+  expedition: { 3: "Safe Stake", 2: "Risky Stake", 1: "Degen Stake" },
+  deep_dive: { 3: "Yield Farm", 2: "Degen Farm", 1: "Rug Risk" },
+  boss: { 3: "Whale Spotted", 2: "Do or Die", 1: "Final Stand" },
 };
 
 function getRiskLevel(missionId: string, lives: number): "safe" | "risky" | "dangerous" | "critical" {
@@ -336,20 +336,18 @@ export function MissionPanel({ missions, characterState, onStart, characterLevel
           return (
             <div
               key={mission.id}
-              className={`rounded-lg border p-3 transition-all duration-200 bg-white/[0.02] space-y-2 ${
-                locked ? "opacity-50 border-white/[0.06]" : `${RISK_STYLES[riskLevel]} ${!locked ? "hover:-translate-y-0.5 hover:bg-white/[0.04]" : ""}`
-              } ${riskLevel === "critical" && !locked ? "animate-pulse" : ""}`}
+              className={`rounded-lg border p-3 transition-all duration-200 bg-white/[0.02] space-y-2 ${locked ? "opacity-50 border-white/[0.06]" : `${RISK_STYLES[riskLevel]} ${!locked ? "hover:-translate-y-0.5 hover:bg-white/[0.04]" : ""}`
+                } ${riskLevel === "critical" && !locked ? "animate-pulse" : ""}`}
             >
               {/* Top row: name + start button */}
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
                   <div className="flex items-center gap-1.5">
                     {riskLevel === "critical" && !locked && <Skull className="h-3.5 w-3.5 text-neon-red" />}
-                    <p className={`font-medium text-sm ${
-                      riskLevel === "critical" && !locked ? "text-neon-red" :
+                    <p className={`font-medium text-sm ${riskLevel === "critical" && !locked ? "text-neon-red" :
                       riskLevel === "dangerous" && !locked ? "text-neon-red/80" :
-                      riskLevel === "risky" && !locked ? "text-neon-amber" : ""
-                    }`}>
+                        riskLevel === "risky" && !locked ? "text-neon-amber" : ""
+                      }`}>
                       {locked ? mission.name : dynamicLabel}
                     </p>
                   </div>
@@ -358,10 +356,9 @@ export function MissionPanel({ missions, characterState, onStart, characterLevel
                       <Clock className="h-3 w-3" />
                       <span className="font-mono">{formatDuration(displayDuration)}</span>
                     </span>
-                    <span className={`flex items-center gap-1 ${
-                      riskLevel === "critical" || riskLevel === "dangerous" ? "text-neon-red font-medium" :
+                    <span className={`flex items-center gap-1 ${riskLevel === "critical" || riskLevel === "dangerous" ? "text-neon-red font-medium" :
                       riskLevel === "risky" ? "text-neon-amber" : ""
-                    }`}>
+                      }`}>
                       <AlertTriangle className="h-3 w-3" />
                       <span className="font-mono">{mission.failRate}%</span>
                     </span>

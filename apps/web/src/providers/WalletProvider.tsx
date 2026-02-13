@@ -1,29 +1,44 @@
 import { useMemo } from "react";
-import { AppProvider } from "@solana/connector/react";
-import { getDefaultConfig, getDefaultMobileConfig } from "@solana/connector/headless";
+import {
+  ConnectionProvider,
+  WalletProvider as SolanaWalletProvider,
+} from "@solana/wallet-adapter-react";
+import {
+  SolanaMobileWalletAdapter,
+  createDefaultAddressSelector,
+  createDefaultAuthorizationResultCache,
+  createDefaultWalletNotFoundHandler,
+} from "@solana-mobile/wallet-adapter-mobile";
+import { clusterApiUrl } from "@solana/web3.js";
 
 export function WalletProvider({ children }: { children: React.ReactNode }) {
-  const connectorConfig = useMemo(() => {
-    return getDefaultConfig({
-      appName: "Solana Idle",
-      appUrl: window.location.origin,
-      autoConnect: true,
-      enableMobile: true,
-    });
-  }, []);
+  const endpoint = useMemo(
+    () => import.meta.env.VITE_RPC_URL || clusterApiUrl("mainnet-beta"),
+    [],
+  );
 
-  const mobile = useMemo(
-    () =>
-      getDefaultMobileConfig({
-        appName: "Solana Idle",
-        appUrl: window.location.origin,
+  const wallets = useMemo(
+    () => [
+      new SolanaMobileWalletAdapter({
+        addressSelector: createDefaultAddressSelector(),
+        appIdentity: {
+          name: "Solana Idle",
+          uri: window.location.origin,
+          icon: "favicon.ico",
+        },
+        authorizationResultCache: createDefaultAuthorizationResultCache(),
+        cluster: "mainnet-beta",
+        onWalletNotFound: createDefaultWalletNotFoundHandler(),
       }),
+    ],
     [],
   );
 
   return (
-    <AppProvider connectorConfig={connectorConfig} mobile={mobile}>
-      {children}
-    </AppProvider>
+    <ConnectionProvider endpoint={endpoint}>
+      <SolanaWalletProvider wallets={wallets} autoConnect>
+        {children}
+      </SolanaWalletProvider>
+    </ConnectionProvider>
   );
 }

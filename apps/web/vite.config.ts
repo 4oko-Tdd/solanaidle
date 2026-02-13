@@ -4,10 +4,13 @@ import path from "path";
 
 export default defineConfig({
   plugins: [react()],
+  define: {
+    global: "globalThis",
+    "process.env": "{}",
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
-      art: path.resolve(__dirname, "../../art"),
     },
   },
   server: {

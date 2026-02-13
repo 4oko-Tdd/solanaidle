@@ -53,7 +53,7 @@ export default function App() {
               </h2>
               <p className="text-sm text-muted-foreground max-w-xs leading-relaxed">
                 Run your node, stake on missions, collect rewards, upgrade your setup, and
-                earn NFTs -- all on Solana.
+                earn NFTs - all on Solana.
               </p>
             </div>
 
