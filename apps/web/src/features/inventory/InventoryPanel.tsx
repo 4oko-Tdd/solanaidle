@@ -24,6 +24,20 @@ import { useToast } from "@/components/ToastProvider";
 import scrapIcon from "@/assets/icons/19.png";
 import crystalIcon from "@/assets/icons/22.png";
 import artifactIcon from "@/assets/icons/25.png";
+import ramStickIcon from "art/ram_stick.png";
+import lanCableIcon from "art/lan_cable.png";
+import nvmeFragmentIcon from "art/NVMe_fragment.png";
+import coolingFanIcon from "art/cooling_fan.png";
+import validatorKeyShardIcon from "art/Validator_key_shard.png";
+
+/** Custom loot images (art folder). Missing = fallback to LOOT_ICONS. */
+const LOOT_IMAGES: Record<string, string> = {
+  ram_stick: ramStickIcon,
+  lan_cable: lanCableIcon,
+  nvme_fragment: nvmeFragmentIcon,
+  cooling_fan: coolingFanIcon,
+  validator_key_shard: validatorKeyShardIcon,
+};
 
 const LOOT_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   ram_stick: Cpu,
@@ -81,6 +95,7 @@ interface LootItemCardProps {
 }
 
 function LootItemCard({ entry, selectedCount, onToggle }: LootItemCardProps) {
+  const customImg = LOOT_IMAGES[entry.itemId];
   const Icon = LOOT_ICONS[entry.itemId] ?? Archive;
   const tier = entry.tier ?? 1;
   const isSelected = selectedCount > 0;
@@ -88,21 +103,19 @@ function LootItemCard({ entry, selectedCount, onToggle }: LootItemCardProps) {
     <button
       type="button"
       onClick={onToggle}
-      className={`flex flex-col items-center rounded-xl border p-3 transition-all text-left w-full ${
+      className={`flex flex-col items-center rounded-xl border p-2.5 transition-all text-left w-full ${
         isSelected
           ? "border-[#14F195]/60 bg-[#14F195]/[0.08] ring-1 ring-[#14F195]/30"
           : `${TIER_BORDER[tier] ?? TIER_BORDER[1]} bg-[#0d1f35]/60 hover:bg-[#0d1f35]/80`
       }`}
     >
-      <div className="relative mb-1.5 flex h-11 w-11 items-center justify-center rounded-lg bg-[#1a3a5c]/30">
-        {entry.imageUrl ? (
-          <img
-            src={entry.imageUrl}
-            alt={entry.name}
-            className="h-8 w-8 object-contain"
-          />
+      <div className="relative mb-1 flex h-20 w-20 shrink-0 items-center justify-center rounded-lg bg-[#1a3a5c]/40">
+        {customImg ? (
+          <img src={customImg} alt={entry.name} className="h-[4.5rem] w-[4.5rem] object-contain" />
+        ) : entry.imageUrl ? (
+          <img src={entry.imageUrl} alt={entry.name} className="h-[4.5rem] w-[4.5rem] object-contain" />
         ) : (
-          <Icon className={`h-6 w-6 ${tier === 3 ? "text-[#c4a0ff]" : tier === 2 ? "text-neon-cyan" : "text-[#7ab8d9]"}`} />
+          <Icon className={`h-12 w-12 ${tier === 3 ? "text-[#c4a0ff]" : tier === 2 ? "text-neon-cyan" : "text-[#7ab8d9]"}`} />
         )}
         <Badge
           className={`absolute -right-1.5 -top-1.5 h-4 min-w-4 rounded-full px-1 py-0 text-[9px] font-bold ${TIER_BADGE[tier] ?? TIER_BADGE[1]}`}
@@ -142,6 +155,9 @@ export function InventoryPanel({ inventory, onRefresh }: Props) {
   const [selected, setSelected] = useState<Record<string, number>>({});
   const [selling, setSelling] = useState(false);
   const [merging, setMerging] = useState(false);
+  const [devLootItem, setDevLootItem] = useState("ram_stick");
+  const [devLootQty, setDevLootQty] = useState(1);
+  const [devLootAdding, setDevLootAdding] = useState(false);
 
   const selectedList = Object.entries(selected).filter(([, q]) => q > 0);
   const totalSelected = selectedList.reduce((s, [, q]) => s + q, 0);
@@ -210,8 +226,61 @@ export function InventoryPanel({ inventory, onRefresh }: Props) {
 
   const clearSelection = useCallback(() => setSelected({}), []);
 
+  const handleDevAddLoot = useCallback(async () => {
+    setDevLootAdding(true);
+    try {
+      const res = await api<{ message: string }>("/dev/add-loot", {
+        method: "POST",
+        body: JSON.stringify({ itemId: devLootItem, quantity: devLootQty }),
+      });
+      addToast(res.message, "success");
+      onRefresh?.();
+    } catch {
+      addToast("Add loot failed", "error");
+    } finally {
+      setDevLootAdding(false);
+    }
+  }, [devLootItem, devLootQty, addToast, onRefresh]);
+
   return (
     <div className="space-y-4">
+      {/* Dev: Add loot (only in development) */}
+      {import.meta.env.DEV && (
+        <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 space-y-2">
+          <p className="text-[10px] font-medium text-amber-200/90 uppercase tracking-wider">Dev: выдать лут</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <select
+              value={devLootItem}
+              onChange={(e) => setDevLootItem(e.target.value)}
+              className="h-8 text-xs rounded border border-white/20 bg-white/5 text-foreground px-2 min-w-[140px]"
+            >
+              <option value="ram_stick">RAM Stick</option>
+              <option value="lan_cable">LAN Cable</option>
+              <option value="nvme_fragment">NVMe Fragment</option>
+              <option value="cooling_fan">Cooling Fan</option>
+              <option value="validator_key_shard">Validator Key Shard</option>
+            </select>
+            <input
+              type="number"
+              min={1}
+              max={99}
+              value={devLootQty}
+              onChange={(e) => setDevLootQty(Math.max(1, Math.min(99, parseInt(e.target.value, 10) || 1)))}
+              className="h-8 w-14 text-xs rounded border border-white/20 bg-white/5 text-foreground px-2 text-center"
+            />
+            <Button
+              size="sm"
+              variant="secondary"
+              className="h-8 text-xs"
+              disabled={devLootAdding}
+              onClick={handleDevAddLoot}
+            >
+              {devLootAdding ? "…" : "Выдать"}
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Loot bonuses (if any) */}
       {(dropChance > 20 || speedPercent > 0) && (
         <div className="flex flex-wrap gap-2">

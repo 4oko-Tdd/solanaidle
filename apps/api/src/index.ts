@@ -189,6 +189,43 @@ if (process.env.NODE_ENV !== "production") {
     }
     return c.json({ bossDay: forceBossDay === true || (forceBossDay === null && new Date().getDay() === 0) });
   });
+
+  // Dev: Add loot to inventory (itemId + quantity)
+  app.post("/dev/add-loot", async (c) => {
+    const header = c.req.header("Authorization");
+    if (!header?.startsWith("Bearer ")) {
+      return c.json({ error: "UNAUTHORIZED", message: "Missing token" }, 401);
+    }
+    const { verifyToken } = await import("./services/auth-service.js");
+    const payload = verifyToken(header.slice(7));
+    if (!payload) {
+      return c.json({ error: "UNAUTHORIZED", message: "Invalid token" }, 401);
+    }
+
+    const { getCharacter } = await import("./services/character-service.js");
+    const char = getCharacter(payload.wallet);
+    if (!char) {
+      return c.json({ error: "CHARACTER_NOT_FOUND", message: "No character" }, 404);
+    }
+
+    const body = await c.req.json<{ itemId: string; quantity?: number }>().catch(() => ({}));
+    const itemId = body?.itemId;
+    const quantity = Math.max(1, Math.min(99, Number(body?.quantity) || 1));
+    if (!itemId || typeof itemId !== "string") {
+      return c.json({ error: "BAD_REQUEST", message: "itemId required" }, 400);
+    }
+
+    const { addLoot, getItemTier, getCharacterLoot } = await import("./services/loot-service.js");
+    const db = (await import("./db/database.js")).default;
+    const tier = getItemTier(itemId);
+    if (tier === 0) {
+      return c.json({ error: "BAD_REQUEST", message: "Unknown itemId" }, 400);
+    }
+    addLoot(char.id, itemId, quantity);
+    const loot = getCharacterLoot(char.id);
+    const row = db.prepare("SELECT scrap, crystal, artifact FROM inventories WHERE character_id = ?").get(char.id) as { scrap: number; crystal: number; artifact: number };
+    return c.json({ message: `+${quantity} ${itemId}`, inventory: { ...row, loot } });
+  });
 }
 
 const port = Number(process.env.PORT) || 3000;

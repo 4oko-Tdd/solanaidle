@@ -1,7 +1,7 @@
 import type { ClassId } from "@solanaidle/shared";
-import lisiyIcon from "../../../../personaji/lisiy.png";
-import guardianIcon from "../../../../personaji/guardian.png";
-import mysticIcon from "../../../../personaji/mystic.png";
+import lisiyIcon from "art/lisiy.png";
+import guardianIcon from "art/guardian.png";
+import mysticIcon from "art/mystic.png";
 
 const CLASS_ICONS: Record<ClassId, string> = {
   scout: lisiyIcon,

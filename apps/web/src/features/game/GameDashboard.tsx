@@ -75,6 +75,9 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
   const [dailyStatus, setDailyStatus] = useState<DailyLoginStatus | null>(null);
   const [showDailyModal, setShowDailyModal] = useState(false);
   const [devOpen, setDevOpen] = useState(false);
+  const [devLootItem, setDevLootItem] = useState("ram_stick");
+  const [devLootQty, setDevLootQty] = useState(1);
+  const [devLootAdding, setDevLootAdding] = useState(false);
 
   useEffect(() => {
     onInventoryChange?.(inventory);
@@ -222,6 +225,50 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
                     addToast(res.message, "success");
                     await refresh();
                   }}>+XP</Button>
+                  <div className="flex items-center gap-1.5 mt-1.5 w-full flex-wrap">
+                    <select
+                      value={devLootItem}
+                      onChange={(e) => setDevLootItem(e.target.value)}
+                      className="h-6 text-[10px] rounded border border-white/20 bg-white/5 text-foreground px-2"
+                    >
+                      <option value="ram_stick">RAM Stick</option>
+                      <option value="lan_cable">LAN Cable</option>
+                      <option value="nvme_fragment">NVMe Fragment</option>
+                      <option value="cooling_fan">Cooling Fan</option>
+                      <option value="validator_key_shard">Validator Key Shard</option>
+                    </select>
+                    <input
+                      type="number"
+                      min={1}
+                      max={99}
+                      value={devLootQty}
+                      onChange={(e) => setDevLootQty(Math.max(1, Math.min(99, parseInt(e.target.value, 10) || 1)))}
+                      className="h-6 w-12 text-[10px] rounded border border-white/20 bg-white/5 text-foreground px-1 text-center"
+                    />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 text-[10px] px-2"
+                      disabled={devLootAdding}
+                      onClick={async () => {
+                        setDevLootAdding(true);
+                        try {
+                          const res = await api<{ message: string }>("/dev/add-loot", {
+                            method: "POST",
+                            body: JSON.stringify({ itemId: devLootItem, quantity: devLootQty }),
+                          });
+                          addToast(res.message, "success");
+                          await refresh();
+                        } catch {
+                          addToast("Add loot failed", "error");
+                        } finally {
+                          setDevLootAdding(false);
+                        }
+                      }}
+                    >
+                      {devLootAdding ? "…" : "Add Loot"}
+                    </Button>
+                  </div>
                 </div>
               )}
             </div>
