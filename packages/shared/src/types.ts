@@ -281,6 +281,34 @@ export interface ActiveRaid {
   timeRemaining?: number;
 }
 
+// ── Epoch Finalization (VRF-powered) ──
+
+export interface EpochBonusRewards {
+  /** Resource multiplier applied (1.0x - 3.0x) */
+  multiplier: number;
+  /** Bonus scrap from VRF roll */
+  bonusScrap: number;
+  /** Bonus crystal from VRF roll */
+  bonusCrystal: number;
+  /** Bonus artifact from VRF roll */
+  bonusArtifact: number;
+  /** Loot tier dropped (1/2/3 or null if no drop) */
+  lootTier: number | null;
+  /** Loot item ID if dropped */
+  lootItemId: string | null;
+  /** Whether an NFT was dropped */
+  nftDrop: boolean;
+  /** Whether VRF was used (vs fallback) */
+  vrfVerified: boolean;
+  /** VRF account pubkey (for on-chain verification) */
+  vrfAccount: string | null;
+}
+
+export interface EpochFinalizeResponse {
+  finalized: boolean;
+  bonus: EpochBonusRewards | null;
+}
+
 // ── Leaderboard ──
 
 export interface LeaderboardEntry {

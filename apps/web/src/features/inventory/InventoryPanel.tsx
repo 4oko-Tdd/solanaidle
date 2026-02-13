@@ -155,10 +155,6 @@ export function InventoryPanel({ inventory, onRefresh }: Props) {
   const [selected, setSelected] = useState<Record<string, number>>({});
   const [selling, setSelling] = useState(false);
   const [merging, setMerging] = useState(false);
-  const [devLootItem, setDevLootItem] = useState("ram_stick");
-  const [devLootQty, setDevLootQty] = useState(1);
-  const [devLootAdding, setDevLootAdding] = useState(false);
-
   const selectedList = Object.entries(selected).filter(([, q]) => q > 0);
   const totalSelected = selectedList.reduce((s, [, q]) => s + q, 0);
   const allSelectedTier1 =
@@ -226,61 +222,8 @@ export function InventoryPanel({ inventory, onRefresh }: Props) {
 
   const clearSelection = useCallback(() => setSelected({}), []);
 
-  const handleDevAddLoot = useCallback(async () => {
-    setDevLootAdding(true);
-    try {
-      const res = await api<{ message: string }>("/dev/add-loot", {
-        method: "POST",
-        body: JSON.stringify({ itemId: devLootItem, quantity: devLootQty }),
-      });
-      addToast(res.message, "success");
-      onRefresh?.();
-    } catch {
-      addToast("Add loot failed", "error");
-    } finally {
-      setDevLootAdding(false);
-    }
-  }, [devLootItem, devLootQty, addToast, onRefresh]);
-
   return (
     <div className="space-y-4">
-      {/* Dev: Add loot (only in development) */}
-      {import.meta.env.DEV && (
-        <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 space-y-2">
-          <p className="text-[10px] font-medium text-amber-200/90 uppercase tracking-wider">Dev: выдать лут</p>
-          <div className="flex flex-wrap items-center gap-2">
-            <select
-              value={devLootItem}
-              onChange={(e) => setDevLootItem(e.target.value)}
-              className="h-8 text-xs rounded border border-white/20 bg-white/5 text-foreground px-2 min-w-[140px]"
-            >
-              <option value="ram_stick">RAM Stick</option>
-              <option value="lan_cable">LAN Cable</option>
-              <option value="nvme_fragment">NVMe Fragment</option>
-              <option value="cooling_fan">Cooling Fan</option>
-              <option value="validator_key_shard">Validator Key Shard</option>
-            </select>
-            <input
-              type="number"
-              min={1}
-              max={99}
-              value={devLootQty}
-              onChange={(e) => setDevLootQty(Math.max(1, Math.min(99, parseInt(e.target.value, 10) || 1)))}
-              className="h-8 w-14 text-xs rounded border border-white/20 bg-white/5 text-foreground px-2 text-center"
-            />
-            <Button
-              size="sm"
-              variant="secondary"
-              className="h-8 text-xs"
-              disabled={devLootAdding}
-              onClick={handleDevAddLoot}
-            >
-              {devLootAdding ? "…" : "Выдать"}
-            </Button>
-          </div>
-        </div>
-      )}
-
       {/* Loot bonuses (if any) */}
       {(dropChance > 20 || speedPercent > 0) && (
         <div className="flex flex-wrap gap-2">

@@ -153,7 +153,7 @@ export function MissionPanel({ missions, characterState, onStart, characterLevel
       <div className="space-y-4">
         {/* Event header */}
         <div className="relative overflow-hidden rounded-xl border border-neon-amber/40 bg-gradient-to-b from-neon-amber/10 via-neon-amber/5 to-transparent backdrop-blur-md">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(251,191,36,0.08),transparent_70%)] bg-black/30" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(251,191,36,0.08),transparent_70%)] bg-black/30 pointer-events-none" />
           <div className="relative p-5 text-center space-y-3">
             <p className="text-[10px] font-mono text-neon-amber/60 uppercase tracking-[0.2em]">Sunday Weekly Event</p>
             <div className="flex items-center justify-center gap-3">
@@ -312,6 +312,11 @@ export function MissionPanel({ missions, characterState, onStart, characterLevel
             {characterState === "on_mission"
               ? "Node is processing on chain"
               : "Node is recovering from slash"}
+          </p>
+        )}
+        {import.meta.env.DEV && (
+          <p className="text-[9px] text-muted-foreground/50 text-center font-mono">
+            dbg: state={characterState} lvl={characterLevel} canStart={String(canStart)} bossLocked={String(bossLocked)}
           </p>
         )}
       </div>

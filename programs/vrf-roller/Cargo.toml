@@ -1,0 +1,21 @@
+[package]
+name = "vrf-roller"
+version = "0.1.0"
+description = "VRF randomness for Solana Idle game — powered by MagicBlock"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "vrf_roller"
+
+[features]
+default = []
+cpi = ["no-entrypoint"]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+idl-build = ["anchor-lang/idl-build"]
+
+[dependencies]
+anchor-lang = "0.32.1"
+ephemeral_vrf_sdk = { version = "0.1", features = ["anchor"] }

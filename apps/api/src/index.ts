@@ -190,6 +190,26 @@ if (process.env.NODE_ENV !== "production") {
     return c.json({ bossDay: forceBossDay === true || (forceBossDay === null && new Date().getDay() === 0) });
   });
 
+  // Dev: Force end current epoch (for testing finalization)
+  app.post("/dev/end-epoch", async (c) => {
+    const header = c.req.header("Authorization");
+    if (!header?.startsWith("Bearer ")) {
+      return c.json({ error: "UNAUTHORIZED", message: "Missing token" }, 401);
+    }
+    const { verifyToken } = await import("./services/auth-service.js");
+    const payload = verifyToken(header.slice(7));
+    if (!payload) {
+      return c.json({ error: "UNAUTHORIZED", message: "Invalid token" }, 401);
+    }
+    const { getActiveRun, endRun } = await import("./services/run-service.js");
+    const run = getActiveRun(payload.wallet);
+    if (!run) {
+      return c.json({ error: "NO_ACTIVE_RUN", message: "No active run" }, 400);
+    }
+    endRun(run.id);
+    return c.json({ message: "Epoch ended" });
+  });
+
   // Dev: Add loot to inventory (itemId + quantity)
   app.post("/dev/add-loot", async (c) => {
     const header = c.req.header("Authorization");

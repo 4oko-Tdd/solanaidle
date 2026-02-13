@@ -225,6 +225,11 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
                     addToast(res.message, "success");
                     await refresh();
                   }}>+XP</Button>
+                  <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2 text-neon-red" onClick={async () => {
+                    await api<{ message: string }>("/dev/end-epoch", { method: "POST" });
+                    addToast("Epoch ended", "warning");
+                    await refresh();
+                  }}>End Epoch</Button>
                   <div className="flex items-center gap-1.5 mt-1.5 w-full flex-wrap">
                     <select
                       value={devLootItem}

@@ -3,7 +3,9 @@ import { authMiddleware } from "../middleware/auth.js";
 import { getActiveRun, startRun, getLeaderboard, getEndedRun, storeStartSignature, storeEndSignature, endRun, getWeekBounds } from "../services/run-service.js";
 import { getRunEvents } from "../services/event-service.js";
 import { CLASSES } from "../services/game-config.js";
-import type { ClassId } from "@solanaidle/shared";
+import { computeEpochBonus } from "../services/vrf-service.js";
+import { getCharacter } from "../services/character-service.js";
+import type { ClassId, EpochFinalizeResponse } from "@solanaidle/shared";
 
 type Env = { Variables: { wallet: string } };
 
@@ -59,23 +61,38 @@ runs.get("/:id/events", (c) => {
   return c.json(events);
 });
 
-// Finalize a run (seal score with wallet signature)
+// Finalize a run (seal score with wallet signature + optional VRF bonus)
 runs.post("/:id/finalize", async (c) => {
   const wallet = c.get("wallet");
   const runId = c.req.param("id");
-  const body = await c.req.json<{ signature: string }>();
+  const body = await c.req.json<{ signature: string; vrfAccount?: string }>();
 
+  // End the run if still active
   const run = getActiveRun(wallet);
-  if (!run && runId) {
-    storeEndSignature(runId, body.signature);
-    return c.json({ finalized: true });
-  }
   if (run && run.id === runId) {
     endRun(runId);
-    storeEndSignature(runId, body.signature);
-    return c.json({ finalized: true });
+  } else if (!run && !runId) {
+    return c.json({ error: "RUN_NOT_FOUND", message: "Run not found" }, 404);
   }
-  return c.json({ error: "RUN_NOT_FOUND", message: "Run not found" }, 404);
+
+  storeEndSignature(runId, body.signature);
+
+  // Compute VRF-powered epoch bonus rewards
+  const char = getCharacter(wallet);
+  const endedRun = getEndedRun(wallet);
+  const bonus = await computeEpochBonus(
+    wallet,
+    char?.id ?? null,
+    endedRun,
+    body.vrfAccount ?? null
+  );
+
+  const response: EpochFinalizeResponse = {
+    finalized: true,
+    bonus,
+  };
+
+  return c.json(response);
 });
 
 // Get available classes
