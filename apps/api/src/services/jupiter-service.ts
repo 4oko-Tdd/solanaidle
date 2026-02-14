@@ -3,7 +3,7 @@
 const BASE = "https://lite-api.jup.ag";
 
 /* ------------------------------------------------------------------ */
-/*  1. Token price                                                     */
+/*  1. Token price (single)                                            */
 /* ------------------------------------------------------------------ */
 
 export async function getTokenPrice(
@@ -23,10 +23,42 @@ export async function getTokenPrice(
 }
 
 /* ------------------------------------------------------------------ */
+/*  1b. Token prices (batch — up to 50)                                */
+/* ------------------------------------------------------------------ */
+
+export interface TokenPriceEntry {
+  mint: string;
+  usdPrice: number | null;
+  priceChange24h: number | null;
+}
+
+export async function getTokenPrices(
+  mints: string[]
+): Promise<TokenPriceEntry[]> {
+  if (!mints.length) return [];
+  try {
+    const ids = mints.slice(0, 50).join(",");
+    const res = await fetch(`${BASE}/price/v3?ids=${encodeURIComponent(ids)}`);
+    if (!res.ok) return mints.map((m) => ({ mint: m, usdPrice: null, priceChange24h: null }));
+    const json = await res.json();
+    return mints.map((mint) => {
+      const entry = json?.[mint] ?? json?.data?.[mint];
+      const raw = entry?.usdPrice ?? entry?.price ?? null;
+      const usdPrice = raw != null ? (typeof raw === "number" ? raw : parseFloat(raw)) : null;
+      const change = entry?.priceChange24h ?? null;
+      const priceChange24h = change != null ? (typeof change === "number" ? change : parseFloat(change)) : null;
+      return { mint, usdPrice, priceChange24h };
+    });
+  } catch {
+    return mints.map((m) => ({ mint: m, usdPrice: null, priceChange24h: null }));
+  }
+}
+
+/* ------------------------------------------------------------------ */
 /*  2. Token search                                                    */
 /* ------------------------------------------------------------------ */
 
-interface TokenSearchResult {
+export interface TokenSearchResult {
   address: string;
   name: string;
   symbol: string;
@@ -34,6 +66,13 @@ interface TokenSearchResult {
   tags: string[];
   logoURI: string | null;
   daily_volume: number | null;
+  price: number | null;
+  mcap: number | null;
+  liquidity: number | null;
+  holderCount: number | null;
+  priceChange24h: number | null;
+  isVerified: boolean;
+  organicScore: string | null;
 }
 
 export async function searchToken(query: string): Promise<TokenSearchResult[]> {
@@ -49,6 +88,13 @@ export async function searchToken(query: string): Promise<TokenSearchResult[]> {
       tags: Array.isArray(t.tags) ? t.tags : [],
       logoURI: t.icon ?? t.logoURI ?? null,
       daily_volume: t.daily_volume ?? null,
+      price: t.usdPrice ?? null,
+      mcap: t.mcap ?? null,
+      liquidity: t.liquidity ?? null,
+      holderCount: t.holderCount ?? null,
+      priceChange24h: t.stats24h?.priceChange ?? null,
+      isVerified: !!t.isVerified,
+      organicScore: t.organicScoreLabel ?? null,
     }));
   } catch {
     return [];
@@ -59,34 +105,39 @@ export async function searchToken(query: string): Promise<TokenSearchResult[]> {
 /*  3. Wallet holdings                                                 */
 /* ------------------------------------------------------------------ */
 
-interface WalletToken {
+export interface WalletHolding {
   mint: string;
-  symbol: string;
-  amount: number;
-  usdValue: number;
+  uiAmount: number;
+  decimals: number;
+}
+
+export interface WalletHoldingsResult {
+  solBalance: number;
+  tokens: WalletHolding[];
 }
 
 export async function getWalletHoldings(
   walletAddress: string
-): Promise<{ tokens: WalletToken[]; totalUsd: number }> {
+): Promise<WalletHoldingsResult> {
   try {
     const res = await fetch(`${BASE}/ultra/v1/holdings/${encodeURIComponent(walletAddress)}`);
-    if (!res.ok) return { tokens: [], totalUsd: 0 };
+    if (!res.ok) return { solBalance: 0, tokens: [] };
     const json = await res.json();
-    // Holdings response: { amount, uiAmount, tokens: { [mint]: { symbol, amount, usdValue } } }
+    // Holdings response: { uiAmount: SOL_balance, tokens: { [mint]: [{ uiAmount, decimals }] } }
+    const solBalance = Number(json?.uiAmount ?? 0);
     const tokensMap = json?.tokens ?? {};
-    const tokens: WalletToken[] = Object.entries(tokensMap).map(([mint, t]: [string, any]) => ({
-      mint,
-      symbol: t.symbol ?? "",
-      amount: Number(t.amount ?? t.balance ?? 0),
-      usdValue: Number(t.usdValue ?? t.valueUsd ?? 0),
-    }));
-    // Also count SOL balance
-    const solUsd = Number(json?.uiAmount ?? 0);
-    const totalUsd = tokens.reduce((sum, t) => sum + t.usdValue, 0) + solUsd;
-    return { tokens, totalUsd };
+    const tokens: WalletHolding[] = Object.entries(tokensMap).map(([mint, accounts]: [string, any]) => {
+      // Each value is an array of accounts — take the first
+      const acct = Array.isArray(accounts) ? accounts[0] : accounts;
+      return {
+        mint,
+        uiAmount: Number(acct?.uiAmount ?? 0),
+        decimals: Number(acct?.decimals ?? 0),
+      };
+    });
+    return { solBalance, tokens };
   } catch {
-    return { tokens: [], totalUsd: 0 };
+    return { solBalance: 0, tokens: [] };
   }
 }
 
@@ -144,7 +195,7 @@ interface SwapOrderParams {
 
 export async function getSwapOrder(
   params: SwapOrderParams
-): Promise<{ transaction: string | null; error: string | null }> {
+): Promise<{ transaction: string | null; requestId: string | null; error: string | null }> {
   try {
     const qs = new URLSearchParams({
       inputMint: params.inputMint,
@@ -155,13 +206,42 @@ export async function getSwapOrder(
     const res = await fetch(`${BASE}/ultra/v1/order?${qs.toString()}`);
     const json = await res.json();
     if (!res.ok) {
-      return { transaction: null, error: json?.error ?? json?.message ?? "Request failed" };
+      return { transaction: null, requestId: null, error: json?.error ?? json?.message ?? "Request failed" };
     }
     return {
       transaction: json?.transaction ?? null,
+      requestId: json?.requestId ?? null,
       error: json?.error ?? null,
     };
   } catch (err) {
-    return { transaction: null, error: err instanceof Error ? err.message : "Unknown error" };
+    return { transaction: null, requestId: null, error: err instanceof Error ? err.message : "Unknown error" };
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/*  6. Execute swap                                                    */
+/* ------------------------------------------------------------------ */
+
+export async function executeSwap(
+  signedTransaction: string,
+  requestId: string
+): Promise<{ status: string; signature: string | null; error: string | null }> {
+  try {
+    const res = await fetch("https://api.jup.ag/ultra/v1/execute", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ signedTransaction, requestId }),
+    });
+    const json = await res.json();
+    if (!res.ok) {
+      return { status: "error", signature: null, error: json?.error ?? json?.message ?? "Execute failed" };
+    }
+    return {
+      status: json?.status ?? "success",
+      signature: json?.signature ?? null,
+      error: null,
+    };
+  } catch (err) {
+    return { status: "error", signature: null, error: err instanceof Error ? err.message : "Unknown error" };
   }
 }

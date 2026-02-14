@@ -2,31 +2,55 @@ import { useState, useCallback } from "react";
 import { api } from "@/lib/api";
 import type { QuestStatus } from "@solanaidle/shared";
 
-interface SwapOrder {
-  inputMint: string;
-  outputMint: string;
-  inAmount: string;
-  outAmount: string;
-  otherAmountThreshold: string;
-  swapMode: string;
-  slippageBps: number;
-  routePlan: unknown[];
-  contextSlot?: number;
-  swapTransaction?: string;
+// Response shapes from quest endpoints
+export interface TokenResult {
+  address: string;
+  name: string;
+  symbol: string;
+  decimals: number;
+  tags: string[];
+  logoURI: string | null;
+  daily_volume: number | null;
+  price: number | null;
+  mcap: number | null;
+  liquidity: number | null;
+  holderCount: number | null;
+  priceChange24h: number | null;
+  isVerified: boolean;
+  organicScore: string | null;
 }
 
-interface Prediction {
-  id: string;
-  marketId: string;
-  title: string;
-  description: string;
-  options: { label: string; odds: number }[];
-  expiresAt: string;
+export interface PortfolioResult {
+  solBalance: number;
+  solUsdPrice: number;
+  totalUsd: number;
+  tokens: { mint: string; uiAmount: number; usdPrice: number; usdValue: number }[];
+}
+
+export interface PriceWatchResult {
+  priceChanges: {
+    mint: string;
+    isSOL: boolean;
+    usdPrice: number;
+    priceChange24h: number;
+    held: number;
+  }[];
+}
+
+interface QuestResponse<T = unknown> {
+  success: boolean;
+  message: string;
+  data: T;
 }
 
 export function useQuests() {
   const [status, setStatus] = useState<QuestStatus | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // Persist quest results in the hook so they survive parent re-renders
+  const [tokenResults, setTokenResults] = useState<TokenResult[] | null>(null);
+  const [portfolioResults, setPortfolioResults] = useState<PortfolioResult | null>(null);
+  const [priceWatchResults, setPriceWatchResults] = useState<PriceWatchResult | null>(null);
 
   const refresh = useCallback(async () => {
     try {
@@ -38,91 +62,59 @@ export function useQuests() {
     }
   }, []);
 
-  const completePriceScout = useCallback(
-    async (mint: string) => {
-      await api("/quests/price-scout", {
-        method: "POST",
-        body: JSON.stringify({ mint }),
-      });
-      await refresh();
-    },
-    [refresh],
-  );
-
   const completeTokenScan = useCallback(
     async (query: string) => {
-      await api("/quests/token-scan", {
+      const res = await api<QuestResponse<{ tokens: TokenResult[] }>>("/quests/token-scan", {
         method: "POST",
         body: JSON.stringify({ query }),
       });
+      setTokenResults(res.data?.tokens ?? []);
       await refresh();
+      return res.data;
     },
     [refresh],
   );
 
   const completePortfolioCheck = useCallback(async () => {
-    await api("/quests/portfolio-check", {
+    const res = await api<QuestResponse<PortfolioResult>>("/quests/portfolio-check", {
       method: "POST",
     });
+    if (res.data) setPortfolioResults(res.data);
     await refresh();
+    return res.data;
   }, [refresh]);
 
-  const completePnlReport = useCallback(async () => {
-    await api("/quests/pnl-report", {
+  const completePriceWatch = useCallback(async () => {
+    const res = await api<QuestResponse<PriceWatchResult>>("/quests/pnl-report", {
       method: "POST",
     });
+    if (res.data) setPriceWatchResults(res.data);
     await refresh();
+    return res.data;
   }, [refresh]);
 
   const completeMicroSwap = useCallback(
     async (signature: string) => {
-      await api("/quests/micro-swap", {
+      const res = await api<QuestResponse>("/quests/micro-swap", {
         method: "POST",
         body: JSON.stringify({ signature }),
       });
       await refresh();
+      return res;
     },
     [refresh],
   );
-
-  const completePredictionBet = useCallback(
-    async (marketId: string, signature: string) => {
-      await api("/quests/prediction-bet", {
-        method: "POST",
-        body: JSON.stringify({ marketId, signature }),
-      });
-      await refresh();
-    },
-    [refresh],
-  );
-
-  const getSwapOrder = useCallback(
-    async (inputMint: string, outputMint: string, amount: number) => {
-      const params = new URLSearchParams({
-        inputMint,
-        outputMint,
-        amount: String(amount),
-      });
-      return api<SwapOrder>(`/quests/swap-order?${params.toString()}`);
-    },
-    [],
-  );
-
-  const getPredictions = useCallback(async () => {
-    return api<Prediction[]>("/quests/predictions");
-  }, []);
 
   return {
     status,
     loading,
     refresh,
-    completePriceScout,
     completeTokenScan,
     completePortfolioCheck,
-    completePnlReport,
+    completePriceWatch,
     completeMicroSwap,
-    completePredictionBet,
-    getSwapOrder,
-    getPredictions,
+    tokenResults,
+    portfolioResults,
+    priceWatchResults,
   };
 }

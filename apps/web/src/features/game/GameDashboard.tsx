@@ -481,7 +481,7 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
 
           {activeTab === "intel" && (
             <div className="animate-tab-in">
-              <QuestPanel onRefreshGame={refresh} />
+              <QuestPanel />
             </div>
           )}
 

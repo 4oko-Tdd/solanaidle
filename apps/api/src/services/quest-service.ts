@@ -23,16 +23,16 @@ export const QUEST_DEFINITIONS: QuestDefinition[] = [
   },
   {
     id: "token_scan",
-    name: "Token Scan",
-    description: "Look up a token's info via Jupiter",
+    name: "Recon Scan",
+    description: "Scout token intel from the field",
     frequency: "daily",
     requiresTx: false,
     reward: { scrap: 15, crystal: 2 },
   },
   {
     id: "portfolio_check",
-    name: "Portfolio Check",
-    description: "View your portfolio via Jupiter",
+    name: "Vault Audit",
+    description: "Inspect your on-chain vault holdings",
     frequency: "daily",
     requiresTx: false,
     reward: {
@@ -42,8 +42,8 @@ export const QUEST_DEFINITIONS: QuestDefinition[] = [
   },
   {
     id: "pnl_report",
-    name: "PnL Report",
-    description: "Check PnL on your holdings",
+    name: "Signal Sweep",
+    description: "Intercept 24h price signals from the network",
     frequency: "daily",
     requiresTx: false,
     reward: {
@@ -53,8 +53,8 @@ export const QUEST_DEFINITIONS: QuestDefinition[] = [
   },
   {
     id: "micro_swap",
-    name: "Micro Swap",
-    description: "Perform a small swap via Jupiter",
+    name: "Supply Run",
+    description: "Execute a field swap to secure resources",
     frequency: "weekly",
     requiresTx: true,
     reward: { scrap: 50, crystal: 10, artifact: 1 },
