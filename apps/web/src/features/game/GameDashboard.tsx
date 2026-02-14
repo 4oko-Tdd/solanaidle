@@ -33,10 +33,12 @@ import {
   Heart,
   ShieldCheck,
   Clock,
+  Radio,
 } from "lucide-react";
 import { ClassIcon } from "@/components/ClassIcon";
 import magicblockLogo from "@/assets/icons/MagicBlock-Logo-Black.png";
 import { InventoryPanel } from "@/features/inventory/InventoryPanel";
+import { QuestPanel } from "./QuestPanel";
 import { useState, useEffect } from "react";
 import type { Inventory } from "@solanaidle/shared";
 
@@ -66,10 +68,11 @@ function getGrade(score: number, missions: number, bossDefeated: boolean): { let
   return { letter: "D", color: "text-muted-foreground" };
 }
 
-type Tab = "game" | "skills" | "guild" | "ranks" | "inventory";
+type Tab = "game" | "intel" | "inventory" | "skills" | "guild" | "ranks";
 
 const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: "game", label: "Game", icon: <Swords className="h-5 w-5" /> },
+  { id: "intel", label: "Intel", icon: <Radio className="h-5 w-5" /> },
   { id: "inventory", label: "Inventory", icon: <Package className="h-5 w-5" /> },
   { id: "skills", label: "Skills", icon: <Sparkles className="h-5 w-5" /> },
   { id: "guild", label: "Guild", icon: <Users className="h-5 w-5" /> },
@@ -470,6 +473,12 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
           )}
 
           {activeTab === "ranks" && <div className="animate-tab-in"><LeaderboardPanel /></div>}
+
+          {activeTab === "intel" && (
+            <div className="animate-tab-in">
+              <QuestPanel onRefreshGame={refresh} />
+            </div>
+          )}
 
           {activeTab === "inventory" && (
             <div className="animate-tab-in">
