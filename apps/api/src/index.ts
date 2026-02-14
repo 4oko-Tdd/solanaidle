@@ -14,6 +14,7 @@ import raids from "./routes/raids.js";
 import runs from "./routes/runs.js";
 import skills from "./routes/skills.js";
 import daily from "./routes/daily.js";
+import quests from "./routes/quests.js";
 
 export let forceBossDay: boolean | null = null; // null = auto (Sunday), true/false = override
 
@@ -41,6 +42,7 @@ app.route("/raids", raids);
 app.route("/runs", runs);
 app.route("/skills", skills);
 app.route("/daily", daily);
+app.route("/quests", quests);
 
 initSchema();
 const { seedLootItems } = await import("./services/loot-service.js");
@@ -304,6 +306,10 @@ if (process.env.NODE_ENV !== "production") {
     const db = (await import("./db/database.js")).default;
     const { getCharacter } = await import("./services/character-service.js");
     const char = getCharacter(payload.wallet);
+
+    // Delete quest data (wallet-level, before character deletion)
+    db.prepare("DELETE FROM quest_completions WHERE wallet_address = ?").run(payload.wallet);
+    db.prepare("DELETE FROM quest_boosts WHERE wallet_address = ?").run(payload.wallet);
 
     if (char) {
       // Delete runs + events
