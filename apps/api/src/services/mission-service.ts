@@ -25,6 +25,7 @@ import { insertEvent } from "./event-service.js";
 import { tryDropRandomLoot, getLootBonus, getBaseDropChance, getMaxDropChance } from "./loot-service.js";
 import type { ActiveMission, MissionClaimResponse, MissionId, MissionRewards } from "@solanaidle/shared";
 import { updateProgressOnER } from "./er-service.js";
+import { getActiveBoostPercent } from "./quest-service.js";
 
 interface MissionRow {
   id: string;
@@ -75,7 +76,8 @@ export function startMission(
   characterLevel?: number,
   runId?: string,
   rerollStacks?: number,
-  insured?: boolean
+  insured?: boolean,
+  walletAddress?: string
 ): ActiveMission {
   // Boss mission handling
   let mission;
@@ -123,6 +125,14 @@ export function startMission(
     duration = Math.max(1, Math.floor(duration * (1 - lootBonus.speedPercent / 100)));
   }
 
+  // Apply quest speed boost
+  if (walletAddress) {
+    const speedBoost = getActiveBoostPercent(walletAddress, "speed");
+    if (speedBoost > 0) {
+      duration = Math.max(1, Math.floor(duration * (1 - speedBoost / 100)));
+    }
+  }
+
   // Validate and deduct reroll/insurance costs
   const stacks = Math.min(Math.max(rerollStacks ?? 0, 0), MAX_REROLL_STACKS);
   const useInsurance = insured ? 1 : 0;
@@ -166,7 +176,8 @@ export function startMission(
 export function claimMission(
   characterId: string,
   classId?: string,
-  runId?: string
+  runId?: string,
+  walletAddress?: string
 ): MissionClaimResponse {
   const missionRow = db
     .prepare("SELECT * FROM active_missions WHERE character_id = ?")
@@ -304,6 +315,14 @@ export function claimMission(
     }
   }
 
+  // Apply quest XP boost
+  if (walletAddress) {
+    const xpBoost = getActiveBoostPercent(walletAddress, "xp");
+    if (xpBoost > 0) {
+      rewards.xp = Math.floor(rewards.xp * (1 + xpBoost / 100));
+    }
+  }
+
   // Apply class loot modifier
   if (classId) {
     const charClass = getClass(classId);
@@ -382,11 +401,15 @@ export function claimMission(
     "UPDATE inventories SET scrap = scrap + ?, crystal = crystal + ?, artifact = artifact + ? WHERE character_id = ?"
   ).run(rewards.scrap, rewards.crystal ?? 0, rewards.artifact ?? 0, characterId);
 
-  // Random loot drop on success (base 20% + loot bonus, cap 55%)
+  // Random loot drop on success (base 20% + loot bonus + quest boost, cap 55%)
   const lootBonus = getLootBonus(characterId);
+  let lootChanceBoost = 0;
+  if (walletAddress) {
+    lootChanceBoost = getActiveBoostPercent(walletAddress, "loot_chance");
+  }
   const effectiveDrop = Math.min(
     getMaxDropChance(),
-    getBaseDropChance() + lootBonus.dropChancePercent
+    getBaseDropChance() + lootBonus.dropChancePercent + lootChanceBoost
   );
   tryDropRandomLoot(characterId, effectiveDrop);
 

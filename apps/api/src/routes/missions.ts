@@ -67,7 +67,7 @@ missions.post("/start", async (c) => {
   // Get run context if available
   const run = getActiveRun(wallet);
   try {
-    const activeMission = startMission(char.id, missionId, run?.classId, char.level, run?.id, rerollStacks, insured);
+    const activeMission = startMission(char.id, missionId, run?.classId, char.level, run?.id, rerollStacks, insured, wallet);
     return c.json({ activeMission });
   } catch (e: any) {
     if (e.message === "INSUFFICIENT_RESOURCES") {
@@ -105,7 +105,7 @@ missions.post("/claim", (c) => {
   }
 
   const run = getActiveRun(wallet);
-  const result = claimMission(char.id, run?.classId, run?.id);
+  const result = claimMission(char.id, run?.classId, run?.id, wallet);
   return c.json(result);
 });
 
