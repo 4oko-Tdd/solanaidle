@@ -13,9 +13,10 @@ export async function getTokenPrice(
     const res = await fetch(`${BASE}/price/v3?ids=${encodeURIComponent(mintAddress)}`);
     if (!res.ok) return { price: null, mint: mintAddress };
     const json = await res.json();
-    const entry = json?.data?.[mintAddress];
-    const price = typeof entry?.price === "number" ? entry.price : null;
-    return { price, mint: mintAddress };
+    // Response: { [mint]: { usdPrice: number } } (no nested data key)
+    const entry = json?.[mintAddress] ?? json?.data?.[mintAddress];
+    const price = entry?.usdPrice ?? entry?.price ?? null;
+    return { price: typeof price === "number" ? price : price ? parseFloat(price) : null, mint: mintAddress };
   } catch {
     return { price: null, mint: mintAddress };
   }
@@ -41,12 +42,12 @@ export async function searchToken(query: string): Promise<TokenSearchResult[]> {
     if (!res.ok) return [];
     const json: unknown[] = await res.json();
     return json.slice(0, 10).map((t: any) => ({
-      address: t.address ?? "",
+      address: t.id ?? t.address ?? "",
       name: t.name ?? "",
       symbol: t.symbol ?? "",
       decimals: t.decimals ?? 0,
       tags: Array.isArray(t.tags) ? t.tags : [],
-      logoURI: t.logoURI ?? null,
+      logoURI: t.icon ?? t.logoURI ?? null,
       daily_volume: t.daily_volume ?? null,
     }));
   } catch {
@@ -72,14 +73,17 @@ export async function getWalletHoldings(
     const res = await fetch(`${BASE}/ultra/v1/holdings/${encodeURIComponent(walletAddress)}`);
     if (!res.ok) return { tokens: [], totalUsd: 0 };
     const json = await res.json();
-    const raw: any[] = Array.isArray(json?.tokens) ? json.tokens : [];
-    const tokens: WalletToken[] = raw.map((t: any) => ({
-      mint: t.mint ?? t.address ?? "",
+    // Holdings response: { amount, uiAmount, tokens: { [mint]: { symbol, amount, usdValue } } }
+    const tokensMap = json?.tokens ?? {};
+    const tokens: WalletToken[] = Object.entries(tokensMap).map(([mint, t]: [string, any]) => ({
+      mint,
       symbol: t.symbol ?? "",
       amount: Number(t.amount ?? t.balance ?? 0),
       usdValue: Number(t.usdValue ?? t.valueUsd ?? 0),
     }));
-    const totalUsd = tokens.reduce((sum, t) => sum + t.usdValue, 0);
+    // Also count SOL balance
+    const solUsd = Number(json?.uiAmount ?? 0);
+    const totalUsd = tokens.reduce((sum, t) => sum + t.usdValue, 0) + solUsd;
     return { tokens, totalUsd };
   } catch {
     return { tokens: [], totalUsd: 0 };
