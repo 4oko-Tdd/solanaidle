@@ -253,15 +253,6 @@ export function QuestPanel({ onRefreshGame }: Props) {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Jupiter Branding */}
-      <div className="flex justify-center py-2">
-        <img
-          src={jupiterLogo}
-          alt="Powered by Jupiter"
-          className="h-6 opacity-60"
-        />
-      </div>
-
       {/* Active Boosts */}
       {status && <BoostBar boosts={status.activeBoosts} />}
 
@@ -315,6 +306,15 @@ export function QuestPanel({ onRefreshGame }: Props) {
                 );
               })}
         </div>
+      </div>
+
+      {/* Jupiter Branding */}
+      <div className="rounded-xl bg-[#0d1525] border border-white/[0.08] flex items-center justify-center py-3 px-4">
+        <img
+          src={jupiterLogo}
+          alt="Powered by Jupiter"
+          className="h-5"
+        />
       </div>
     </div>
   );

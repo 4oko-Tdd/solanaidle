@@ -108,29 +108,17 @@ export function getQuestStatus(
   const today = getTodayUTC();
   const weekStart = getWeekStartUTC();
 
-  // Fetch daily completions (completed today)
-  const dailyCompletions = db
+  // Fetch completions for current daily and weekly periods
+  const completions = db
     .prepare(
-      `SELECT quest_id, completed_at, result FROM quest_completions
-       WHERE wallet_address = ? AND character_id = ?
-         AND DATE(completed_at) = ?`
+      `SELECT quest_id, completed_at, result_json as result FROM quest_completions
+       WHERE wallet_address = ?
+         AND (period_key = ? OR period_key = ?)`
     )
-    .all(wallet, characterId, today) as CompletionRow[];
-
-  // Fetch weekly completions (completed this week)
-  const weeklyCompletions = db
-    .prepare(
-      `SELECT quest_id, completed_at, result FROM quest_completions
-       WHERE wallet_address = ? AND character_id = ?
-         AND DATE(completed_at) >= ?`
-    )
-    .all(wallet, characterId, weekStart) as CompletionRow[];
+    .all(wallet, today, weekStart) as CompletionRow[];
 
   const completionMap = new Map<string, CompletionRow>();
-  for (const row of dailyCompletions) {
-    completionMap.set(row.quest_id, row);
-  }
-  for (const row of weeklyCompletions) {
+  for (const row of completions) {
     completionMap.set(row.quest_id, row);
   }
 
@@ -177,16 +165,15 @@ export function completeQuest(
   }
 
   // Check if already completed this period
-  const periodStart =
+  const periodKey =
     questDef.frequency === "daily" ? getTodayUTC() : getWeekStartUTC();
 
   const existing = db
     .prepare(
       `SELECT 1 FROM quest_completions
-       WHERE wallet_address = ? AND character_id = ? AND quest_id = ?
-         AND DATE(completed_at) >= ?`
+       WHERE wallet_address = ? AND quest_id = ? AND period_key = ?`
     )
-    .get(wallet, characterId, questId, periodStart);
+    .get(wallet, questId, periodKey);
 
   if (existing) {
     return {
@@ -201,9 +188,9 @@ export function completeQuest(
 
     // Insert completion
     db.prepare(
-      `INSERT INTO quest_completions (wallet_address, character_id, quest_id, completed_at, result)
+      `INSERT INTO quest_completions (wallet_address, quest_id, completed_at, period_key, result_json)
        VALUES (?, ?, ?, ?, ?)`
-    ).run(wallet, characterId, questId, now, result ? JSON.stringify(result) : null);
+    ).run(wallet, questId, now, periodKey, result ? JSON.stringify(result) : null);
 
     // Grant resource rewards
     const r = questDef.reward;
