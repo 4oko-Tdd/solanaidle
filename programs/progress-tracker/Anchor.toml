@@ -3,7 +3,7 @@ seeds = false
 skip-lint = false
 
 [programs.devnet]
-progress_tracker = "PROGtrkrXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+progress_tracker = "6hsMMZ89QGgicwjq7YjE23JPkVw5Lbrb3VUpGNkpur78"
 
 [registry]
 url = "https://api.apr.dev"

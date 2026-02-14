@@ -11,7 +11,7 @@ import {
 
 // Program ID — must match deployed vrf-roller program
 const VRF_ROLLER_PROGRAM_ID = new PublicKey(
-  "VRFro11erXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+  "3khuFQS11YeGuUUhoxLmz6fPi9Dsu6FahXLyGrzpbhUt"
 );
 
 // MagicBlock VRF constants (from ephemeral_vrf_sdk::consts)

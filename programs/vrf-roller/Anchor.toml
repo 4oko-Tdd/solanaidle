@@ -3,7 +3,7 @@ seeds = false
 skip-lint = false
 
 [programs.devnet]
-vrf_roller = "VRFro11erXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+vrf_roller = "3khuFQS11YeGuUUhoxLmz6fPi9Dsu6FahXLyGrzpbhUt"
 
 [registry]
 url = "https://api.apr.dev"

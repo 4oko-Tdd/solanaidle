@@ -3,7 +3,7 @@ use ephemeral_vrf_sdk::anchor::vrf;
 use ephemeral_vrf_sdk::instructions::{create_request_randomness_ix, RequestRandomnessParams};
 use ephemeral_vrf_sdk::types::SerializableAccountMeta;
 
-declare_id!("VRFro11erXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+declare_id!("3khuFQS11YeGuUUhoxLmz6fPi9Dsu6FahXLyGrzpbhUt");
 
 pub const VRF_RESULT_SEED: &[u8] = b"vrf_result";
 
