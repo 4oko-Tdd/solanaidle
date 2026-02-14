@@ -1,10 +1,15 @@
-# MagicBlock VRF Integration
+# MagicBlock Integration
 
-Solana Idle uses [MagicBlock VRF](https://docs.magicblock.gg/pages/verifiable-randomness-functions-vrfs) for verifiable on-chain randomness, targeting the **"Randomized & Verifiable Game Mechanics"** track of the MagicBlock sub-hackathon.
+Solana Idle uses **two MagicBlock products** for on-chain game mechanics:
 
-## How It Works
+1. **VRF (Verifiable Randomness)** — provably fair epoch bonus rolls
+2. **Ephemeral Rollups** — zero-fee on-chain progress tracking
 
-When a player **finalizes their weekly epoch**, the game rolls for bonus rewards using MagicBlock's Verifiable Random Function (VRF) on Solana. This ensures the randomness is provably fair and tamper-proof — anyone can verify the result on-chain.
+---
+
+## VRF — Verifiable Random Epoch Bonus
+
+When a player **finalizes their weekly epoch**, the game rolls for bonus rewards using [MagicBlock VRF](https://docs.magicblock.gg/pages/verifiable-randomness-functions-vrfs) on Solana. The randomness is provably fair and tamper-proof — anyone can verify the result on-chain.
 
 ### Flow
 
@@ -28,30 +33,7 @@ When a player **finalizes their weekly epoch**, the game rolls for bonus rewards
 | Tier III loot | 6% |
 | NFT drop | ~5% |
 
-### Why Only Weekly?
-
-VRF requires a Solana transaction signed by the player. Requiring this for every mission claim would break the idle game flow. Instead, VRF is used once per week at the meaningful moment — epoch finalization — giving the player an exciting on-chain bonus roll without friction.
-
-Regular mission outcomes (success/fail, loot drops, reward variance) use server-side randomness. The game is server-authoritative by design.
-
-## Architecture
-
-```
-programs/vrf-roller/          → Anchor program (Solana devnet)
-  src/lib.rs                  → request_randomness + consume_randomness (callback)
-
-apps/web/src/
-  hooks/useVrfRoll.ts         → Build tx, sign, poll PDA
-  features/game/RunEndScreen  → 3-phase UX: summary → rolling → bonus reveal
-
-apps/api/src/
-  services/vrf-service.ts     → Read PDA, validate, compute bonus rewards
-  routes/runs.ts              → POST /runs/:id/finalize accepts vrfAccount
-```
-
-## On-Chain Program
-
-The `vrf-roller` program stores a `VrfResult` PDA per player:
+### On-Chain Program: `vrf-roller`
 
 ```rust
 // Seeds: ["vrf_result", player_pubkey]
@@ -68,16 +50,92 @@ pub struct VrfResult {
 - `request_randomness` — Player signs. Creates/resets PDA, CPIs to MagicBlock VRF.
 - `consume_randomness` — Oracle callback. Writes verified random bytes into PDA.
 
+---
+
+## Ephemeral Rollups — On-Chain Progress Tracking
+
+Player progress (score, missions, deaths, boss kills) is tracked on-chain via [MagicBlock Ephemeral Rollups](https://docs.magicblock.gg/pages/ephemeral-rollups-ers/how-to-guide/quickstart). ERs provide zero-fee, instant transactions on a Solana-compatible execution layer, with final state committed back to Solana.
+
+### Flow
+
+```
+Epoch Start (player signs 1 tx — same as class pick)
+  └─ Initialize PlayerProgress PDA + delegate to ER
+
+During Epoch (0 signatures)
+  └─ Backend updates progress PDA on ER after each mission (free, instant)
+
+Epoch End (player signs 1 tx — same as VRF finalize)
+  └─ Commit progress PDA back to Solana + undelegate
+  └─ Score is now verifiable on-chain
+```
+
+**Total extra signatures: 0** — delegation is bundled into existing transactions.
+
+### On-Chain Program: `progress-tracker`
+
+```rust
+// Seeds: ["progress", player_pubkey, week_start_bytes]
+pub struct PlayerProgress {
+    pub player: Pubkey,
+    pub week_start: i64,
+    pub class_id: u8,
+    pub score: u64,
+    pub missions_completed: u32,
+    pub deaths: u32,
+    pub boss_defeated: bool,
+    pub last_update: i64,
+    pub bump: u8,
+}
+```
+
+**Instructions:**
+- `initialize_and_delegate` — Create PDA + delegate to ER (epoch start)
+- `update_progress` — Update score/missions/deaths on ER (backend, free)
+- `finalize_and_commit` — Commit to Solana + undelegate (epoch end)
+
+---
+
+## Why This Design?
+
+**Idle game UX** = open app, tap, close. Wallet popups kill this flow.
+
+- VRF is used **once per week** at epoch finalization — the one big moment
+- ER delegation is **bundled** into existing signatures — zero extra popups
+- Server remains **authoritative** for game logic (timers, RNG, rewards)
+- On-chain state is a **verifiable mirror** — leaderboard scores are trustless
+
+---
+
+## Architecture
+
+```
+programs/
+  vrf-roller/              → VRF randomness (Anchor, Solana devnet)
+  progress-tracker/        → ER progress tracking (Anchor, Solana devnet)
+
+apps/web/src/
+  hooks/useVrfRoll.ts      → VRF tx builder + PDA polling
+  hooks/useEphemeralProgress.ts → ER delegation + finalize ix builders
+
+apps/api/src/
+  services/vrf-service.ts  → Read VRF PDA, compute bonus
+  services/er-service.ts   → Update progress on ER, read from Solana
+```
+
 ## Verification
 
-Every VRF-powered bonus includes a link to verify the randomness on Solana Explorer. The `vrfVerified` flag in the API response indicates whether true on-chain VRF was used (vs. server fallback).
+- VRF bonus includes a **Solana Explorer link** to verify randomness
+- Progress PDA is readable on-chain after epoch finalization
+- `vrfVerified` flag indicates true on-chain VRF vs server fallback
 
 ## Tech Stack
 
 - [MagicBlock VRF SDK](https://github.com/magicblock-labs/ephemeral-vrf) (`ephemeral_vrf_sdk`)
+- [MagicBlock ER SDK](https://github.com/magicblock-labs) (`ephemeral-rollups-sdk`)
 - [Anchor Framework](https://www.anchor-lang.com/) 0.32.1
 - Solana devnet
-- `@solana/web3.js` for PDA reads (backend + frontend)
+- `@solana/web3.js` for PDA reads and tx building
 - `@solana/wallet-adapter-react` for transaction signing
 
 ## Deployment
@@ -85,7 +143,11 @@ Every VRF-powered bonus includes a link to verify the randomness on Solana Explo
 Requires: Anchor 0.32.1, Solana CLI 2.3.13, Rust 1.85.0
 
 ```bash
-cd programs/vrf-roller
-anchor build && anchor deploy
-# Update program ID in: lib.rs, vrf-service.ts, useVrfRoll.ts
+# VRF program
+cd programs/vrf-roller && anchor build && anchor deploy
+
+# Progress tracker program
+cd programs/progress-tracker && anchor build && anchor deploy
+
+# Update program IDs in: lib.rs files, vrf-service.ts, er-service.ts, hooks
 ```

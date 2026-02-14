@@ -309,6 +309,36 @@ export interface EpochFinalizeResponse {
   bonus: EpochBonusRewards | null;
 }
 
+// ── On-Chain Progress (Ephemeral Rollups) ──
+
+export interface OnChainProgress {
+  /** Player wallet pubkey */
+  player: string;
+  /** Epoch start timestamp */
+  weekStart: number;
+  /** Class: 0=scout, 1=guardian, 2=mystic */
+  classId: number;
+  /** Cumulative score */
+  score: number;
+  /** Missions completed */
+  missionsCompleted: number;
+  /** Deaths count */
+  deaths: number;
+  /** Boss defeated flag */
+  bossDefeated: boolean;
+  /** Last update timestamp */
+  lastUpdate: number;
+}
+
+export interface ERStatus {
+  /** Whether the progress PDA is currently delegated to ER */
+  delegated: boolean;
+  /** The progress PDA pubkey */
+  progressAccount: string | null;
+  /** Last sync timestamp */
+  lastSync: number | null;
+}
+
 // ── Leaderboard ──
 
 export interface LeaderboardEntry {

@@ -24,6 +24,7 @@ import { hasSkill } from "./skill-service.js";
 import { insertEvent } from "./event-service.js";
 import { tryDropRandomLoot, getLootBonus, getBaseDropChance, getMaxDropChance } from "./loot-service.js";
 import type { ActiveMission, MissionClaimResponse, MissionId, MissionRewards } from "@solanaidle/shared";
+import { updateProgressOnER } from "./er-service.js";
 
 interface MissionRow {
   id: string;
@@ -415,6 +416,27 @@ export function claimMission(
           artifact: rewards.artifact ?? 0,
         });
       }
+    }
+  }
+
+  // Update on-chain progress via Ephemeral Rollup (fire-and-forget)
+  if (runId) {
+    const runRow = db.prepare(
+      "SELECT wallet_address, week_start, score, missions_completed, boss_defeated FROM weekly_runs WHERE id = ?"
+    ).get(runId) as { wallet_address: string; week_start: string; score: number; missions_completed: number; boss_defeated: number } | undefined;
+    if (runRow) {
+      const deathCount = db.prepare(
+        "SELECT COUNT(*) as cnt FROM run_events WHERE run_id = ? AND event_type = 'mission_fail'"
+      ).get(runId) as { cnt: number };
+      const weekStartTs = Math.floor(new Date(runRow.week_start).getTime() / 1000);
+      updateProgressOnER(
+        runRow.wallet_address,
+        weekStartTs,
+        runRow.score,
+        runRow.missions_completed,
+        deathCount?.cnt ?? 0,
+        runRow.boss_defeated === 1
+      ).catch(() => {}); // fire-and-forget
     }
   }
 

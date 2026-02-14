@@ -296,6 +296,14 @@ export function RunEndScreen({ run, signMessage, onFinalized }: Props) {
         </div>
       </div>
 
+      {/* On-chain progress indicator */}
+      <div className="flex items-center justify-center gap-2 py-1">
+        <ShieldCheck className="h-3.5 w-3.5 text-neon-cyan" />
+        <span className="text-[10px] text-muted-foreground">Progress tracked on-chain via</span>
+        <img src={magicblockLogo} alt="MagicBlock" className="h-3 invert opacity-50" />
+        <span className="text-[10px] text-muted-foreground">Ephemeral Rollups</span>
+      </div>
+
       {/* VRF bonus roll CTA */}
       <div className="rounded-2xl border border-neon-purple/30 bg-[#12102a] p-4 space-y-3">
         <div className="flex items-center justify-center gap-2">

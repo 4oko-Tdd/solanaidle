@@ -10,9 +10,10 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Loader2 } from "lucide-react";
+import { Loader2, ShieldCheck } from "lucide-react";
 import type { CharacterClass, ClassId } from "@solanaidle/shared";
 import { ClassIcon } from "@/components/ClassIcon";
+import magicblockLogo from "@/assets/icons/MagicBlock-Logo-Black.png";
 
 interface Props {
   classes: CharacterClass[];
@@ -131,6 +132,11 @@ export function ClassPicker({ classes, onSelect, signMessage }: Props) {
               You are about to begin Epoch {weekNum} as a <strong>{selectedClass?.name}</strong>. 3 lives. No turning back.
             </DialogDescription>
           </DialogHeader>
+          <div className="flex items-center justify-center gap-1.5 py-1">
+            <ShieldCheck className="h-3 w-3 text-neon-cyan" />
+            <span className="text-[10px] text-muted-foreground">Progress tracked on-chain via</span>
+            <img src={magicblockLogo} alt="MagicBlock" className="h-3 invert opacity-50" />
+          </div>
           <DialogFooter className="flex-col gap-2 sm:flex-col">
             <Button onClick={handleConfirm} disabled={signing} className="w-full">
               {signing ? (

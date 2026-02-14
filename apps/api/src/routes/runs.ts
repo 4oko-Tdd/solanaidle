@@ -5,6 +5,7 @@ import { getRunEvents } from "../services/event-service.js";
 import { CLASSES } from "../services/game-config.js";
 import { computeEpochBonus } from "../services/vrf-service.js";
 import { getCharacter } from "../services/character-service.js";
+import { getProgressPdaAddress, ER_CONSTANTS } from "../services/er-service.js";
 import type { ClassId, EpochFinalizeResponse } from "@solanaidle/shared";
 
 type Env = { Variables: { wallet: string } };
@@ -98,6 +99,19 @@ runs.post("/:id/finalize", async (c) => {
 // Get available classes
 runs.get("/classes", (c) => {
   return c.json(CLASSES);
+});
+
+// Get ER constants and progress PDA for the current epoch
+runs.get("/er-info", (c) => {
+  const wallet = c.get("wallet");
+  const { weekStart } = getWeekBounds();
+  const weekStartTs = Math.floor(new Date(weekStart).getTime() / 1000);
+  const progressPda = getProgressPdaAddress(wallet, weekStartTs);
+  return c.json({
+    ...ER_CONSTANTS,
+    progressPda,
+    weekStartTs,
+  });
 });
 
 export default runs;
