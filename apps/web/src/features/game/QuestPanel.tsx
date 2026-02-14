@@ -13,6 +13,7 @@ import {
   Loader2,
   AlertCircle,
 } from "lucide-react";
+import { useToast } from "../../components/ToastProvider";
 import jupiterLogo from "../../assets/icons/poweredbyjupiter-dark.svg";
 
 interface Props {
@@ -105,6 +106,7 @@ export function QuestPanel({ onRefreshGame }: Props) {
     completeMicroSwap,
   } = useQuests();
 
+  const { addToast } = useToast();
   const [tokenQuery, setTokenQuery] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -116,14 +118,24 @@ export function QuestPanel({ onRefreshGame }: Props) {
   const dailyCount = (["token_scan", "portfolio_check", "pnl_report"] as QuestId[])
     .filter(done).length;
 
+  const QUEST_LABELS: Record<string, string> = {
+    token_scan: "Token Lookup",
+    portfolio: "Portfolio Check",
+    pnl: "PnL Report",
+    swap: "Micro Swap",
+  };
+
   const run = async (id: string, fn: () => Promise<void>) => {
     setBusy(id);
     setError(null);
     try {
       await fn();
+      addToast(`${QUEST_LABELS[id] ?? "Quest"} complete!`, "success");
       onRefreshGame?.();
     } catch (e: any) {
-      setError(e?.message || "Something went wrong");
+      const msg = e?.message || "Something went wrong";
+      setError(msg);
+      addToast(msg, "error");
     } finally {
       setBusy(null);
     }
