@@ -270,6 +270,57 @@ All errors follow:
 }
 ```
 
+---
+
+### Jupiter Quests (Network Intel)
+
+All endpoints require auth. Powered by Jupiter API.
+
+#### `GET /quests/status`
+Get all quest progress and active boosts for the authenticated player.
+
+**Response:** `QuestStatus` — array of quests with completion status + active boosts.
+
+#### `POST /quests/price-scout`
+Complete the "Price Scout" daily quest — check a token's live price.
+
+**Body:** `{ "mint": "<token mint address>" }`
+
+#### `POST /quests/token-scan`
+Complete the "Token Scan" daily quest — look up token info.
+
+**Body:** `{ "query": "<token name or symbol>" }`
+
+#### `POST /quests/portfolio-check`
+Complete the "Portfolio Check" daily quest — review wallet holdings via Jupiter.
+
+**Body:** none (uses authenticated wallet)
+
+#### `POST /quests/pnl-report`
+Complete the "PnL Report" daily quest — check profit & loss.
+
+**Body:** none (uses authenticated wallet)
+
+#### `GET /quests/swap-order`
+Get an unsigned swap transaction from Jupiter Ultra API.
+
+**Query params:** `inputMint`, `outputMint`, `amount`
+
+#### `POST /quests/micro-swap`
+Complete the "Micro Swap" weekly quest after executing a swap.
+
+**Body:** `{ "signature": "<transaction signature>" }`
+
+#### `GET /quests/predictions`
+List active prediction market events from Jupiter.
+
+#### `POST /quests/prediction-bet`
+Complete the "Market Prediction" weekly quest after placing a bet.
+
+**Body:** `{ "marketId": "<market ID>", "signature": "<transaction signature>" }`
+
+---
+
 Common error codes:
 - `UNAUTHORIZED` — missing or invalid token
 - `CHARACTER_NOT_FOUND` — no character created yet
