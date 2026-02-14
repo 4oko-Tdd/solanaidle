@@ -246,6 +246,83 @@ if (process.env.NODE_ENV !== "production") {
     const row = db.prepare("SELECT scrap, crystal, artifact FROM inventories WHERE character_id = ?").get(char.id) as { scrap: number; crystal: number; artifact: number };
     return c.json({ message: `+${quantity} ${itemId}`, inventory: { ...row, loot } });
   });
+
+  // Dev: Reset epoch — delete finalized run so a new one can start
+  app.post("/dev/reset-epoch", async (c) => {
+    const header = c.req.header("Authorization");
+    if (!header?.startsWith("Bearer ")) {
+      return c.json({ error: "UNAUTHORIZED", message: "Missing token" }, 401);
+    }
+    const { verifyToken } = await import("./services/auth-service.js");
+    const payload = verifyToken(header.slice(7));
+    if (!payload) {
+      return c.json({ error: "UNAUTHORIZED", message: "Invalid token" }, 401);
+    }
+
+    const db = (await import("./db/database.js")).default;
+    const { getWeekBounds } = await import("./services/run-service.js");
+    const { weekStart } = getWeekBounds();
+
+    // Delete this week's finalized run + its events
+    const run = db.prepare(
+      "SELECT id FROM weekly_runs WHERE wallet_address = ? AND week_start = ? AND active = 0"
+    ).get(payload.wallet, weekStart) as any;
+
+    if (run) {
+      db.prepare("DELETE FROM run_events WHERE run_id = ?").run(run.id);
+      db.prepare("DELETE FROM weekly_runs WHERE id = ?").run(run.id);
+      db.prepare("DELETE FROM leaderboard WHERE wallet_address = ? AND week_start = ?").run(payload.wallet, weekStart);
+      return c.json({ message: "Epoch reset! You can start a new run." });
+    }
+
+    // Also delete any active run
+    const activeRun = db.prepare(
+      "SELECT id FROM weekly_runs WHERE wallet_address = ? AND week_start = ? AND active = 1"
+    ).get(payload.wallet, weekStart) as any;
+
+    if (activeRun) {
+      db.prepare("DELETE FROM run_events WHERE run_id = ?").run(activeRun.id);
+      db.prepare("DELETE FROM weekly_runs WHERE id = ?").run(activeRun.id);
+      return c.json({ message: "Active run deleted! You can start fresh." });
+    }
+
+    return c.json({ message: "No epoch to reset." });
+  });
+
+  // Dev: Reset DB — wipe everything for this player
+  app.post("/dev/reset-player", async (c) => {
+    const header = c.req.header("Authorization");
+    if (!header?.startsWith("Bearer ")) {
+      return c.json({ error: "UNAUTHORIZED", message: "Missing token" }, 401);
+    }
+    const { verifyToken } = await import("./services/auth-service.js");
+    const payload = verifyToken(header.slice(7));
+    if (!payload) {
+      return c.json({ error: "UNAUTHORIZED", message: "Invalid token" }, 401);
+    }
+
+    const db = (await import("./db/database.js")).default;
+    const { getCharacter } = await import("./services/character-service.js");
+    const char = getCharacter(payload.wallet);
+
+    if (char) {
+      // Delete runs + events
+      const runs = db.prepare("SELECT id FROM weekly_runs WHERE wallet_address = ?").all(payload.wallet) as any[];
+      for (const r of runs) {
+        db.prepare("DELETE FROM run_events WHERE run_id = ?").run(r.id);
+      }
+      db.prepare("DELETE FROM weekly_runs WHERE wallet_address = ?").run(payload.wallet);
+      db.prepare("DELETE FROM leaderboard WHERE wallet_address = ?").run(payload.wallet);
+
+      // Delete character data
+      db.prepare("DELETE FROM character_loot WHERE character_id = ?").run(char.id);
+      db.prepare("DELETE FROM character_skills WHERE character_id = ?").run(char.id);
+      db.prepare("DELETE FROM inventories WHERE character_id = ?").run(char.id);
+      db.prepare("DELETE FROM characters WHERE id = ?").run(char.id);
+    }
+
+    return c.json({ message: "Player data wiped. Refresh to start over." });
+  });
 }
 
 const port = Number(process.env.PORT) || 3000;

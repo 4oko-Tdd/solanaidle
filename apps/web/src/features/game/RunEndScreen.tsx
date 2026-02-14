@@ -11,6 +11,10 @@ import {
   Skull,
   Swords,
   Crown,
+  Trophy,
+  Zap,
+  Heart,
+  TrendingUp,
 } from "lucide-react";
 import { useVrfRoll } from "@/hooks/useVrfRoll";
 import { ClassIcon } from "@/components/ClassIcon";
@@ -32,17 +36,17 @@ const CLASS_NAMES: Record<ClassId, string> = {
   mystic: "Oracle",
 };
 
-const CLASS_STYLES: Record<ClassId, { text: string; border: string; gradient: string }> = {
-  scout: { text: "text-neon-amber", border: "border-neon-amber/40", gradient: "from-neon-amber via-neon-green to-neon-amber" },
-  guardian: { text: "text-neon-cyan", border: "border-neon-cyan/40", gradient: "from-neon-cyan via-neon-green to-neon-cyan" },
-  mystic: { text: "text-neon-purple", border: "border-neon-purple/40", gradient: "from-neon-purple via-neon-green to-neon-purple" },
+const CLASS_STYLES: Record<ClassId, { text: string; border: string; gradient: string; glow: string; bg: string }> = {
+  scout: { text: "text-neon-amber", border: "border-neon-amber/40", gradient: "from-neon-amber via-neon-green to-neon-amber", glow: "shadow-[0_0_30px_rgba(255,184,0,0.15)]", bg: "bg-neon-amber/5" },
+  guardian: { text: "text-neon-cyan", border: "border-neon-cyan/40", gradient: "from-neon-cyan via-neon-green to-neon-cyan", glow: "shadow-[0_0_30px_rgba(0,212,255,0.15)]", bg: "bg-neon-cyan/5" },
+  mystic: { text: "text-neon-purple", border: "border-neon-purple/40", gradient: "from-neon-purple via-neon-green to-neon-purple", glow: "shadow-[0_0_30px_rgba(153,69,255,0.15)]", bg: "bg-neon-purple/5" },
 };
 
-const MULTIPLIER_COLORS: Record<number, string> = {
-  1: "text-muted-foreground",
-  1.5: "text-neon-cyan",
-  2: "text-neon-amber",
-  3: "text-neon-purple",
+const MULTIPLIER_LABELS: Record<number, { color: string; label: string }> = {
+  1: { color: "text-muted-foreground", label: "Standard" },
+  1.5: { color: "text-neon-cyan", label: "Lucky" },
+  2: { color: "text-neon-amber", label: "Rare" },
+  3: { color: "text-neon-purple", label: "Legendary" },
 };
 
 function getWeekNumber(weekStart: string): number {
@@ -50,6 +54,14 @@ function getWeekNumber(weekStart: string): number {
   const start = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
   const diff = date.getTime() - start.getTime();
   return Math.ceil(diff / 604800000 + 1);
+}
+
+function getGrade(score: number, missions: number, bossDefeated: boolean): { letter: string; color: string } {
+  if (bossDefeated && score >= 500) return { letter: "S", color: "text-neon-purple" };
+  if (bossDefeated || score >= 400) return { letter: "A", color: "text-neon-amber" };
+  if (score >= 200 && missions >= 10) return { letter: "B", color: "text-neon-green" };
+  if (score >= 100) return { letter: "C", color: "text-neon-cyan" };
+  return { letter: "D", color: "text-muted-foreground" };
 }
 
 export function RunEndScreen({ run, signMessage, onFinalized }: Props) {
@@ -67,6 +79,7 @@ export function RunEndScreen({ run, signMessage, onFinalized }: Props) {
   }, [run.id]);
 
   const deaths = events.filter((e) => e.eventType === "mission_fail" && !(e.data as any).escaped).length;
+  const grade = getGrade(run.score, run.missionsCompleted, run.bossDefeated);
 
   const handleFinalize = async () => {
     setError(null);
@@ -119,218 +132,361 @@ export function RunEndScreen({ run, signMessage, onFinalized }: Props) {
     await onFinalized();
   };
 
-  // Rolling phase — show VRF status
+  const style = CLASS_STYLES[run.classId] ?? CLASS_STYLES.scout;
+
+  // ── Rolling phase ──
   if (phase === "rolling") {
+    const steps = [
+      { key: "requesting", label: "Requesting randomness", icon: Dice5 },
+      { key: "waiting-oracle", label: "Oracle verifying", icon: ShieldCheck },
+      { key: "fulfilled", label: "Calculating bonus", icon: Sparkles },
+    ];
+    const activeIdx = steps.findIndex((s) => s.key === vrfStatus);
+
     return (
-      <div className="mx-auto w-full max-w-md space-y-6 p-4">
-        <div className="rounded-xl border border-neon-purple/20 bg-[#0d1525] p-6 text-center space-y-4">
-          <Dice5 className="h-16 w-16 text-neon-purple animate-spin mx-auto" />
-          <h2 className="text-2xl font-display text-neon-purple">Rolling Rewards</h2>
-          <p className="text-sm text-muted-foreground">
-            {vrfStatus === "requesting" && "Requesting on-chain randomness..."}
-            {vrfStatus === "waiting-oracle" && "MagicBlock oracle verifying..."}
-            {vrfStatus === "fulfilled" && "Randomness verified! Calculating bonus..."}
-            {vrfStatus === "error" && "VRF unavailable — using server randomness..."}
-            {vrfStatus === "idle" && "Preparing transaction..."}
-          </p>
-          <Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" />
-          <div className="flex items-center justify-center gap-1.5 pt-2">
-            <span className="text-[10px] text-muted-foreground">Powered by</span>
-            <img src={magicblockLogo} alt="MagicBlock" className="h-4 invert opacity-60" />
+      <div className="mx-auto w-full max-w-md p-4 animate-fade-in-up">
+        <div className="relative rounded-2xl border border-neon-purple/20 bg-[#0d1525] overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-neon-purple via-neon-cyan to-neon-purple animate-shimmer" style={{ backgroundSize: "200% 100%" }} />
+
+          <div className="p-6 space-y-6">
+            {/* Animated dice */}
+            <div className="relative mx-auto w-20 h-20">
+              <div className="absolute inset-0 rounded-full bg-neon-purple/10 animate-ping" />
+              <div className="relative flex items-center justify-center w-20 h-20 rounded-full bg-[#12102a] border border-neon-purple/30">
+                <Dice5 className="h-10 w-10 text-neon-purple animate-spin" style={{ animationDuration: "3s" }} />
+              </div>
+            </div>
+
+            <div className="text-center space-y-1">
+              <h2 className="text-2xl font-display text-neon-purple">Rolling Rewards</h2>
+              <p className="text-xs text-muted-foreground font-mono">Epoch {weekNum} Finalization</p>
+            </div>
+
+            {/* Progress steps */}
+            <div className="space-y-2.5">
+              {steps.map((step, i) => {
+                const isActive = step.key === vrfStatus;
+                const isDone = activeIdx > i;
+                const Icon = step.icon;
+                return (
+                  <div
+                    key={step.key}
+                    className={`flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all duration-300 ${
+                      isActive ? "bg-neon-purple/10 border border-neon-purple/30" :
+                      isDone ? "bg-neon-green/5 border border-neon-green/20" :
+                      "bg-white/[0.02] border border-transparent"
+                    }`}
+                  >
+                    <div className={`flex items-center justify-center w-7 h-7 rounded-full shrink-0 ${
+                      isDone ? "bg-neon-green/20" : isActive ? "bg-neon-purple/20" : "bg-white/5"
+                    }`}>
+                      {isDone ? (
+                        <ShieldCheck className="h-3.5 w-3.5 text-neon-green" />
+                      ) : isActive ? (
+                        <Loader2 className="h-3.5 w-3.5 text-neon-purple animate-spin" />
+                      ) : (
+                        <Icon className="h-3.5 w-3.5 text-muted-foreground/40" />
+                      )}
+                    </div>
+                    <span className={`text-sm font-medium ${
+                      isDone ? "text-neon-green/80" : isActive ? "text-neon-purple" : "text-muted-foreground/40"
+                    }`}>
+                      {step.label}
+                    </span>
+                  </div>
+                );
+              })}
+
+              {vrfStatus === "error" && (
+                <div className="flex items-center gap-3 rounded-lg px-3 py-2.5 bg-neon-amber/5 border border-neon-amber/20">
+                  <div className="flex items-center justify-center w-7 h-7 rounded-full shrink-0 bg-neon-amber/20">
+                    <Zap className="h-3.5 w-3.5 text-neon-amber" />
+                  </div>
+                  <span className="text-sm text-neon-amber">Using server randomness</span>
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center justify-center gap-1.5 pt-1">
+              <span className="text-[10px] text-muted-foreground/60">Powered by</span>
+              <img src={magicblockLogo} alt="MagicBlock" className="h-3.5 invert opacity-40" />
+            </div>
           </div>
         </div>
       </div>
     );
   }
 
-  // Bonus reveal phase
+  // ── Bonus reveal phase ──
   if (phase === "bonus" && bonus) {
-    const multColor = MULTIPLIER_COLORS[bonus.multiplier] ?? "text-neon-green";
+    const mult = MULTIPLIER_LABELS[bonus.multiplier] ?? { color: "text-neon-green", label: "Bonus" };
 
     return (
-      <div className="mx-auto w-full max-w-md space-y-6 p-4">
-        <div className="rounded-xl border border-neon-amber/20 bg-[#0d1525] p-5 text-center space-y-3">
-          <Gift className="h-16 w-16 text-neon-amber animate-bounce-in mx-auto" />
-          <h2 className="text-3xl font-display text-neon-amber">Epoch Bonus!</h2>
-          {bonus.vrfVerified && (
-            <div className="flex items-center justify-center gap-1.5 text-xs text-neon-cyan">
-              <ShieldCheck className="h-3.5 w-3.5" />
-              <span>Verified by</span>
-              <img src={magicblockLogo} alt="MagicBlock" className="h-3.5 invert" />
-            </div>
-          )}
-        </div>
+      <div className="mx-auto w-full max-w-md p-4 space-y-4 animate-fade-in-up">
+        {/* Header card */}
+        <div className="relative rounded-2xl border border-neon-amber/20 bg-[#0d1525] overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-neon-amber via-neon-purple to-neon-amber" />
 
-        {/* Multiplier */}
-        <div className="rounded-xl border border-white/[0.08] bg-[#0d1525] p-4 text-center">
-          <span className={`text-5xl font-display font-bold ${multColor}`}>
-            {bonus.multiplier}x
-          </span>
-          <p className="text-xs text-muted-foreground mt-1">Reward Multiplier</p>
-        </div>
-
-        {/* Resource rewards */}
-        <div className="rounded-xl border border-white/[0.08] bg-[#0d1525] p-4 space-y-3">
-          <p className="text-xs font-mono text-muted-foreground uppercase tracking-wider text-center">
-            Bonus Rewards
-          </p>
-          <div className="grid grid-cols-3 gap-3 text-center">
-            <div className="bg-[#111d30] rounded-lg p-2 space-y-1">
-              <img src={scrapIcon} alt="Scrap" className="h-8 w-8 mx-auto" />
-              <div className="font-bold font-mono text-neon-green">+{bonus.bonusScrap}</div>
-              <div className="text-[10px] text-muted-foreground">Lamports</div>
+          <div className="p-5 text-center space-y-3">
+            <div className="relative mx-auto w-16 h-16">
+              <div className="absolute inset-0 rounded-full bg-neon-amber/10 animate-ping" style={{ animationDuration: "2s" }} />
+              <div className="relative flex items-center justify-center w-16 h-16 rounded-full bg-neon-amber/10">
+                <Gift className="h-9 w-9 text-neon-amber animate-bounce-in" />
+              </div>
             </div>
-            <div className="bg-[#111d30] rounded-lg p-2 space-y-1">
-              <img src={crystalIcon} alt="Crystal" className="h-8 w-8 mx-auto" />
-              <div className="font-bold font-mono text-neon-cyan">+{bonus.bonusCrystal}</div>
-              <div className="text-[10px] text-muted-foreground">Tokens</div>
-            </div>
-            <div className="bg-[#111d30] rounded-lg p-2 space-y-1">
-              <img src={artifactIcon} alt="Artifact" className="h-8 w-8 mx-auto" />
-              <div className="font-bold font-mono text-neon-purple">+{bonus.bonusArtifact}</div>
-              <div className="text-[10px] text-muted-foreground">Keys</div>
-            </div>
+            <h2 className="text-2xl font-display text-neon-amber">Epoch Bonus!</h2>
+            {bonus.vrfVerified && (
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-neon-cyan/10 border border-neon-cyan/20 px-3 py-1">
+                <ShieldCheck className="h-3 w-3 text-neon-cyan" />
+                <span className="text-[11px] text-neon-cyan font-medium">Verified by</span>
+                <img src={magicblockLogo} alt="MagicBlock" className="h-3 invert" />
+              </div>
+            )}
           </div>
-
-          {/* Loot drop */}
-          {bonus.lootItemId && (
-            <div className="flex items-center justify-center gap-2 pt-2 border-t border-white/[0.08]">
-              <Sparkles className="h-4 w-4 text-neon-amber" />
-              <span className="text-sm font-medium">
-                Tier {bonus.lootTier} Loot Drop!
-              </span>
-            </div>
-          )}
-
-          {/* NFT drop */}
-          {bonus.nftDrop && (
-            <div className="flex items-center justify-center gap-2 pt-2 border-t border-white/[0.08]">
-              <Sparkles className="h-4 w-4 text-neon-purple" />
-              <span className="text-sm font-medium text-neon-purple">
-                Rare NFT Drop!
-              </span>
-            </div>
-          )}
         </div>
 
-        {/* VRF verification link */}
+        {/* Multiplier — big reveal */}
+        <div className="rounded-2xl border border-white/[0.08] bg-[#0d1525] p-5 text-center animate-stagger-in stagger-1">
+          <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest mb-2">{mult.label} Roll</p>
+          <div className={`text-6xl font-display font-bold ${mult.color} animate-scale-pop`}>
+            {bonus.multiplier}x
+          </div>
+          <p className="text-xs text-muted-foreground mt-2">Reward Multiplier</p>
+        </div>
+
+        {/* Resource rewards — 3 columns */}
+        <div className="grid grid-cols-3 gap-2.5">
+          {[
+            { icon: scrapIcon, value: bonus.bonusScrap, label: "Lamports", color: "text-neon-green", stagger: "stagger-2" },
+            { icon: crystalIcon, value: bonus.bonusCrystal, label: "Tokens", color: "text-neon-cyan", stagger: "stagger-3" },
+            { icon: artifactIcon, value: bonus.bonusArtifact, label: "Keys", color: "text-neon-purple", stagger: "stagger-4" },
+          ].map((r) => (
+            <div
+              key={r.label}
+              className={`rounded-xl border border-white/[0.08] bg-[#0d1525] p-3 text-center animate-stagger-in ${r.stagger}`}
+            >
+              <img src={r.icon} alt={r.label} className="h-9 w-9 mx-auto mb-1.5" />
+              <div className={`font-bold font-mono text-lg ${r.color}`}>+{r.value}</div>
+              <div className="text-[10px] text-muted-foreground">{r.label}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Special drops */}
+        {(bonus.lootItemId || bonus.nftDrop) && (
+          <div className="space-y-2 animate-stagger-in stagger-5">
+            {bonus.lootItemId && (
+              <div className="rounded-xl border border-neon-amber/20 bg-neon-amber/5 p-3 flex items-center justify-center gap-2.5">
+                <Sparkles className="h-4.5 w-4.5 text-neon-amber" />
+                <span className="text-sm font-display font-medium text-neon-amber">
+                  Tier {bonus.lootTier} Loot Drop
+                </span>
+              </div>
+            )}
+            {bonus.nftDrop && (
+              <div className="rounded-xl border border-neon-purple/30 bg-neon-purple/5 p-3 flex items-center justify-center gap-2.5 animate-golden-glow">
+                <Sparkles className="h-4.5 w-4.5 text-neon-purple" />
+                <span className="text-sm font-display font-bold text-neon-purple">
+                  Rare NFT Drop!
+                </span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Explorer link */}
         {bonus.vrfVerified && bonus.vrfAccount && (
           <a
             href={`https://explorer.solana.com/address/${bonus.vrfAccount}?cluster=devnet`}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center gap-1.5 text-xs text-neon-cyan/70 hover:text-neon-cyan transition-colors"
+            className="flex items-center justify-center gap-1.5 text-xs text-neon-cyan/60 hover:text-neon-cyan transition-colors"
           >
             <ExternalLink className="h-3 w-3" />
             <span>Verify on Solana Explorer</span>
           </a>
         )}
 
-        {/* MagicBlock branding */}
-        <div className="flex items-center justify-center gap-1.5">
-          <span className="text-[10px] text-muted-foreground">Powered by</span>
-          <img src={magicblockLogo} alt="MagicBlock" className="h-4 invert opacity-50" />
-        </div>
-
-        <Button onClick={handleContinue} className="w-full" size="lg">
+        {/* Continue */}
+        <Button
+          onClick={handleContinue}
+          className="w-full btn-shimmer h-12 text-base font-display"
+          size="lg"
+        >
           Continue
         </Button>
+
+        <div className="flex items-center justify-center gap-1.5">
+          <span className="text-[10px] text-muted-foreground/50">Powered by</span>
+          <img src={magicblockLogo} alt="MagicBlock" className="h-3.5 invert opacity-35" />
+        </div>
       </div>
     );
   }
 
-  // Summary phase (default)
-  const style = CLASS_STYLES[run.classId] ?? CLASS_STYLES.scout;
-
+  // ── Summary phase (default) ──
   return (
-    <div className="mx-auto w-full max-w-md space-y-5 p-4 animate-fade-in-up">
-      {/* Hero header with character */}
-      <div className="relative rounded-2xl border border-white/[0.08] bg-[#0d1525] overflow-hidden">
-        {/* Subtle gradient accent top */}
+    <div className="mx-auto w-full max-w-md p-4 space-y-4 animate-fade-in-up">
+      {/* Hero card */}
+      <div className={`relative rounded-2xl border border-white/[0.08] bg-[#0d1525] overflow-hidden ${style.glow}`}>
+        {/* Gradient accent bar */}
         <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${style.gradient}`} />
 
-        <div className="p-5 text-center space-y-3">
-          <p className="text-xs font-mono text-muted-foreground uppercase tracking-widest">Epoch {weekNum}</p>
-          <h2 className="text-3xl font-display text-gradient">Epoch Complete</h2>
+        <div className="p-5 text-center space-y-4">
+          {/* Epoch label */}
+          <div className="inline-flex items-center gap-2 rounded-full bg-white/[0.04] border border-white/[0.08] px-3 py-1">
+            <Trophy className="h-3 w-3 text-neon-amber" />
+            <span className="text-[11px] font-mono text-muted-foreground uppercase tracking-wider">Epoch {weekNum} Complete</span>
+          </div>
 
-          {/* Character avatar + class */}
-          <div className="flex flex-col items-center gap-2 pt-2">
-            <div className={`rounded-full border-2 ${style.border} bg-[#111d30] p-1.5`}>
-              <ClassIcon classId={run.classId} className="h-16 w-16 rounded-full" />
+          {/* Character avatar + grade */}
+          <div className="relative inline-block">
+            <div className={`rounded-full border-2 ${style.border} bg-[#111d30] p-2`}>
+              <ClassIcon classId={run.classId} className="h-20 w-20 rounded-full" />
             </div>
+            {/* Grade badge */}
+            <div className={`absolute -top-1 -right-1 w-8 h-8 rounded-full bg-[#0d1525] border-2 ${style.border} flex items-center justify-center`}>
+              <span className={`text-sm font-display font-bold ${grade.color}`}>{grade.letter}</span>
+            </div>
+          </div>
+
+          <div>
             <span className={`text-sm font-display font-medium ${style.text}`}>
               {CLASS_NAMES[run.classId]}
             </span>
           </div>
 
           {/* Big score */}
-          <div className="pt-2">
-            <div className="text-5xl font-display font-bold text-neon-green">{run.score}</div>
-            <p className="text-xs text-muted-foreground font-mono mt-1">FINAL SCORE</p>
+          <div>
+            <div className="text-5xl font-display font-bold text-neon-green leading-none">{run.score}</div>
+            <p className="text-[10px] text-muted-foreground font-mono mt-1.5 uppercase tracking-widest">Final Score</p>
           </div>
         </div>
       </div>
 
-      {/* Stats row */}
-      <div className="grid grid-cols-3 gap-2.5">
-        <div className="rounded-xl border border-white/[0.08] bg-[#0d1525] p-3 text-center">
-          <Swords className="h-4 w-4 text-neon-green mx-auto mb-1" />
-          <div className="font-bold text-lg font-mono text-neon-green">{run.missionsCompleted}</div>
-          <div className="text-[10px] text-muted-foreground font-mono uppercase">Missions</div>
-        </div>
-        <div className="rounded-xl border border-white/[0.08] bg-[#0d1525] p-3 text-center">
-          <Skull className="h-4 w-4 text-neon-red mx-auto mb-1" />
-          <div className="font-bold text-lg font-mono text-neon-red">{deaths}</div>
-          <div className="text-[10px] text-muted-foreground font-mono uppercase">Deaths</div>
-        </div>
-        <div className="rounded-xl border border-white/[0.08] bg-[#0d1525] p-3 text-center">
-          <Crown className="h-4 w-4 text-neon-amber mx-auto mb-1" />
-          <div className="font-bold text-lg">
-            {run.bossDefeated ? (
-              <span className="text-neon-amber">Yes</span>
-            ) : (
-              <span className="text-muted-foreground">—</span>
-            )}
+      {/* Stats grid — 2x2 */}
+      <div className="grid grid-cols-2 gap-2.5">
+        <div className="rounded-xl border border-white/[0.08] bg-[#0d1525] p-3 flex items-center gap-3 animate-stagger-in stagger-1">
+          <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-neon-green/10 shrink-0">
+            <Swords className="h-4.5 w-4.5 text-neon-green" />
           </div>
-          <div className="text-[10px] text-muted-foreground font-mono uppercase">Boss</div>
+          <div>
+            <div className="font-bold text-lg font-mono text-neon-green leading-none">{run.missionsCompleted}</div>
+            <div className="text-[10px] text-muted-foreground font-mono uppercase mt-0.5">Missions</div>
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-white/[0.08] bg-[#0d1525] p-3 flex items-center gap-3 animate-stagger-in stagger-2">
+          <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-neon-red/10 shrink-0">
+            <Skull className="h-4.5 w-4.5 text-neon-red" />
+          </div>
+          <div>
+            <div className="font-bold text-lg font-mono text-neon-red leading-none">{deaths}</div>
+            <div className="text-[10px] text-muted-foreground font-mono uppercase mt-0.5">Deaths</div>
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-white/[0.08] bg-[#0d1525] p-3 flex items-center gap-3 animate-stagger-in stagger-3">
+          <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-neon-amber/10 shrink-0">
+            <Crown className="h-4.5 w-4.5 text-neon-amber" />
+          </div>
+          <div>
+            <div className="font-bold text-lg font-mono leading-none">
+              {run.bossDefeated ? (
+                <span className="text-neon-amber">Slain</span>
+              ) : (
+                <span className="text-muted-foreground">—</span>
+              )}
+            </div>
+            <div className="text-[10px] text-muted-foreground font-mono uppercase mt-0.5">Boss</div>
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-white/[0.08] bg-[#0d1525] p-3 flex items-center gap-3 animate-stagger-in stagger-4">
+          <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-neon-cyan/10 shrink-0">
+            <Heart className="h-4.5 w-4.5 text-neon-cyan" />
+          </div>
+          <div>
+            <div className="font-bold text-lg font-mono text-neon-cyan leading-none">{run.livesRemaining}</div>
+            <div className="text-[10px] text-muted-foreground font-mono uppercase mt-0.5">Lives Left</div>
+          </div>
         </div>
       </div>
 
-      {/* On-chain progress indicator */}
-      <div className="flex items-center justify-center gap-2 py-1">
-        <ShieldCheck className="h-3.5 w-3.5 text-neon-cyan" />
-        <span className="text-[10px] text-muted-foreground">Progress tracked on-chain via</span>
-        <img src={magicblockLogo} alt="MagicBlock" className="h-3 invert opacity-50" />
-        <span className="text-[10px] text-muted-foreground">Ephemeral Rollups</span>
+      {/* Streak / upgrades mini-row */}
+      {(run.streak > 0 || run.armorLevel > 0 || run.engineLevel > 0 || run.scannerLevel > 0) && (
+        <div className="flex items-center justify-center gap-3 py-1 animate-stagger-in stagger-5">
+          {run.streak > 0 && (
+            <div className="flex items-center gap-1 text-xs">
+              <TrendingUp className="h-3 w-3 text-neon-green" />
+              <span className="text-muted-foreground">Streak</span>
+              <span className="font-mono font-bold text-neon-green">{run.streak}</span>
+            </div>
+          )}
+          {run.armorLevel > 0 && (
+            <div className="flex items-center gap-1 text-xs">
+              <ShieldCheck className="h-3 w-3 text-neon-cyan" />
+              <span className="font-mono text-neon-cyan">{run.armorLevel}</span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* On-chain badge */}
+      <div className="flex items-center justify-center gap-1.5 py-0.5">
+        <ShieldCheck className="h-3 w-3 text-neon-cyan/60" />
+        <span className="text-[10px] text-muted-foreground/60">On-chain via</span>
+        <img src={magicblockLogo} alt="MagicBlock" className="h-3 invert opacity-40" />
       </div>
 
-      {/* VRF bonus roll CTA */}
-      <div className="rounded-2xl border border-neon-purple/30 bg-[#12102a] p-4 space-y-3">
-        <div className="flex items-center justify-center gap-2">
-          <Dice5 className="h-5 w-5 text-neon-purple" />
-          <span className="text-base font-display font-medium text-neon-purple">On-Chain Bonus Roll</span>
+      {/* VRF CTA card */}
+      <div className="rounded-2xl border border-neon-purple/25 bg-[#12102a] overflow-hidden">
+        <div className="p-4 space-y-3">
+          <div className="flex items-center justify-center gap-2">
+            <Dice5 className="h-5 w-5 text-neon-purple" />
+            <span className="text-base font-display font-medium text-neon-purple">On-Chain Bonus Roll</span>
+          </div>
+
+          {/* Multiplier chance bars */}
+          <div className="grid grid-cols-4 gap-1.5 px-1">
+            {[
+              { mult: "1x", pct: "70%", color: "bg-muted-foreground/30" },
+              { mult: "1.5x", pct: "20%", color: "bg-neon-cyan/40" },
+              { mult: "2x", pct: "8%", color: "bg-neon-amber/40" },
+              { mult: "3x", pct: "2%", color: "bg-neon-purple/40" },
+            ].map((tier) => (
+              <div key={tier.mult} className="text-center">
+                <div className="text-[10px] font-mono font-bold text-foreground/80">{tier.mult}</div>
+                <div className="h-1.5 rounded-full bg-white/5 mt-1 overflow-hidden">
+                  <div className={`h-full rounded-full ${tier.color}`} style={{ width: tier.pct }} />
+                </div>
+                <div className="text-[9px] font-mono text-muted-foreground mt-0.5">{tier.pct}</div>
+              </div>
+            ))}
+          </div>
+
+          <p className="text-[11px] text-center text-muted-foreground leading-relaxed">
+            Seal your score on the leaderboard with verifiable on-chain randomness.
+          </p>
+
+          {error && (
+            <p className="text-xs text-center text-neon-red">{error}</p>
+          )}
+
+          <Button
+            onClick={handleFinalize}
+            disabled={phase !== "summary"}
+            className="w-full bg-[#2a1854] text-neon-purple border border-neon-purple/40 hover:bg-[#351e6b] text-base h-12 font-display"
+            size="lg"
+          >
+            <Dice5 className="mr-2 h-5 w-5" />
+            Finalize & Roll
+          </Button>
         </div>
-        <p className="text-xs text-center text-muted-foreground leading-relaxed">
-          Roll for a bonus multiplier (up to <span className="text-neon-purple font-medium">3x</span>) on your epoch rewards using verifiable on-chain randomness. Your score will be sealed on the leaderboard.
-        </p>
 
-        {error && (
-          <p className="text-xs text-center text-neon-red">{error}</p>
-        )}
-
-        <Button
-          onClick={handleFinalize}
-          disabled={phase !== "summary"}
-          className="w-full bg-[#2a1854] text-neon-purple border border-neon-purple/40 hover:bg-[#351e6b] text-base h-12"
-          size="lg"
-        >
-          <Dice5 className="mr-2 h-5 w-5" />
-          Finalize & Roll
-        </Button>
-
-        <div className="flex items-center justify-center gap-1.5">
-          <span className="text-[10px] text-muted-foreground/60">Powered by</span>
-          <img src={magicblockLogo} alt="MagicBlock" className="h-3.5 invert opacity-40" />
+        <div className="flex items-center justify-center gap-1.5 py-2 bg-white/[0.02] border-t border-white/[0.04]">
+          <span className="text-[10px] text-muted-foreground/50">Powered by</span>
+          <img src={magicblockLogo} alt="MagicBlock" className="h-3.5 invert opacity-35" />
         </div>
       </div>
     </div>

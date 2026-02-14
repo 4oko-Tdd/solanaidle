@@ -14,7 +14,7 @@ import { RunEndScreen } from "./RunEndScreen";
 import { LeaderboardPanel } from "./LeaderboardPanel";
 import { DailyLoginModal } from "./DailyLoginModal";
 import { api } from "@/lib/api";
-import type { DailyLoginStatus } from "@solanaidle/shared";
+import type { DailyLoginStatus, ClassId } from "@solanaidle/shared";
 import { useWalletSign } from "@/hooks/useWalletSign";
 import { useToast } from "@/components/ToastProvider";
 import { Button } from "@/components/ui/button";
@@ -28,10 +28,43 @@ import {
   ChevronDown,
   ChevronUp,
   Wrench,
+  Skull,
+  Crown,
+  Heart,
+  ShieldCheck,
+  Clock,
 } from "lucide-react";
+import { ClassIcon } from "@/components/ClassIcon";
+import magicblockLogo from "@/assets/icons/MagicBlock-Logo-Black.png";
 import { InventoryPanel } from "@/features/inventory/InventoryPanel";
 import { useState, useEffect } from "react";
 import type { Inventory } from "@solanaidle/shared";
+
+const CLASS_NAMES: Record<ClassId, string> = {
+  scout: "Validator",
+  guardian: "Staker",
+  mystic: "Oracle",
+};
+
+const CLASS_STYLES: Record<ClassId, { text: string; border: string; gradient: string; glow: string }> = {
+  scout: { text: "text-neon-amber", border: "border-neon-amber/40", gradient: "from-neon-amber via-neon-green to-neon-amber", glow: "shadow-[0_0_30px_rgba(255,184,0,0.12)]" },
+  guardian: { text: "text-neon-cyan", border: "border-neon-cyan/40", gradient: "from-neon-cyan via-neon-green to-neon-cyan", glow: "shadow-[0_0_30px_rgba(0,212,255,0.12)]" },
+  mystic: { text: "text-neon-purple", border: "border-neon-purple/40", gradient: "from-neon-purple via-neon-green to-neon-purple", glow: "shadow-[0_0_30px_rgba(153,69,255,0.12)]" },
+};
+
+function getWeekNumber(weekStart: string): number {
+  const d = new Date(weekStart);
+  const s = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return Math.ceil((d.getTime() - s.getTime()) / 604800000 + 1);
+}
+
+function getGrade(score: number, missions: number, bossDefeated: boolean): { letter: string; color: string } {
+  if (bossDefeated && score >= 500) return { letter: "S", color: "text-neon-purple" };
+  if (bossDefeated || score >= 400) return { letter: "A", color: "text-neon-amber" };
+  if (score >= 200 && missions >= 10) return { letter: "B", color: "text-neon-green" };
+  if (score >= 100) return { letter: "C", color: "text-neon-cyan" };
+  return { letter: "D", color: "text-muted-foreground" };
+}
 
 type Tab = "game" | "skills" | "guild" | "ranks" | "inventory";
 
@@ -144,41 +177,17 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
     return <RunEndScreen run={endedRun} signMessage={signMessage} onFinalized={refresh} />;
   }
 
-  // Already finalized this week — show completed summary
-  if (!activeRun && endedRun && endedRun.endSignature) {
-    return (
-      <div className="mx-auto w-full max-w-md space-y-6 p-4 animate-fade-in-up">
-        <div className="text-center space-y-3">
-          <Trophy className="h-16 w-16 text-neon-amber mx-auto" />
-          <h2 className="text-3xl font-display text-gradient">Epoch Complete</h2>
-          <p className="text-sm text-muted-foreground">
-            Epoch {(() => {
-              const d = new Date(endedRun.weekStart);
-              const s = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-              return Math.ceil((d.getTime() - s.getTime()) / 604800000 + 1);
-            })()} finalized. Come back next week for a new epoch.
-          </p>
-        </div>
-        <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] backdrop-blur-md p-4">
-          <div className="grid grid-cols-2 gap-3 text-center text-sm">
-            <div className="bg-white/[0.04] rounded-lg p-2">
-              <div className="text-muted-foreground text-xs font-mono uppercase tracking-wider">Score</div>
-              <div className="font-bold text-lg font-mono text-neon-green">{endedRun.score}</div>
-            </div>
-            <div className="bg-white/[0.04] rounded-lg p-2">
-              <div className="text-muted-foreground text-xs font-mono uppercase tracking-wider">Missions</div>
-              <div className="font-bold text-lg font-mono text-neon-green">{endedRun.missionsCompleted}</div>
-            </div>
-          </div>
-        </div>
-        <LeaderboardPanel />
-      </div>
-    );
-  }
+  // Finalized epoch state — used inside tabs below
+  const isEpochFinalized = !activeRun && endedRun && endedRun.endSignature;
 
-  if (!activeRun && classes.length > 0) {
+  if (!activeRun && !isEpochFinalized && classes.length > 0) {
     return <ClassPicker classes={classes} onSelect={startRun} signMessage={signMessage} />;
   }
+
+  // Precompute epoch style vars if finalized
+  const epochStyle = endedRun ? (CLASS_STYLES[endedRun.classId] ?? CLASS_STYLES.scout) : null;
+  const epochWeekNum = endedRun ? getWeekNumber(endedRun.weekStart) : 0;
+  const epochGrade = endedRun ? getGrade(endedRun.score, endedRun.missionsCompleted, endedRun.bossDefeated) : null;
 
   const activeMissionDef = activeMission
     ? missions.find((m) => m.id === activeMission.missionId)
@@ -200,36 +209,62 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
               </button>
               {devOpen && (
                 <div className="flex flex-wrap gap-1.5 mt-1.5">
-                  <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2" onClick={async () => {
-                    const res = await api<{ bossDay: boolean }>("/dev/toggle-boss-day", { method: "POST" });
-                    addToast(res.bossDay ? "Boss Day ON" : "Boss Day OFF", "warning");
-                    await refresh();
-                  }}>Boss Day</Button>
-                  <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2" onClick={async () => {
-                    await api("/dev/skip-timer", { method: "POST" });
-                    addToast("Timer skipped", "success");
-                    await refresh();
-                  }}>Skip Timer</Button>
+                  {/* Always available */}
                   <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2" onClick={async () => {
                     await api("/dev/add-resources", { method: "POST" });
                     addToast("+Resources", "success");
                     await refresh();
                   }}>+Resources</Button>
                   <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2" onClick={async () => {
-                    await api("/dev/add-skill-points", { method: "POST" });
-                    addToast("+10 SP", "success");
-                    await refresh();
-                  }}>+SP</Button>
-                  <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2" onClick={async () => {
                     const res = await api<{ message: string }>("/dev/add-xp", { method: "POST" });
                     addToast(res.message, "success");
                     await refresh();
                   }}>+XP</Button>
-                  <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2 text-neon-red" onClick={async () => {
-                    await api<{ message: string }>("/dev/end-epoch", { method: "POST" });
-                    addToast("Epoch ended", "warning");
-                    await refresh();
-                  }}>End Epoch</Button>
+
+                  {/* Active run only */}
+                  {activeRun && (
+                    <>
+                      <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2" onClick={async () => {
+                        const res = await api<{ bossDay: boolean }>("/dev/toggle-boss-day", { method: "POST" });
+                        addToast(res.bossDay ? "Boss Day ON" : "Boss Day OFF", "warning");
+                        await refresh();
+                      }}>Boss Day</Button>
+                      <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2" onClick={async () => {
+                        await api("/dev/skip-timer", { method: "POST" });
+                        addToast("Timer skipped", "success");
+                        await refresh();
+                      }}>Skip Timer</Button>
+                      <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2" onClick={async () => {
+                        await api("/dev/add-skill-points", { method: "POST" });
+                        addToast("+10 SP", "success");
+                        await refresh();
+                      }}>+SP</Button>
+                      <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2 text-neon-red" onClick={async () => {
+                        await api<{ message: string }>("/dev/end-epoch", { method: "POST" });
+                        addToast("Epoch ended", "warning");
+                        await refresh();
+                      }}>End Epoch</Button>
+                    </>
+                  )}
+
+                  {/* Finalized / no active run */}
+                  {!activeRun && (
+                    <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2 text-neon-green" onClick={async () => {
+                      const res = await api<{ message: string }>("/dev/reset-epoch", { method: "POST" });
+                      addToast(res.message, "success");
+                      await refresh();
+                    }}>New Epoch</Button>
+                  )}
+
+                  {/* Danger zone */}
+                  <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2 text-neon-red/60" onClick={async () => {
+                    if (!confirm("Wipe all player data?")) return;
+                    const res = await api<{ message: string }>("/dev/reset-player", { method: "POST" });
+                    addToast(res.message, "warning");
+                    window.location.reload();
+                  }}>Reset Player</Button>
+
+                  {/* Loot adder */}
                   <div className="flex items-center gap-1.5 mt-1.5 w-full flex-wrap">
                     <select
                       value={devLootItem}
@@ -279,7 +314,98 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
             </div>
           )}
 
-          {activeTab === "game" && (
+          {activeTab === "game" && isEpochFinalized && endedRun && epochStyle && epochGrade && (
+            <div className="animate-tab-in space-y-3">
+              {/* Hero — compact: avatar + info left, score right */}
+              <div className={`relative rounded-2xl border border-white/[0.08] bg-[#0d1525] overflow-hidden ${epochStyle.glow}`}>
+                <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${epochStyle.gradient}`} />
+
+                <div className="flex items-center p-4 gap-4">
+                  {/* Avatar with grade */}
+                  <div className="relative shrink-0">
+                    <div className={`rounded-full border-2 ${epochStyle.border} bg-[#111d30] p-1`}>
+                      <ClassIcon classId={endedRun.classId} className="h-14 w-14 rounded-full" />
+                    </div>
+                    <div className={`absolute -top-0.5 -right-0.5 w-6 h-6 rounded-full bg-[#0d1525] border-2 ${epochStyle.border} flex items-center justify-center`}>
+                      <span className={`text-[10px] font-display font-bold ${epochGrade.color}`}>{epochGrade.letter}</span>
+                    </div>
+                  </div>
+
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5 mb-0.5">
+                      <Trophy className="h-3 w-3 text-neon-amber shrink-0" />
+                      <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">Epoch {epochWeekNum}</span>
+                    </div>
+                    <span className={`text-sm font-display font-semibold ${epochStyle.text}`}>
+                      {CLASS_NAMES[endedRun.classId]}
+                    </span>
+                  </div>
+
+                  {/* Score — right aligned */}
+                  <div className="text-right shrink-0">
+                    <div className="text-3xl font-display font-bold text-neon-green leading-none">{endedRun.score}</div>
+                    <p className="text-[9px] text-muted-foreground font-mono mt-0.5 uppercase tracking-wider">Score</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Stats — 4 column compact */}
+              <div className="grid grid-cols-4 gap-2">
+                {[
+                  { icon: <Swords className="h-3.5 w-3.5 text-neon-green" />, value: endedRun.missionsCompleted, label: "Missions", color: "text-neon-green" },
+                  { icon: <Skull className="h-3.5 w-3.5 text-neon-red" />, value: 3 - endedRun.livesRemaining, label: "Deaths", color: "text-neon-red" },
+                  { icon: <Crown className="h-3.5 w-3.5 text-neon-amber" />, value: endedRun.bossDefeated ? "Yes" : "—", label: "Boss", color: endedRun.bossDefeated ? "text-neon-amber" : "text-muted-foreground" },
+                  { icon: <Heart className="h-3.5 w-3.5 text-neon-cyan" />, value: endedRun.livesRemaining, label: "Lives", color: "text-neon-cyan" },
+                ].map((stat) => (
+                  <div key={stat.label} className="rounded-lg border border-white/[0.06] bg-[#0d1525] py-2 px-1.5 text-center">
+                    <div className="flex justify-center mb-1">{stat.icon}</div>
+                    <div className={`font-bold text-sm font-mono leading-none ${stat.color}`}>{stat.value}</div>
+                    <div className="text-[8px] text-muted-foreground font-mono uppercase mt-0.5">{stat.label}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* What carries over */}
+              <div className="rounded-2xl border border-white/[0.08] bg-[#0d1525] p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-neon-green shrink-0" />
+                  <div>
+                    <h3 className="text-sm font-display font-semibold text-white leading-none">Waiting for Next Epoch</h3>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">Score sealed. New epoch starts next week.</p>
+                  </div>
+                </div>
+
+                <div className="rounded-lg bg-[#111d30] p-3 space-y-2">
+                  <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">What carries over</p>
+                  <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
+                    {[
+                      { keeps: true, text: "Resources & Loot" },
+                      { keeps: true, text: "Character Level" },
+                      { keeps: true, text: "Leaderboard Rank" },
+                      { keeps: false, text: "Upgrades reset" },
+                      { keeps: false, text: "Lives reset to 3" },
+                      { keeps: false, text: "Streak resets" },
+                    ].map((item) => (
+                      <div key={item.text} className="flex items-center gap-1.5">
+                        <div className={`w-1 h-1 rounded-full ${item.keeps ? "bg-neon-green" : "bg-neon-red/60"}`} />
+                        <span className={`text-[11px] ${item.keeps ? "text-foreground/80" : "text-muted-foreground"}`}>{item.text}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* On-chain badge */}
+              <div className="flex items-center justify-center gap-1.5 py-1">
+                <ShieldCheck className="h-3 w-3 text-neon-cyan/50" />
+                <span className="text-[10px] text-muted-foreground/50">Sealed on-chain via</span>
+                <img src={magicblockLogo} alt="MagicBlock" className="h-3 invert opacity-35" />
+              </div>
+            </div>
+          )}
+
+          {activeTab === "game" && !isEpochFinalized && (
             <div className="animate-tab-in space-y-4">
               <CharacterCard
                 character={character}
@@ -321,11 +447,16 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
                 <UpgradePanel upgradeInfo={upgradeInfo} onUpgrade={upgradeTrack} />
               )}
               {!activeRun && (
-                <div className="flex flex-col items-center justify-center gap-2 py-12 text-center">
-                  <Sparkles className="h-8 w-8 text-muted-foreground" />
+                <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
+                  <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-[#0d1525] border border-white/[0.08]">
+                    <Sparkles className="h-6 w-6 text-muted-foreground" />
+                  </div>
                   <p className="text-sm text-muted-foreground">
-                    Start an epoch to unlock skills.
+                    {isEpochFinalized ? "Skills reset next epoch." : "Start an epoch to unlock skills."}
                   </p>
+                  {isEpochFinalized && (
+                    <p className="text-xs text-muted-foreground/60">Upgrades and skill points will be fresh next week.</p>
+                  )}
                 </div>
               )}
             </div>
