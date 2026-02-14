@@ -74,7 +74,6 @@ No infinite farming. Time is the core limiter. Decisions have consequences.
 - PVP
 - Trading
 - Full token economy
-- Fully on-chain gameplay
 
 ## Economy (MVP)
 
@@ -93,11 +92,21 @@ Future (noted, not built): seasons, leaderboard, limited tradable items.
 - Claim requires `now >= end_time`
 - RNG is server-side (upgradable to commit-reveal)
 
+## On-Chain Integration (MagicBlock)
+
+Two MagicBlock products bring game mechanics on-chain without sacrificing UX:
+
+- **VRF** — Provably fair epoch bonus rolls (verifiable on Solana Explorer)
+- **Ephemeral Rollups** — Zero-fee on-chain progress tracking (score, missions, deaths)
+
+Both use zero extra wallet signatures. See [MAGICBLOCK.md](./MAGICBLOCK.md).
+
 ## Hackathon Value Proposition
 
 - Creates daily active usage
 - Encourages long-term retention
 - Uses wallet as a core mechanic
+- On-chain game state via MagicBlock (VRF + Ephemeral Rollups)
 - Not another DeFi app
 - Mobile-first by design
 
