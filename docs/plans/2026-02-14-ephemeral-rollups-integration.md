@@ -2,69 +2,157 @@
 
 **Date:** 2026-02-14
 **Status:** Planned
-**Goal:** Move mission execution on-chain via MagicBlock Ephemeral Rollups (ERs) — zero-fee, real-time transactions with Solana settlement.
+**Goal:** Put player progress on-chain via MagicBlock Ephemeral Rollups (ERs) with zero extra wallet signatures. Combined with VRF, we use 2 of 3 MagicBlock core products.
 
-## Why
+## Design Principle
 
-Currently all game logic is off-chain (server-authoritative). ERs let us run mission state fully on-chain without fees or confirmation delays, then commit results back to Solana. Combined with VRF at epoch end, we'd use 2 of 3 MagicBlock core products.
+Idle game UX = open app, tap, close. No extra wallet popups. We piggyback ER delegation/undelegation onto the two signatures the player already does (epoch start + epoch finalize).
 
 ## Architecture
 
 ```
-Player starts mission
+Epoch Start (player picks class — already signs 1 tx)
         │
-        ▼
-┌─ On-Chain (ER) ────────────────┐
-│ 1. Delegate mission PDA to ER  │
-│ 2. Start mission (instant, $0) │
-│ 3. Timer check / claim         │
-│ 4. Rewards calculation          │
-│ 5. Commit result to Solana     │
-└────────────────────────────────┘
+        ├─ Create character run on Solana
+        └─ Delegate progress PDA to ER (bundled in same tx)
+
+During Epoch (days/weeks of play — 0 signatures)
         │
-        ▼
-  Solana base layer (settled)
+        ├─ Player starts mission → API handles it (as today)
+        ├─ Player claims mission → API resolves it
+        └─ Backend updates progress PDA on ER (free, instant, no signing)
+            { score, missionsCompleted, deaths, bossDefeated, lastUpdate }
+
+Epoch End (player taps "Finalize & Roll" — already signs 1 tx)
+        │
+        ├─ VRF roll for bonus rewards (already implemented)
+        └─ Commit + undelegate progress PDA back to Solana
+            → Score is now verifiable on-chain
+            → Leaderboard reads from Solana
 ```
 
-## Scope
+**Total extra signatures: 0** — delegation is bundled into existing epoch start/end txs.
 
-**Phase 1 — Mission state on ER:**
-- Create `mission-runner` Anchor program with mission PDA (player, missionId, startedAt, endsAt, status)
-- Add delegation via `ephemeral-rollups-sdk` (`#[delegate]` macro)
-- `start_mission` → delegates PDA to ER, writes mission state
-- `claim_mission` → validates timer, calculates rewards, commits back to Solana
-- Frontend builds + signs delegation tx once, then mission ops are free on ER
+## What Goes On-Chain (ER)
 
-**Phase 2 — Session Keys (optional):**
-- Player signs once per session → session key handles all mission txs
-- Eliminates wallet popups for start/claim actions
+A single `PlayerProgress` PDA per player per epoch:
 
-**Phase 3 — Guild raids on ER (stretch):**
-- Raid state PDA delegated to ER
-- Multiple players submit actions in real-time (zero fee)
-- Final raid result committed to Solana
+```rust
+// Seeds: ["progress", player_pubkey, week_start_bytes]
+pub struct PlayerProgress {
+    pub player: Pubkey,
+    pub week_start: i64,
+    pub class_id: u8,        // 0=scout, 1=guardian, 2=mystic
+    pub score: u64,
+    pub missions_completed: u32,
+    pub deaths: u32,
+    pub boss_defeated: bool,
+    pub last_update: i64,
+    pub bump: u8,
+}
+```
 
-## Files to Create
+This is a **read-only mirror** of the server state. The API server remains authoritative for game logic (timers, RNG, rewards). The ER PDA is updated after each mission completion so there's a verifiable on-chain record.
 
-- `programs/mission-runner/Cargo.toml` + `src/lib.rs` + `Anchor.toml`
-- `apps/web/src/hooks/useEphemeralMission.ts` — delegation + ER transaction hook
-- `apps/api/src/services/er-service.ts` — read committed mission PDAs from Solana
+## What Stays Off-Chain (API Server)
 
-## Files to Modify
+Everything gameplay-related:
+- Mission timers, start/claim logic
+- RNG (success/fail, loot drops, reward variance)
+- Inventory, upgrades, skill tree
+- Guild, raids
 
-- `apps/web/src/features/game/MissionPanel.tsx` — trigger on-chain mission start
-- `apps/web/src/features/game/MissionTimer.tsx` — claim via ER
-- `packages/shared/src/types.ts` — on-chain mission types
+These stay server-authoritative. ER is used for **progress attestation**, not game execution.
+
+## Implementation
+
+### Step 1: Anchor Program (`progress-tracker`)
+
+Create `programs/progress-tracker/src/lib.rs`:
+
+```rust
+#[ephemeral]
+#[program]
+pub mod progress_tracker {
+    // initialize — create PDA + delegate to ER (called at epoch start)
+    // update_progress — update score/missions/deaths (called by backend)
+    // finalize — commit + undelegate (called at epoch end)
+}
+```
+
+Key macros: `#[ephemeral]`, `#[delegate]`, `commit_and_undelegate_accounts()`
+
+### Step 2: Backend ER Service
+
+Create `apps/api/src/services/er-service.ts`:
+- Uses `ConnectionMagicRouter` to send update txs to ER
+- Backend holds a server keypair (not player's wallet) to sign progress updates
+- Called from `mission-service.ts` after each mission claim
+- Called from `runs.ts` finalize route to commit + undelegate
+
+### Step 3: Frontend Changes (Minimal)
+
+- `ClassPicker.tsx` — bundle delegation instruction into the epoch start tx
+- `RunEndScreen.tsx` — bundle commit+undelegate into the finalize tx
+- Add `@magicblock-labs/ephemeral-rollups-sdk` to web dependencies
+
+### Step 4: Leaderboard Enhancement
+
+- Leaderboard reads finalized scores from Solana base layer (after undelegation)
+- Each score is verifiable on-chain with the player's pubkey
+- Optional: Magic Actions to auto-update a global leaderboard PDA on commit
+
+## Files
+
+### Create
+- `programs/progress-tracker/Cargo.toml` + `src/lib.rs` + `Anchor.toml`
+- `apps/api/src/services/er-service.ts`
+
+### Modify
+- `apps/web/src/features/game/ClassPicker.tsx` — add delegation ix to start tx
+- `apps/web/src/features/game/RunEndScreen.tsx` — add commit ix to finalize tx
+- `apps/api/src/services/mission-service.ts` — call ER update after claim
+- `apps/api/src/routes/runs.ts` — trigger commit+undelegate on finalize
+- `packages/shared/src/types.ts` — add on-chain progress types
 
 ## Dependencies
 
-- `ephemeral-rollups-sdk` (Rust, for Anchor program)
-- `@solana/web3.js` (frontend, for ER transaction routing via Magic Router)
+**Rust (Anchor program):**
+- `anchor-lang = "0.32.1"`
+- `ephemeral-rollups-sdk = { version = "0.1", features = ["anchor"] }`
+
+**Backend (Node):**
+- `@magicblock-labs/ephemeral-rollups-sdk` — for `ConnectionMagicRouter`
+- `@solana/web3.js` — for tx building
+
+**Frontend (React):**
+- `@magicblock-labs/ephemeral-rollups-sdk` — for delegation ix helpers
+
+## ER Endpoints
+
+- **Devnet Router:** `https://devnet-router.magicblock.app`
+- **ER Validator (US):** `https://devnet-us.magicblock.app`
+- **Delegation Program:** `DELeGGvXpWV2fqJUhqcF5ZSYMS4JTLjteaAMARRSaeSh`
+
+## Pros
+
+- 0 extra wallet signatures — same UX as today
+- Progress is verifiable on-chain (Solana Explorer)
+- Uses 2 MagicBlock products (ER + VRF) — strong hackathon story
+- ER updates are free and instant
+- Server stays authoritative — no rewrite of game logic in Rust
+- Leaderboard becomes trustless (scores on-chain)
+
+## Cons
+
+- Backend needs a server keypair to sign ER updates (key management)
+- Progress PDA is a mirror (not the source of truth) — could drift if server crashes mid-update
+- Depends on MagicBlock ER validator uptime
+- Anchor program still needs deployment (same toolchain gap as VRF)
+
+## Deployment Requirements
+
+Same as VRF roller:
 - Anchor 0.32.1, Solana CLI 2.3.13, Rust 1.85.0
-
-## Key Details
-
-- Magic Router auto-routes txs to ER or base layer based on delegation status
-- Delegated accounts can't be modified on base layer until undelegated
-- ER transactions are instant and free
-- State commits back to Solana are batched by the ER validator
+- `anchor build && anchor deploy` to devnet
+- Update program ID in progress-tracker, er-service.ts, frontend
