@@ -291,6 +291,24 @@ if (process.env.NODE_ENV !== "production") {
     return c.json({ message: "No epoch to reset." });
   });
 
+  // Dev: Reset quests — clear all quest completions and boosts
+  app.post("/dev/reset-quests", async (c) => {
+    const header = c.req.header("Authorization");
+    if (!header?.startsWith("Bearer ")) {
+      return c.json({ error: "UNAUTHORIZED", message: "Missing token" }, 401);
+    }
+    const { verifyToken } = await import("./services/auth-service.js");
+    const payload = verifyToken(header.slice(7));
+    if (!payload) {
+      return c.json({ error: "UNAUTHORIZED", message: "Invalid token" }, 401);
+    }
+
+    const db = (await import("./db/database.js")).default;
+    db.prepare("DELETE FROM quest_completions WHERE wallet_address = ?").run(payload.wallet);
+    db.prepare("DELETE FROM quest_boosts WHERE wallet_address = ?").run(payload.wallet);
+    return c.json({ message: "Quests reset" });
+  });
+
   // Dev: Reset DB — wipe everything for this player
   app.post("/dev/reset-player", async (c) => {
     const header = c.req.header("Authorization");

@@ -223,6 +223,11 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
                     addToast(res.message, "success");
                     await refresh();
                   }}>+XP</Button>
+                  <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2" onClick={async () => {
+                    const res = await api<{ message: string }>("/dev/reset-quests", { method: "POST" });
+                    addToast(res.message, "success");
+                    await refresh();
+                  }}>Reset Quests</Button>
 
                   {/* Active run only */}
                   {activeRun && (
