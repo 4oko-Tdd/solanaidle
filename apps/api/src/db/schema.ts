@@ -135,6 +135,25 @@ export function initSchema() {
       quantity INTEGER NOT NULL DEFAULT 1,
       PRIMARY KEY (character_id, item_id)
     );
+
+    CREATE TABLE IF NOT EXISTS quest_completions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      wallet_address TEXT NOT NULL,
+      quest_id TEXT NOT NULL,
+      completed_at TEXT NOT NULL,
+      period_key TEXT NOT NULL,
+      result_json TEXT,
+      UNIQUE(wallet_address, quest_id, period_key)
+    );
+
+    CREATE TABLE IF NOT EXISTS quest_boosts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      wallet_address TEXT NOT NULL,
+      quest_id TEXT NOT NULL,
+      boost_type TEXT NOT NULL,
+      boost_percent REAL NOT NULL,
+      expires_at TEXT NOT NULL
+    );
   `);
 
   // Migrations — add columns if missing
