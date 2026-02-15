@@ -44,7 +44,6 @@ export type MissionResult = "success" | "failure";
 export interface MissionClaimResponse {
   result: MissionResult;
   rewards: MissionRewards | null;
-  nftDrop: NftDrop | null;
   character: Character;
   streak: number; // current streak after this mission
 }
@@ -63,21 +62,6 @@ export interface Inventory {
   scrap: number;
   crystal: number;
   artifact: number;
-  /** Loot items from missions (drops) */
-  loot?: LootEntry[];
-  /** Bonus from owned loot: +X% drop chance (base 20%) */
-  lootDropChancePercent?: number;
-  /** Bonus from owned loot: mission duration -X% */
-  lootSpeedPercent?: number;
-}
-
-export interface LootEntry {
-  itemId: string;
-  name: string;
-  imageUrl?: string | null;
-  quantity: number;
-  /** 1 = common, 2 = rare, 3 = epic. Higher = better perks. */
-  tier: number;
 }
 
 // ── Upgrades ──
@@ -149,9 +133,9 @@ export type ErrorCode =
   | "NO_ACTIVE_RUN"
   | "RUN_ENDED"
   | "CLASS_ALREADY_CHOSEN"
-  | "INSUFFICIENT_SKILL_POINTS"
-  | "SKILL_ALREADY_UNLOCKED"
-  | "SKILL_PREREQUISITE"
+  | "PERK_NOT_AVAILABLE"
+  | "INVENTORY_FULL"
+  | "BOSS_ALREADY_JOINED"
   | "GUILD_NOT_FOUND"
   | "GUILD_FULL"
   | "ALREADY_IN_GUILD"
@@ -182,20 +166,22 @@ export interface CharacterClass {
   xpModifier: number;         // multiplier (0.9 = -10% XP)
 }
 
-// ── Skill Trees ──
+// ── Perks (replaces skill trees) ──
 
-export interface SkillNode {
+export type PerkTier = "common" | "rare" | "legendary";
+
+export interface PerkDefinition {
   id: string;
-  classId: ClassId;
   name: string;
   description: string;
-  tier: number; // 1, 2, 3
-  cost: number; // skill points
+  tier: PerkTier;
+  effect: Record<string, number>;
+  stackable: boolean;
 }
 
-export interface UnlockedSkill {
-  skillId: string;
-  unlockedAt: string;
+export interface ActivePerk {
+  perkId: string;
+  stacks: number;
 }
 
 // ── Weekly Runs ──
@@ -208,7 +194,6 @@ export interface WeeklyRun {
   weekEnd: string;
   livesRemaining: number;
   score: number;
-  skillPoints: number;
   missionsCompleted: number;
   bossDefeated: boolean;
   active: boolean;
@@ -216,6 +201,7 @@ export interface WeeklyRun {
   armorLevel: number;
   engineLevel: number;
   scannerLevel: number;
+  perks: ActivePerk[];
   startSignature?: string | null;
   endSignature?: string | null;
 }
@@ -230,7 +216,7 @@ export type RunEventType =
   | "revive"
   | "level_up"
   | "boss_kill"
-  | "skill_unlock"
+  | "perk_pick"
   | "nft_drop"
   | "run_end";
 
@@ -292,12 +278,10 @@ export interface EpochBonusRewards {
   bonusCrystal: number;
   /** Bonus artifact from VRF roll */
   bonusArtifact: number;
-  /** Loot tier dropped (1/2/3 or null if no drop) */
-  lootTier: number | null;
-  /** Loot item ID if dropped */
-  lootItemId: string | null;
-  /** Whether an NFT was dropped */
-  nftDrop: boolean;
+  /** Whether a permanent loot item was dropped */
+  permanentLootDrop: boolean;
+  /** Permanent loot item ID if dropped */
+  permanentLootItemId: string | null;
   /** Whether VRF was used (vs fallback) */
   vrfVerified: boolean;
   /** VRF account pubkey (for on-chain verification) */
@@ -355,7 +339,6 @@ export interface LeaderboardEntry {
 export interface CharacterWithRun extends Character {
   classId: ClassId | null;
   activeRun: WeeklyRun | null;
-  skills: UnlockedSkill[];
 }
 
 // ── Daily Login ──
@@ -424,6 +407,56 @@ export interface ActiveBoost {
   expiresAt: string;
   source: QuestId;
 }
+
+// ── Permanent Loot & Inventory ──
+
+export interface PermanentLootItem {
+  id: string;
+  itemId: string;
+  itemName: string;
+  perkType: "loot_chance" | "speed" | "fail_rate" | "xp" | "boss_damage";
+  perkValue: number;
+  mintAddress?: string;
+  droppedAt: string;
+}
+
+export interface InventoryCapacity {
+  walletAddress: string;
+  maxSlots: number;
+}
+
+// ── Weekly Buffs ──
+
+export interface WeeklyBuff {
+  id: string;
+  buffId: string;
+  buffName: string;
+  epochStart: string;
+  consumed: boolean;
+}
+
+// ── World Boss ──
+
+export interface WorldBoss {
+  id: string;
+  name: string;
+  maxHp: number;
+  currentHp: number;
+  weekStart: string;
+  spawnedAt: string;
+  killed: boolean;
+}
+
+export interface BossParticipant {
+  bossId: string;
+  walletAddress: string;
+  joinedAt: string;
+  passiveDamage: number;
+  critDamage: number;
+  critUsed: boolean;
+}
+
+export type BossDropType = "weekly_buff" | "permanent_loot" | "data_core" | "nft_artifact";
 
 // ── Achievement Badges & Relic NFTs ──
 
