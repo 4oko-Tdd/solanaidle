@@ -27,7 +27,7 @@ const EVENT_ICONS: Record<RunEventType, React.ReactNode> = {
   revive: <Heart className="h-3.5 w-3.5 text-neon-green" />,
   level_up: <ArrowUp className="h-3.5 w-3.5 text-neon-cyan" />,
   boss_kill: <Star className="h-3.5 w-3.5 text-neon-amber" />,
-  skill_unlock: <Sparkles className="h-3.5 w-3.5 text-neon-purple" />,
+  perk_pick: <Sparkles className="h-3.5 w-3.5 text-neon-purple" />,
   nft_drop: <Gem className="h-3.5 w-3.5 text-neon-amber" />,
   run_end: <Swords className="h-3.5 w-3.5 text-muted-foreground" />,
 };
@@ -57,8 +57,8 @@ function formatEvent(event: RunEvent): string {
       return `Leveled up to Lv.${d.newLevel}`;
     case "boss_kill":
       return "Whale Hunt complete!";
-    case "skill_unlock":
-      return `Unlocked: ${d.skillName}`;
+    case "perk_pick":
+      return `Chose perk: ${d.perkName ?? d.perkId}`;
     case "nft_drop":
       return `RARE: NFT Drop — ${d.nftName}!`;
     case "run_end":

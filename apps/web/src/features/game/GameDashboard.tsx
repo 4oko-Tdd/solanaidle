@@ -5,7 +5,9 @@ import { MissionPanel } from "./MissionPanel";
 import { MissionTimer } from "./MissionTimer";
 import { UpgradePanel } from "./UpgradePanel";
 
-import { SkillTree } from "./SkillTree";
+import { BossFight } from "./BossFight";
+import { PermanentCollection } from "./PermanentCollection";
+import { PerkPicker } from "./PerkPicker";
 import { GuildPanel } from "@/features/guild/GuildPanel";
 import { RaidPanel } from "@/features/guild/RaidPanel";
 import { MissionResultDialog } from "./MissionResultDialog";
@@ -20,7 +22,6 @@ import { useToast } from "@/components/ToastProvider";
 import { Button } from "@/components/ui/button";
 import {
   Swords,
-  Sparkles,
   Users,
   Trophy,
   Loader2,
@@ -69,13 +70,13 @@ function getGrade(score: number, missions: number, bossDefeated: boolean): { let
   return { letter: "D", color: "text-muted-foreground" };
 }
 
-type Tab = "game" | "intel" | "inventory" | "skills" | "guild" | "ranks";
+type Tab = "game" | "intel" | "inventory" | "boss" | "guild" | "ranks";
 
 const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: "game", label: "Game", icon: <Swords className="h-5 w-5" /> },
   { id: "intel", label: "Intel", icon: <Radio className="h-5 w-5" /> },
   { id: "inventory", label: "Inventory", icon: <Package className="h-5 w-5" /> },
-  { id: "skills", label: "Skills", icon: <Sparkles className="h-5 w-5" /> },
+  { id: "boss", label: "Boss", icon: <Skull className="h-5 w-5" /> },
   { id: "guild", label: "Guild", icon: <Users className="h-5 w-5" /> },
   { id: "ranks", label: "Ranks", icon: <Trophy className="h-5 w-5" /> },
 ];
@@ -234,20 +235,10 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
                   {activeRun && (
                     <>
                       <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2" onClick={async () => {
-                        const res = await api<{ bossDay: boolean }>("/dev/toggle-boss-day", { method: "POST" });
-                        addToast(res.bossDay ? "Boss Day ON" : "Boss Day OFF", "warning");
-                        await refresh();
-                      }}>Boss Day</Button>
-                      <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2" onClick={async () => {
                         await api("/dev/skip-timer", { method: "POST" });
                         addToast("Timer skipped", "success");
                         await refresh();
                       }}>Skip Timer</Button>
-                      <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2" onClick={async () => {
-                        await api("/dev/add-skill-points", { method: "POST" });
-                        addToast("+10 SP", "success");
-                        await refresh();
-                      }}>+SP</Button>
                       <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2 text-neon-red" onClick={async () => {
                         await api<{ message: string }>("/dev/end-epoch", { method: "POST" });
                         addToast("Epoch ended", "warning");
@@ -389,12 +380,12 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
                   <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">What carries over</p>
                   <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
                     {[
-                      { keeps: true, text: "Resources & Loot" },
-                      { keeps: true, text: "Character Level" },
-                      { keeps: true, text: "Leaderboard Rank" },
-                      { keeps: false, text: "Upgrades reset" },
-                      { keeps: false, text: "Lives reset to 3" },
-                      { keeps: false, text: "Streak resets" },
+                      { keeps: true, text: "Permanent Boss Loot" },
+                      { keeps: true, text: "Achievement Badges" },
+                      { keeps: true, text: "Inventory Capacity" },
+                      { keeps: false, text: "Level resets to 1" },
+                      { keeps: false, text: "Resources reset to 0" },
+                      { keeps: false, text: "Upgrades & Perks reset" },
                     ].map((item) => (
                       <div key={item.text} className="flex items-center gap-1.5">
                         <div className={`w-1 h-1 rounded-full ${item.keeps ? "bg-neon-green" : "bg-neon-red/60"}`} />
@@ -449,24 +440,11 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
             </div>
           )}
 
-          {activeTab === "skills" && (
+          {activeTab === "boss" && (
             <div className="animate-tab-in space-y-4">
-              {activeRun && <SkillTree onUpdate={refresh} />}
+              <BossFight />
               {upgradeInfo && (
                 <UpgradePanel upgradeInfo={upgradeInfo} onUpgrade={upgradeTrack} />
-              )}
-              {!activeRun && (
-                <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
-                  <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-[#0d1525] border border-white/[0.08]">
-                    <Sparkles className="h-6 w-6 text-muted-foreground" />
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    {isEpochFinalized ? "Skills reset next epoch." : "Start an epoch to unlock skills."}
-                  </p>
-                  {isEpochFinalized && (
-                    <p className="text-xs text-muted-foreground/60">Upgrades and skill points will be fresh next week.</p>
-                  )}
-                </div>
               )}
             </div>
           )}
@@ -489,6 +467,7 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
           {activeTab === "inventory" && (
             <div className="animate-tab-in space-y-4">
               {inventory && <InventoryPanel inventory={inventory} onRefresh={refresh} />}
+              <PermanentCollection />
               <TrophyCase />
             </div>
           )}
@@ -532,6 +511,8 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
           onClose={() => setShowDailyModal(false)}
         />
       )}
+
+      {activeRun && <PerkPicker />}
     </>
   );
 }

@@ -9,7 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { MissionClaimResponse } from "@solanaidle/shared";
-import { Trophy, Skull, Sparkles, Heart, HeartCrack } from "lucide-react";
+import { Trophy, Skull, Heart, HeartCrack } from "lucide-react";
 
 interface Props {
   result: MissionClaimResponse | null;
@@ -71,13 +71,6 @@ export function MissionResultDialog({ result, onClose, livesRemaining }: Props) 
                 </Badge>
               )}
             </div>
-          </div>
-        )}
-
-        {result.nftDrop && (
-          <div className="flex items-center justify-center gap-2 rounded-lg border border-neon-amber/50 bg-neon-amber/10 p-3 animate-golden-glow animate-stagger-in stagger-5">
-            <Sparkles className="h-5 w-5 text-neon-amber animate-scale-pop" />
-            <span className="text-sm font-bold text-neon-amber">NFT Drop: {result.nftDrop.nftName}</span>
           </div>
         )}
 

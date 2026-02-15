@@ -272,25 +272,15 @@ export function RunEndScreen({ run, signMessage, onFinalized }: Props) {
           ))}
         </div>
 
-        {/* Special drops */}
-        {(bonus.lootItemId || bonus.nftDrop) && (
+        {/* Permanent loot drop */}
+        {bonus.permanentLootDrop && bonus.permanentLootItemId && (
           <div className="space-y-2 animate-stagger-in stagger-5">
-            {bonus.lootItemId && (
-              <div className="rounded-xl border border-neon-amber/20 bg-neon-amber/5 p-3 flex items-center justify-center gap-2.5">
-                <Sparkles className="h-4.5 w-4.5 text-neon-amber" />
-                <span className="text-sm font-display font-medium text-neon-amber">
-                  Tier {bonus.lootTier} Loot Drop
-                </span>
-              </div>
-            )}
-            {bonus.nftDrop && (
-              <div className="rounded-xl border border-neon-purple/30 bg-neon-purple/5 p-3 flex items-center justify-center gap-2.5 animate-golden-glow">
-                <Sparkles className="h-4.5 w-4.5 text-neon-purple" />
-                <span className="text-sm font-display font-bold text-neon-purple">
-                  Rare NFT Drop!
-                </span>
-              </div>
-            )}
+            <div className="rounded-xl border border-neon-amber/20 bg-neon-amber/5 p-3 flex items-center justify-center gap-2.5 animate-golden-glow">
+              <Sparkles className="h-4.5 w-4.5 text-neon-amber" />
+              <span className="text-sm font-display font-bold text-neon-amber">
+                Permanent Loot: {bonus.permanentLootItemId}
+              </span>
+            </div>
           </div>
         )}
 

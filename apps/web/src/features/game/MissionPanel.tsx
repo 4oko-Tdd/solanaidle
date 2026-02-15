@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import type { MissionType, CharacterState, MissionId, ClassId, Inventory } from "@solanaidle/shared";
-import { Clock, Skull, Lock, AlertTriangle, Star, Sparkles, Shield, Minus, Plus, Package, Crown, Fish } from "lucide-react";
+import { Clock, Skull, Lock, AlertTriangle, Star, Sparkles, Shield, Minus, Plus, Crown, Fish } from "lucide-react";
 import scrapIcon from "@/assets/icons/res1.png";
 import crystalIcon from "@/assets/icons/res2.png";
 import artifactIcon from "@/assets/icons/25.png";
@@ -414,10 +414,6 @@ export function MissionPanel({ missions, characterState, onStart, characterLevel
                       <span className="font-mono">{r.nftChance}%</span>
                     </span>
                   )}
-                  <span className="flex items-center gap-1 text-muted-foreground" title="Loot drop chance">
-                    <Package className="h-3 w-3" />
-                    <span className="font-mono">{inventory?.lootDropChancePercent ?? 20}%</span>
-                  </span>
                 </div>
               )}
 
