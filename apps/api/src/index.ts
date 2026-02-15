@@ -15,6 +15,9 @@ import runs from "./routes/runs.js";
 import daily from "./routes/daily.js";
 import quests from "./routes/quests.js";
 import nfts from "./routes/nft-routes.js";
+import boss from "./routes/boss-routes.js";
+import perks from "./routes/perk-routes.js";
+import collection from "./routes/collection-routes.js";
 
 const app = new Hono().basePath("/api");
 
@@ -41,6 +44,9 @@ app.route("/runs", runs);
 app.route("/daily", daily);
 app.route("/quests", quests);
 app.route("/nfts", nfts);
+app.route("/boss", boss);
+app.route("/perks", perks);
+app.route("/collection", collection);
 
 initSchema();
 const { ensureCollections } = await import("./services/metaplex-service.js");
