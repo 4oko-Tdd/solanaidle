@@ -6,7 +6,7 @@
 
 ## What Is Solana Idle?
 
-Solana Idle is a wallet-native idle game built for Solana Mobile. You are a **node operator** in a decentralized cyberpunk world -- running missions, scavenging resources, upgrading gear, and climbing the weekly leaderboard. Every action is server-authoritative. Your wallet is your identity and your claim to ownership.
+Solana Idle is a wallet-native roguelike idle game built for Solana Mobile. You are a **node operator** in a decentralized cyberpunk world -- running missions, building power through the week, and rallying with other players to take down a **Protocol Leviathan** world boss every weekend. The only things that survive the weekly reset are rare boss drops and achievement badges.
 
 This is not DeFi. Not P2E. Not a casino. It is a game designed to create daily habits around Solana Mobile usage, with deep integrations across four hackathon tracks: **Solana Mobile, MagicBlock, Metaplex Core, and Jupiter**.
 
@@ -14,87 +14,87 @@ This is not DeFi. Not P2E. Not a casino. It is a game designed to create daily h
 
 ## The Game
 
-### Weekly Epoch System
+### Weekly Epoch -- Roguelike Loop
 
-Each week is an **epoch**. At the start of an epoch, the player picks a class and receives 3 lives. The goal: run missions, survive, accumulate score, and finalize the epoch for rewards before the week resets.
+Each week is an **epoch** -- a self-contained roguelike run. Monday you start fresh: Level 1, 3 lives, zero resources. By Friday you've built a unique character through missions, upgrades, and perk choices. Saturday the world boss spawns. Sunday night the epoch ends and everything resets -- except the rare loot you earned from the boss.
+
+**Inspiration:** WoW raid drops. The boss is why you play. The rare drop is the chase.
 
 ### Three Classes
 
-| Class | Specialty |
-|---|---|
-| **Validator** | Speed -- faster mission completion |
-| **Staker** | Defense -- reduced failure chance |
-| **Oracle** | Rare loot -- higher drop rates |
-
-Each class has a **3-tier skill tree** that unlocks as the player progresses, adding permanent and temporary bonuses that shape playstyle.
-
-### Mission Tiers
-
-| Tier | Codename | Description |
+| Class | Specialty | Perk Pool |
 |---|---|---|
-| Quick Swap | Scout | Short, low-risk reconnaissance |
-| Liquidity Run | Expedition | Medium duration, balanced risk/reward |
-| Deep Farm | Deep Dive | Long, high-resource missions |
-| Protocol Raid | Boss | Sunday-only endgame event (level 10+) |
+| **Validator** | Speed -- faster mission completion | Speed + damage perks |
+| **Staker** | Defense -- reduced failure chance | Defense + survival perks |
+| **Oracle** | Loot -- better boss drop odds | Loot + drop chance perks |
 
-All missions use **real-time server-side timers**. You send your operator out, wait, come back, and claim the result. Success or failure is determined server-side with no client manipulation possible.
+### Mission Tiers (Monday -- Friday)
 
-### Resources
+| Tier | Name | Description |
+|---|---|---|
+| 1 | Quick Swap | Short, low-risk scout op |
+| 2 | Liquidity Run | Medium duration, balanced risk/reward |
+| 3 | Deep Farm | Long, high-resource deep dive |
 
-Three off-chain, server-authoritative resources drive progression:
+Missions reward **XP + resources only** (Lamports, Tokens, Keys). No loot drops from missions -- all rare loot comes from the world boss.
 
-- **Lamports** (scrap) -- common currency for upgrades
-- **Tokens** (crystal) -- mid-tier resource for advanced gear
-- **Keys** (artifact) -- rare resource for endgame content
+### Roguelike Perk System
 
-### Gear Upgrades (3 Tracks)
+On every level-up, the player chooses **1 of 3 random perks**. Your build emerges from the choices you make.
 
-| Track | Effect |
+- **Common (80%)** -- stackable stat bonuses (speed, fail rate, resource gain, XP)
+- **Rare (15%)** -- unique abilities (Lucky Escape, Double Down, Insurance Protocol, Critical Overload)
+- **Legendary (5%)** -- game-changing powers (Immortal Node, Genesis Protocol, Leviathan's Eye, Chain Reaction)
+
+The perk pool is weighted by class, so each class naturally builds differently while any class can get any perk.
+
+### The Spending Tension
+
+Resources serve two competing purposes:
+
+1. **Spend on gear upgrades** (Armor / Engine / Scanner) → stronger all week → more XP → more levels → more perks → higher power
+2. **Hoard for OVERLOAD** → dump everything into one massive boss crit → more contribution % → better drop odds
+
+This is the core economic decision every epoch. There is no correct answer.
+
+### World Boss -- Protocol Leviathan
+
+The endgame. A community event every weekend.
+
+- **Saturday 00:00 UTC:** Boss spawns. All regular missions lock.
+- **Shared HP pool** scaled to active player count that week
+- Players **"Join the Hunt"** -- locks character into the fight. Earlier join = more passive damage = more contribution.
+- **OVERLOAD** -- dump remaining resources into one critical strike burst
+- **Sunday 23:59 UTC:** If the community kills the boss, drop rolls happen based on contribution %. If the boss survives, nobody gets drops.
+
+### Boss Drop Table
+
+| Drop Type | Chance | Duration |
+|---|---|---|
+| **Weekly Buffs** (Head Start, Extra Life, Supply Cache, Lucky Node, Overclocked) | ~15-20% | Next epoch only |
+| **Permanent Rare Loot** (Protocol Core, Genesis Shard, Consensus Fragment, Epoch Crystal, Leviathan Scale) | ~2-5% | Forever -- passive stat perks |
+| **Data Cores** (inventory expansion) | ~3% | Forever -- +1 slot each |
+| **NFT Artifacts** (hand-crafted legendaries) | ~1% | Forever -- unique perks, Metaplex Core NFTs |
+
+### What Resets vs. What Persists
+
+| Resets Every Epoch | Persists Forever |
 |---|---|
-| **Armor** | Reduces mission failure chance |
-| **Engine** | Increases mission speed |
-| **Scanner** | Boosts loot quality and drop rates |
-
-### Loot System
-
-Missions can drop 5 item types, each with tier-based perks:
-
-- RAM Stick
-- LAN Cable
-- NVMe Fragment
-- Cooling Fan
-- Validator Key Shard
-
-Higher mission tiers and longer streaks increase the chance of rare drops.
-
-### Streak System
-
-Consecutive mission successes build a **streak multiplier** that amplifies rewards. Fail a mission and the streak resets. This creates a meaningful risk/reward tension: push for harder missions to grow the streak, or play safe to protect it.
-
-### Guilds and Cooperative Raids
-
-Players can form or join **guilds** and participate in cooperative raid events, pooling efforts for shared objectives and exclusive rewards.
-
-### Daily Login Rewards
-
-A 7-day login cycle grants escalating rewards for consecutive daily play, reinforcing the daily habit loop.
+| Level, resources, upgrades, perks, streak, lives | Permanent rare loot (boss drops) |
+| Weekly buffs (1 epoch only) | NFT artifacts, achievement badges, inventory capacity |
 
 ---
 
 ## Core Engagement Loop
 
 ```
-Open app
-  -> Pick class (weekly)
-  -> Run missions
-  -> Wait real time
-  -> Claim results
-  -> Upgrade gear + skills
-  -> Repeat
-  -> Finalize epoch (weekly)
+Monday    → Pick class, start fresh (Level 1, 3 lives, zero resources)
+Mon-Fri   → Run missions → earn XP + resources → buy upgrades → choose perks on level-up
+Saturday  → World Boss spawns → all missions lock → Join the Hunt
+Sun 23:59 → Epoch ends → boss drops roll → full reset → repeat
 ```
 
-No infinite farming. Time is the core limiter. Decisions have consequences. Lives are finite.
+No infinite farming. Time is the core limiter. Lives are finite. Decisions have consequences. The boss is the chase.
 
 ---
 
@@ -102,48 +102,35 @@ No infinite farming. Time is the core limiter. Decisions have consequences. Live
 
 ### 1. Solana Mobile
 
-The game is built mobile-first as a **PWA packaged via Bubblewrap into an APK** for the Solana dApp Store. Wallet authentication uses **Mobile Wallet Adapter v2** with `createDefaultAddressSelector`, `createDefaultAuthorizationResultCache`, and `createDefaultWalletNotFoundHandler`. Browser wallets (Phantom, etc.) self-register via Wallet Standard.
+The game is built mobile-first as a **PWA packaged via Bubblewrap into an APK** for the Solana dApp Store. Wallet authentication uses **Mobile Wallet Adapter v2**. Browser wallets (Phantom, etc.) self-register via Wallet Standard.
 
 Wallet serves three roles:
 - **Identity** -- sign-in via signMessage nonce challenge
-- **Ownership** -- claim NFT rewards to your wallet
-- **Ritual** -- confirm meaningful on-chain actions
+- **Ownership** -- permanent boss loot and achievement NFTs live in your wallet
+- **Ritual** -- confirm meaningful on-chain actions (epoch start, VRF roll)
 
 ### 2. MagicBlock
 
 Two MagicBlock products bring game mechanics on-chain without sacrificing mobile UX:
 
-- **VRF (Verifiable Random Function)** -- Epoch bonus rolls use on-chain VRF for provably fair randomness. When an epoch finalizes, the player signs a transaction, the MagicBlock oracle fulfills it, and the backend reads the PDA to compute bonus rewards (multiplier, loot, or NFT). Results are verifiable on Solana Explorer. Fallback to server-side RNG if VRF is unavailable.
-- **Ephemeral Rollups** -- Zero-fee on-chain progress tracking for score, missions completed, and deaths. Game state is checkpointed to Solana without burdening the player with transaction fees or signatures.
+- **VRF (Verifiable Random Function)** -- Epoch bonus rolls use on-chain VRF for provably fair randomness. Results are verifiable on Solana Explorer. Fallback to server-side RNG if unavailable.
+- **Ephemeral Rollups** -- Zero-fee on-chain progress tracking. Game state is checkpointed to Solana without transaction fees or extra signatures.
 
 ### 3. Metaplex Core
 
-Rare achievements and mission drops are minted as **Metaplex Core assets** with the Attributes plugin, directly to the player's wallet with zero player signatures required (server-minted).
+Permanent boss drops and achievements are minted as **Metaplex Core assets** with the Attributes plugin, directly to the player's wallet (zero player signatures -- server-minted).
 
 Two collections:
-- **Solana Idle: Relics** -- Rare mission drop items minted as NFTs
-- **Solana Idle: Achievements** -- Badge NFTs for major accomplishments:
-  - Boss Slayer
-  - Streak Legend
-  - Deep Explorer
-  - Raid Victor
-  - Epoch Champion
+- **Solana Idle: Relics** -- Permanent rare boss loot (Protocol Core, Genesis Shard, etc.) and hand-crafted NFT artifacts
+- **Solana Idle: Achievements** -- Badge NFTs for milestones (Boss Slayer, Streak Legend, Deep Explorer, Raid Victor, Epoch Champion)
 
 ### 4. Jupiter
 
-The in-game **Intel tab** integrates Jupiter to create a quest system that bridges idle gameplay with real Solana DeFi data:
+The in-game **Intel tab** integrates Jupiter to bridge idle gameplay with real Solana DeFi:
 
-**Daily Quests:**
-- Price Scout -- check a token price via Jupiter
-- Token Scan -- explore token metadata
-- Portfolio Check -- review wallet holdings
-- PnL Report -- analyze profit and loss
-
-**Weekly Quests:**
-- Micro Swap -- execute a small swap through Jupiter
-- Prediction Bet -- place a prediction on price movement
-
-**Quest Rewards:** Resources (lamports, tokens, keys) plus temporary boosts (loot chance, speed, XP multiplier).
+**Daily Quests:** Price Scout, Token Scan, Portfolio Check, PnL Report
+**Weekly Quests:** Micro Swap, Prediction Bet
+**Rewards:** Resources + temporary boosts (loot chance, speed, XP)
 
 ---
 
@@ -152,8 +139,8 @@ The in-game **Intel tab** integrates Jupiter to create a quest system that bridg
 All game state is **server-authoritative**:
 
 - Timers are server-side -- players cannot accelerate missions
-- RNG is server-side -- upgradable to commit-reveal or VRF
-- State validation happens on the backend -- no client trust
+- RNG is server-side -- VRF for epoch bonuses, server RNG for missions
+- Boss damage validated server-side -- no client damage reports
 - Claim requires `now >= end_time` on the server
 - Wallet = identity (signMessage auth with JWT) + ownership (on-chain assets)
 
@@ -171,24 +158,24 @@ All game state is **server-authoritative**:
 | Wallet | @solana/wallet-adapter-react + Mobile Wallet Adapter v2 |
 | Monorepo | pnpm workspaces |
 | Shared Types | @solanaidle/shared workspace package |
-| Target | PWA -> Bubblewrap -> APK for Solana dApp Store |
+| Target | PWA → Bubblewrap → APK for Solana dApp Store |
 
 ---
 
 ## Why This Matters
 
-Solana Mobile needs apps that people open **every day**, not once. Solana Idle creates a daily habit loop where the wallet is not just a login button -- it is a core game mechanic. Every epoch, every mission, every rare drop reinforces the connection between the player and the Solana ecosystem.
+Solana Mobile needs apps that people open **every day**, not once. Solana Idle creates a weekly roguelike loop where the boss fight is the social event, the rare drop is the chase, and the wallet is not just a login button -- it is your loot vault and proof of legend.
 
 Four hackathon tracks. One cohesive game. No bolted-on integrations -- each piece (Mobile Wallet Adapter, MagicBlock VRF, Metaplex Core NFTs, Jupiter quests) serves a real gameplay purpose.
 
-> "A cyberpunk idle game where your Solana wallet is your operator badge, your loot vault, and your proof of legend."
+> "A cyberpunk roguelike idle game where your Solana wallet is your operator badge, your loot vault, and your proof of legend."
 
 ---
 
 ## Post-Hackathon Vision
 
 - Publish to the Solana dApp Store
-- Seasonal epochs with themed content and leaderboards
-- Expanded NFT economy (tradable relics, guild banners)
-- Additional on-chain integrations as the ecosystem evolves
+- Seasonal Leviathans with themed drop tables and evolving lore
+- Expanded NFT economy (tradable relics, guild banners, limited-edition artifacts)
+- Guild leaderboards and coordinated boss strategies
 - Example of what a non-DeFi, game-first Solana Mobile app looks like
