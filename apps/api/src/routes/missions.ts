@@ -6,9 +6,8 @@ import {
   startMission,
   claimMission,
 } from "../services/mission-service.js";
-import { MISSIONS, BOSS_MISSION } from "../services/game-config.js";
+import { MISSIONS } from "../services/game-config.js";
 import { getActiveRun } from "../services/run-service.js";
-import { forceBossDay } from "../index.js";
 
 type Env = { Variables: { wallet: string } };
 
@@ -16,8 +15,7 @@ const missions = new Hono<Env>();
 missions.use("*", authMiddleware);
 
 missions.get("/", (c) => {
-  const isBossDay = forceBossDay === true || (forceBossDay === null && new Date().getDay() === 0);
-  return c.json(isBossDay ? [BOSS_MISSION] : MISSIONS);
+  return c.json(MISSIONS);
 });
 
 missions.get("/active", (c) => {
@@ -57,7 +55,7 @@ missions.post("/start", async (c) => {
   }
 
   const { missionId, rerollStacks, insured } = await c.req.json();
-  if (!["scout", "expedition", "deep_dive", "boss"].includes(missionId)) {
+  if (!["scout", "expedition", "deep_dive"].includes(missionId)) {
     return c.json(
       { error: "INVALID_MISSION", message: "Invalid mission type" },
       400
@@ -73,7 +71,7 @@ missions.post("/start", async (c) => {
     if (e.message === "INSUFFICIENT_RESOURCES") {
       return c.json({ error: "INSUFFICIENT_RESOURCES", message: "Not enough resources" }, 400);
     }
-    if (e.message === "BOSS_NOT_AVAILABLE" || e.message === "Mission tier locked") {
+    if (e.message === "Mission tier locked") {
       return c.json({ error: "MISSION_LOCKED", message: e.message }, 400);
     }
     throw e;

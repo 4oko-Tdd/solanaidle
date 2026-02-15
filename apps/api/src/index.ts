@@ -12,12 +12,9 @@ import claims from "./routes/claims.js";
 import guilds from "./routes/guilds.js";
 import raids from "./routes/raids.js";
 import runs from "./routes/runs.js";
-import skills from "./routes/skills.js";
 import daily from "./routes/daily.js";
 import quests from "./routes/quests.js";
 import nfts from "./routes/nft-routes.js";
-
-export let forceBossDay: boolean | null = null; // null = auto (Sunday), true/false = override
 
 const app = new Hono().basePath("/api");
 
@@ -41,14 +38,11 @@ app.route("/claims", claims);
 app.route("/guilds", guilds);
 app.route("/raids", raids);
 app.route("/runs", runs);
-app.route("/skills", skills);
 app.route("/daily", daily);
 app.route("/quests", quests);
 app.route("/nfts", nfts);
 
 initSchema();
-const { seedLootItems } = await import("./services/loot-service.js");
-seedLootItems();
 const { ensureCollections } = await import("./services/metaplex-service.js");
 ensureCollections().catch((err) => console.error("Collection init error:", err));
 
@@ -133,28 +127,6 @@ if (process.env.NODE_ENV !== "production") {
     return c.json({ message: "Added 500 scrap, 100 crystal, 10 artifact" });
   });
 
-  // Dev: Add skill points for testing skill tree
-  app.post("/dev/add-skill-points", async (c) => {
-    const header = c.req.header("Authorization");
-    if (!header?.startsWith("Bearer ")) {
-      return c.json({ error: "UNAUTHORIZED", message: "Missing token" }, 401);
-    }
-    const { verifyToken } = await import("./services/auth-service.js");
-    const payload = verifyToken(header.slice(7));
-    if (!payload) {
-      return c.json({ error: "UNAUTHORIZED", message: "Invalid token" }, 401);
-    }
-
-    const { getActiveRun, addSkillPoints } = await import("./services/run-service.js");
-    const run = getActiveRun(payload.wallet);
-    if (!run) {
-      return c.json({ error: "NO_ACTIVE_RUN", message: "No active run" }, 400);
-    }
-
-    addSkillPoints(run.id, 10);
-    return c.json({ message: "Added 10 skill points" });
-  });
-
   // Dev: Add XP for testing level-ups
   app.post("/dev/add-xp", async (c) => {
     const header = c.req.header("Authorization");
@@ -186,16 +158,6 @@ if (process.env.NODE_ENV !== "production") {
     return c.json({ message: `+${addXp} XP (now Lv.${newLevel})` });
   });
 
-  // Dev: Toggle boss day on/off (overrides Sunday check)
-  app.post("/dev/toggle-boss-day", (c) => {
-    if (forceBossDay === true) {
-      forceBossDay = null; // back to auto
-    } else {
-      forceBossDay = true; // force on
-    }
-    return c.json({ bossDay: forceBossDay === true || (forceBossDay === null && new Date().getDay() === 0) });
-  });
-
   // Dev: Force end current epoch (for testing finalization)
   app.post("/dev/end-epoch", async (c) => {
     const header = c.req.header("Authorization");
@@ -216,44 +178,7 @@ if (process.env.NODE_ENV !== "production") {
     return c.json({ message: "Epoch ended" });
   });
 
-  // Dev: Add loot to inventory (itemId + quantity)
-  app.post("/dev/add-loot", async (c) => {
-    const header = c.req.header("Authorization");
-    if (!header?.startsWith("Bearer ")) {
-      return c.json({ error: "UNAUTHORIZED", message: "Missing token" }, 401);
-    }
-    const { verifyToken } = await import("./services/auth-service.js");
-    const payload = verifyToken(header.slice(7));
-    if (!payload) {
-      return c.json({ error: "UNAUTHORIZED", message: "Invalid token" }, 401);
-    }
-
-    const { getCharacter } = await import("./services/character-service.js");
-    const char = getCharacter(payload.wallet);
-    if (!char) {
-      return c.json({ error: "CHARACTER_NOT_FOUND", message: "No character" }, 404);
-    }
-
-    const body = await c.req.json<{ itemId: string; quantity?: number }>().catch(() => ({} as { itemId?: string; quantity?: number }));
-    const itemId = body.itemId;
-    const quantity = Math.max(1, Math.min(99, Number(body.quantity) || 1));
-    if (!itemId || typeof itemId !== "string") {
-      return c.json({ error: "BAD_REQUEST", message: "itemId required" }, 400);
-    }
-
-    const { addLoot, getItemTier, getCharacterLoot } = await import("./services/loot-service.js");
-    const db = (await import("./db/database.js")).default;
-    const tier = getItemTier(itemId);
-    if (tier === 0) {
-      return c.json({ error: "BAD_REQUEST", message: "Unknown itemId" }, 400);
-    }
-    addLoot(char.id, itemId, quantity);
-    const loot = getCharacterLoot(char.id);
-    const row = db.prepare("SELECT scrap, crystal, artifact FROM inventories WHERE character_id = ?").get(char.id) as { scrap: number; crystal: number; artifact: number };
-    return c.json({ message: `+${quantity} ${itemId}`, inventory: { ...row, loot } });
-  });
-
-  // Dev: Reset epoch — delete finalized run so a new one can start
+  // Dev: Reset epoch -- delete finalized run so a new one can start
   app.post("/dev/reset-epoch", async (c) => {
     const header = c.req.header("Authorization");
     if (!header?.startsWith("Bearer ")) {
@@ -295,7 +220,7 @@ if (process.env.NODE_ENV !== "production") {
     return c.json({ message: "No epoch to reset." });
   });
 
-  // Dev: Reset quests — clear all quest completions and boosts
+  // Dev: Reset quests -- clear all quest completions and boosts
   app.post("/dev/reset-quests", async (c) => {
     const header = c.req.header("Authorization");
     if (!header?.startsWith("Bearer ")) {
@@ -313,7 +238,7 @@ if (process.env.NODE_ENV !== "production") {
     return c.json({ message: "Quests reset" });
   });
 
-  // Dev: Reset DB — wipe everything for this player
+  // Dev: Reset DB -- wipe everything for this player
   app.post("/dev/reset-player", async (c) => {
     const header = c.req.header("Authorization");
     if (!header?.startsWith("Bearer ")) {
@@ -343,8 +268,6 @@ if (process.env.NODE_ENV !== "production") {
       db.prepare("DELETE FROM leaderboard WHERE wallet_address = ?").run(payload.wallet);
 
       // Delete character data
-      db.prepare("DELETE FROM character_loot WHERE character_id = ?").run(char.id);
-      db.prepare("DELETE FROM character_skills WHERE character_id = ?").run(char.id);
       db.prepare("DELETE FROM inventories WHERE character_id = ?").run(char.id);
       db.prepare("DELETE FROM characters WHERE id = ?").run(char.id);
     }

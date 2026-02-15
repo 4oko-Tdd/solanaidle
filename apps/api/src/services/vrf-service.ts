@@ -1,6 +1,7 @@
+import crypto from "crypto";
 import { Connection, PublicKey } from "@solana/web3.js";
 import db from "../db/database.js";
-import { getRandomLootItemId, getRandomTier2ItemId, addLoot } from "./loot-service.js";
+import { PERMANENT_LOOT_DEFINITIONS } from "./game-config.js";
 import type { EpochBonusRewards, WeeklyRun } from "@solanaidle/shared";
 
 // Program ID — update after deploying vrf-roller to devnet
@@ -166,16 +167,9 @@ function deriveMultiplier(byte: number): number {
   return 1.0;
 }
 
-// Loot tier: 0-179 (70%) = T1, 180-239 (24%) = T2, 240-255 (6%) = T3
-function deriveLootTier(byte: number): number {
-  if (byte >= 240) return 3;
-  if (byte >= 180) return 2;
-  return 1;
-}
-
-// NFT drop: 0-12 out of 256 = ~5% chance
-function deriveNftDrop(byte: number): boolean {
-  return byte < 13;
+// Permanent loot drop: 0-25 out of 256 = ~10% chance
+function derivePermanentLootDrop(byte: number): boolean {
+  return byte < 26;
 }
 
 /**
@@ -215,10 +209,9 @@ export async function computeEpochBonus(
   }
 
   // Derive rewards from random bytes
-  // byte[0] = multiplier, byte[1] = loot tier, byte[2] = NFT drop, byte[3] = loot item selection
+  // byte[0] = multiplier, byte[1] = permanent loot drop, byte[2] = loot item selection
   const multiplier = deriveMultiplier(randomBytes[0]);
-  const lootTier = deriveLootTier(randomBytes[1]);
-  const nftDrop = deriveNftDrop(randomBytes[2]);
+  const permanentLootDrop = derivePermanentLootDrop(randomBytes[1]);
 
   const bonusScrap = Math.floor(baseScrap * multiplier);
   const bonusCrystal = Math.floor(baseCrystal * multiplier);
@@ -229,15 +222,16 @@ export async function computeEpochBonus(
     "UPDATE inventories SET scrap = scrap + ?, crystal = crystal + ?, artifact = artifact + ? WHERE character_id = ?"
   ).run(bonusScrap, bonusCrystal, bonusArtifact, characterId);
 
-  // Grant loot drop
-  let lootItemId: string | null = null;
-  if (lootTier >= 2) {
-    lootItemId = getRandomTier2ItemId();
-  } else {
-    lootItemId = getRandomLootItemId();
-  }
-  if (lootItemId) {
-    addLoot(characterId, lootItemId, 1);
+  // Grant permanent loot drop if rolled
+  let permanentLootItemId: string | null = null;
+  if (permanentLootDrop && PERMANENT_LOOT_DEFINITIONS.length > 0) {
+    const lootIndex = randomBytes[2] % PERMANENT_LOOT_DEFINITIONS.length;
+    const lootDef = PERMANENT_LOOT_DEFINITIONS[lootIndex];
+    permanentLootItemId = lootDef.id;
+    // Insert into permanent_loot table
+    db.prepare(
+      "INSERT OR IGNORE INTO permanent_loot (id, wallet_address, item_id, acquired_at) VALUES (?, ?, ?, ?)"
+    ).run(crypto.randomUUID(), wallet, permanentLootItemId, new Date().toISOString());
   }
 
   return {
@@ -245,9 +239,8 @@ export async function computeEpochBonus(
     bonusScrap,
     bonusCrystal,
     bonusArtifact,
-    lootTier,
-    lootItemId,
-    nftDrop,
+    permanentLootDrop,
+    permanentLootItemId,
     vrfVerified,
     vrfAccount,
   };

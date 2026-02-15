@@ -5,7 +5,7 @@ import { RUN_LIVES } from "./game-config.js";
 import { insertEvent } from "./event-service.js";
 import { checkAndGrantAchievements } from "./achievement-service.js";
 
-// Returns current week Monday 00:00 UTC → Sunday 23:59:59 UTC
+// Returns current week Monday 00:00 UTC -> Sunday 23:59:59 UTC
 export function getWeekBounds(): { weekStart: string; weekEnd: string } {
   const now = new Date();
   const day = now.getUTCDay(); // 0=Sunday, 1=Monday...
@@ -50,6 +50,18 @@ export function startRun(wallet: string, classId: ClassId): WeeklyRun {
     `INSERT INTO weekly_runs (id, wallet_address, class_id, week_start, week_end, lives_remaining)
      VALUES (?, ?, ?, ?, ?, ?)`
   ).run(id, wallet, classId, weekStart, weekEnd, RUN_LIVES);
+
+  // Reset resources to 0 for the new run
+  const char = db.prepare("SELECT id FROM characters WHERE wallet_address = ?").get(wallet) as { id: string } | undefined;
+  if (char) {
+    db.prepare(
+      "UPDATE inventories SET scrap = 0, crystal = 0, artifact = 0 WHERE character_id = ?"
+    ).run(char.id);
+    // Reset character level to 1
+    db.prepare(
+      "UPDATE characters SET level = 1, xp = 0 WHERE id = ?"
+    ).run(char.id);
+  }
 
   insertEvent(id, "run_start", { classId, weekNumber: getWeekNumber() });
 
@@ -117,20 +129,6 @@ export function addScore(runId: string, points: number): void {
   );
 }
 
-// Add a skill point to the run (earned on mission success)
-export function addSkillPoint(runId: string): void {
-  db.prepare(
-    "UPDATE weekly_runs SET skill_points = skill_points + 1 WHERE id = ?"
-  ).run(runId);
-}
-
-// Add multiple skill points (e.g., 3 for boss kill)
-export function addSkillPoints(runId: string, count: number): void {
-  db.prepare(
-    "UPDATE weekly_runs SET skill_points = skill_points + ? WHERE id = ?"
-  ).run(count, runId);
-}
-
 // Increment missions completed
 export function incrementMissions(runId: string): void {
   db.prepare(
@@ -158,13 +156,6 @@ export function useLife(runId: string): number {
     endRun(runId);
   }
   return remaining;
-}
-
-// Deduct skill points (used when unlocking skills)
-export function deductSkillPoints(runId: string, cost: number): void {
-  db.prepare(
-    "UPDATE weekly_runs SET skill_points = skill_points - ? WHERE id = ? AND skill_points >= ?"
-  ).run(cost, runId, cost);
 }
 
 // Get leaderboard for a specific week (top 20)
@@ -226,7 +217,6 @@ function mapRun(row: any): WeeklyRun {
     weekEnd: row.week_end,
     livesRemaining: row.lives_remaining,
     score: row.score,
-    skillPoints: row.skill_points,
     missionsCompleted: row.missions_completed,
     bossDefeated: !!row.boss_defeated,
     active: !!row.active,
@@ -234,6 +224,7 @@ function mapRun(row: any): WeeklyRun {
     armorLevel: row.armor_level ?? 0,
     engineLevel: row.engine_level ?? 0,
     scannerLevel: row.scanner_level ?? 0,
+    perks: [], // TODO: load from character_perks table
     startSignature: row.start_signature ?? null,
     endSignature: row.end_signature ?? null,
   };
