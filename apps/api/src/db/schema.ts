@@ -9,7 +9,7 @@ export function initSchema() {
       xp INTEGER NOT NULL DEFAULT 0,
       hp INTEGER NOT NULL DEFAULT 100,
       gear_level INTEGER NOT NULL DEFAULT 1,
-      state TEXT NOT NULL DEFAULT 'idle' CHECK(state IN ('idle', 'on_mission', 'dead')),
+      state TEXT NOT NULL DEFAULT 'idle' CHECK(state IN ('idle', 'on_mission', 'in_boss_fight', 'dead')),
       revive_at TEXT,
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
@@ -58,13 +58,6 @@ export function initSchema() {
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
 
-    CREATE TABLE IF NOT EXISTS unlocked_skills (
-      id TEXT PRIMARY KEY,
-      run_id TEXT NOT NULL REFERENCES weekly_runs(id),
-      skill_id TEXT NOT NULL,
-      unlocked_at TEXT NOT NULL DEFAULT (datetime('now')),
-      UNIQUE(run_id, skill_id)
-    );
 
     CREATE TABLE IF NOT EXISTS guilds (
       id TEXT PRIMARY KEY,
@@ -123,17 +116,56 @@ export function initSchema() {
       last_claim_date TEXT NOT NULL
     );
 
-    CREATE TABLE IF NOT EXISTS loot_items (
+    CREATE TABLE IF NOT EXISTS permanent_loot (
       id TEXT PRIMARY KEY,
-      name TEXT NOT NULL,
-      image_path TEXT
+      wallet_address TEXT NOT NULL,
+      item_id TEXT NOT NULL,
+      item_name TEXT NOT NULL,
+      perk_type TEXT NOT NULL,
+      perk_value REAL NOT NULL,
+      mint_address TEXT,
+      dropped_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
 
-    CREATE TABLE IF NOT EXISTS character_loot (
-      character_id TEXT NOT NULL REFERENCES characters(id),
-      item_id TEXT NOT NULL REFERENCES loot_items(id),
-      quantity INTEGER NOT NULL DEFAULT 1,
-      PRIMARY KEY (character_id, item_id)
+    CREATE TABLE IF NOT EXISTS weekly_buffs (
+      id TEXT PRIMARY KEY,
+      wallet_address TEXT NOT NULL,
+      buff_id TEXT NOT NULL,
+      buff_name TEXT NOT NULL,
+      epoch_start TEXT NOT NULL,
+      consumed INTEGER NOT NULL DEFAULT 0
+    );
+
+    CREATE TABLE IF NOT EXISTS world_boss (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      max_hp INTEGER NOT NULL,
+      current_hp INTEGER NOT NULL,
+      week_start TEXT NOT NULL UNIQUE,
+      spawned_at TEXT NOT NULL,
+      killed INTEGER NOT NULL DEFAULT 0
+    );
+
+    CREATE TABLE IF NOT EXISTS boss_participants (
+      boss_id TEXT NOT NULL REFERENCES world_boss(id),
+      wallet_address TEXT NOT NULL,
+      joined_at TEXT NOT NULL,
+      passive_damage INTEGER NOT NULL DEFAULT 0,
+      crit_damage INTEGER NOT NULL DEFAULT 0,
+      crit_used INTEGER NOT NULL DEFAULT 0,
+      PRIMARY KEY (boss_id, wallet_address)
+    );
+
+    CREATE TABLE IF NOT EXISTS inventory_capacity (
+      wallet_address TEXT PRIMARY KEY,
+      max_slots INTEGER NOT NULL DEFAULT 3
+    );
+
+    CREATE TABLE IF NOT EXISTS character_perks (
+      id TEXT PRIMARY KEY,
+      run_id TEXT NOT NULL,
+      perk_id TEXT NOT NULL,
+      stacks INTEGER NOT NULL DEFAULT 1
     );
 
     CREATE TABLE IF NOT EXISTS quest_completions (
@@ -204,10 +236,4 @@ export function initSchema() {
     db.exec("ALTER TABLE nft_claims ADD COLUMN mint_address TEXT");
   }
 
-  // Loot items: tier column for perks
-  const lootCols = db.prepare("PRAGMA table_info(loot_items)").all() as { name: string }[];
-  const lootColNames = lootCols.map((c) => c.name);
-  if (!lootColNames.includes("tier")) {
-    db.exec("ALTER TABLE loot_items ADD COLUMN tier INTEGER NOT NULL DEFAULT 1");
-  }
 }
