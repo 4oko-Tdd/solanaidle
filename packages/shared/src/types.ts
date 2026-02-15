@@ -424,3 +424,33 @@ export interface ActiveBoost {
   expiresAt: string;
   source: QuestId;
 }
+
+// ── Achievement Badges & Relic NFTs ──
+
+export type AchievementId =
+  | "boss_slayer"
+  | "streak_master"
+  | "deep_explorer"
+  | "raid_victor"
+  | "epoch_champion";
+
+export interface BadgeItem {
+  id: string;
+  achievementId: AchievementId;
+  name: string;
+  earnedAt: string;
+  mintAddress: string | null;
+}
+
+export interface RelicItem {
+  id: string;
+  name: string;
+  missionId: string;
+  mintAddress: string | null;
+  claimedAt: string | null;
+}
+
+export interface TrophyCaseData {
+  relics: RelicItem[];
+  badges: BadgeItem[];
+}

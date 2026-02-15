@@ -3,6 +3,7 @@ import crypto from "crypto";
 import type { WeeklyRun, ClassId } from "@solanaidle/shared";
 import { RUN_LIVES } from "./game-config.js";
 import { insertEvent } from "./event-service.js";
+import { checkAndGrantAchievements } from "./achievement-service.js";
 
 // Returns current week Monday 00:00 UTC → Sunday 23:59:59 UTC
 export function getWeekBounds(): { weekStart: string; weekEnd: string } {
@@ -87,6 +88,25 @@ export function endRun(runId: string): void {
     run.missions_completed,
     run.boss_defeated
   );
+
+  // Check Epoch Champion achievement (rank #1)
+  const topEntry = db
+    .prepare(
+      "SELECT wallet_address FROM leaderboard WHERE week_start = ? ORDER BY score DESC LIMIT 1"
+    )
+    .get(run.week_start) as { wallet_address: string } | undefined;
+
+  if (topEntry && topEntry.wallet_address === run.wallet_address) {
+    const char = db
+      .prepare("SELECT id FROM characters WHERE wallet_address = ?")
+      .get(run.wallet_address) as { id: string } | undefined;
+    if (char) {
+      checkAndGrantAchievements(run.wallet_address, char.id, "run_end", {
+        score: run.score,
+        rank: 1,
+      }).catch(() => {});
+    }
+  }
 }
 
 // Add score points to a run

@@ -38,6 +38,7 @@ import {
 import { ClassIcon } from "@/components/ClassIcon";
 import magicblockLogo from "@/assets/icons/MagicBlock-Logo-Black.png";
 import { InventoryPanel } from "@/features/inventory/InventoryPanel";
+import { TrophyCase } from "./TrophyCase";
 import { QuestPanel } from "./QuestPanel";
 import { useState, useEffect } from "react";
 import type { Inventory } from "@solanaidle/shared";
@@ -486,8 +487,9 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
           )}
 
           {activeTab === "inventory" && (
-            <div className="animate-tab-in">
+            <div className="animate-tab-in space-y-4">
               {inventory && <InventoryPanel inventory={inventory} onRefresh={refresh} />}
+              <TrophyCase />
             </div>
           )}
         </div>

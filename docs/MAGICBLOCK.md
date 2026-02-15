@@ -1,6 +1,8 @@
 # MagicBlock Integration
 
-Solana Idle integrates **two MagicBlock products** to bring game mechanics on-chain without sacrificing idle game UX:
+Solana Idle integrates **two MagicBlock products** to bring game mechanics on-chain without sacrificing idle game UX.
+
+In the game's cyberpunk narrative, the player is a **node operator** running missions on the Solana network. MagicBlock provides the trustless infrastructure that makes this world feel real — verifiable randomness for epoch rewards and on-chain progress that anyone can audit.
 
 | Product | What It Does | When It Runs |
 |---------|-------------|--------------|
@@ -26,6 +28,10 @@ This project targets the **"Solana On-Chain & Real-Time Gaming by MagicBlock"** 
 1. Verifiable randomness for epoch bonus rewards (VRF)
 2. On-chain game state via Ephemeral Rollups (ER)
 3. Both integrated with zero UX friction — critical for mobile idle games
+
+### Cross-Integration with Metaplex Core
+
+VRF bonus rolls can trigger NFT drops — when they do, the NFT is minted as a **Metaplex Core** asset with on-chain attributes recording the VRF source. This creates a provably fair chain: VRF roll → NFT drop → Core asset with verifiable origin. See [METAPLEX.md](./METAPLEX.md).
 
 ---
 

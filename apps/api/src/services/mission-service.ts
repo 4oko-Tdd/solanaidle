@@ -26,6 +26,7 @@ import { tryDropRandomLoot, getLootBonus, getBaseDropChance, getMaxDropChance } 
 import type { ActiveMission, MissionClaimResponse, MissionId, MissionRewards } from "@solanaidle/shared";
 import { updateProgressOnER } from "./er-service.js";
 import { getActiveBoostPercent } from "./quest-service.js";
+import { checkAndGrantAchievements } from "./achievement-service.js";
 
 interface MissionRow {
   id: string;
@@ -438,6 +439,16 @@ export function claimMission(
           crystal: rewards.crystal ?? 0,
           artifact: rewards.artifact ?? 0,
         });
+        // Achievement: Boss Slayer
+        if (walletAddress) {
+          checkAndGrantAchievements(walletAddress, characterId, "boss_kill", {}).catch(() => {});
+        }
+      }
+      // Achievement: Streak Legend + Deep Explorer
+      if (walletAddress) {
+        checkAndGrantAchievements(walletAddress, characterId, "mission_success", {
+          streak: currentStreak,
+        }).catch(() => {});
       }
     }
   }

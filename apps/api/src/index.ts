@@ -15,6 +15,7 @@ import runs from "./routes/runs.js";
 import skills from "./routes/skills.js";
 import daily from "./routes/daily.js";
 import quests from "./routes/quests.js";
+import nfts from "./routes/nft-routes.js";
 
 export let forceBossDay: boolean | null = null; // null = auto (Sunday), true/false = override
 
@@ -43,10 +44,13 @@ app.route("/runs", runs);
 app.route("/skills", skills);
 app.route("/daily", daily);
 app.route("/quests", quests);
+app.route("/nfts", nfts);
 
 initSchema();
 const { seedLootItems } = await import("./services/loot-service.js");
 seedLootItems();
+const { ensureCollections } = await import("./services/metaplex-service.js");
+ensureCollections().catch((err) => console.error("Collection init error:", err));
 
 // Dev-only routes (not available in production)
 if (process.env.NODE_ENV !== "production") {
@@ -230,9 +234,9 @@ if (process.env.NODE_ENV !== "production") {
       return c.json({ error: "CHARACTER_NOT_FOUND", message: "No character" }, 404);
     }
 
-    const body = await c.req.json<{ itemId: string; quantity?: number }>().catch(() => ({}));
-    const itemId = body?.itemId;
-    const quantity = Math.max(1, Math.min(99, Number(body?.quantity) || 1));
+    const body = await c.req.json<{ itemId: string; quantity?: number }>().catch(() => ({} as { itemId?: string; quantity?: number }));
+    const itemId = body.itemId;
+    const quantity = Math.max(1, Math.min(99, Number(body.quantity) || 1));
     if (!itemId || typeof itemId !== "string") {
       return c.json({ error: "BAD_REQUEST", message: "itemId required" }, 400);
     }

@@ -154,6 +154,15 @@ export function initSchema() {
       boost_percent REAL NOT NULL,
       expires_at TEXT NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS achievement_badges (
+      id TEXT PRIMARY KEY,
+      wallet_address TEXT NOT NULL,
+      achievement_id TEXT NOT NULL,
+      earned_at TEXT NOT NULL DEFAULT (datetime('now')),
+      mint_address TEXT,
+      UNIQUE(wallet_address, achievement_id)
+    );
   `);
 
   // Migrations — add columns if missing
@@ -186,6 +195,13 @@ export function initSchema() {
   }
   if (!missionColNames.includes("insured")) {
     db.exec("ALTER TABLE active_missions ADD COLUMN insured INTEGER NOT NULL DEFAULT 0");
+  }
+
+  // Migrations — nft_claims: mint_address column
+  const claimCols = db.prepare("PRAGMA table_info(nft_claims)").all() as { name: string }[];
+  const claimColNames = claimCols.map(c => c.name);
+  if (!claimColNames.includes("mint_address")) {
+    db.exec("ALTER TABLE nft_claims ADD COLUMN mint_address TEXT");
   }
 
   // Loot items: tier column for perks

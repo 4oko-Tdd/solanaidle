@@ -37,7 +37,7 @@ export function seedLootItems(): void {
     const oldIds = ["rusty_cog", "data_shard", "stale_token", "broken_lens", "warp_cell", "ghost_sig", "scrap_core", "dust_vial",
       "psu_capacitor", "network_card", "heat_sink", "rpc_chip", "staking_token_fragment"];
     const hasOld = current.some((r) => oldIds.includes(r.id));
-    const hasNoTier = current.length > 0 && db.prepare("PRAGMA table_info(loot_items)").all().every((c: { name: string }) => c.name !== "tier");
+    const hasNoTier = current.length > 0 && (db.prepare("PRAGMA table_info(loot_items)").all() as { name: string }[]).every((c) => c.name !== "tier");
     if (!hasOld && !hasNoTier) return;
     db.prepare("DELETE FROM character_loot").run();
     db.prepare("DELETE FROM loot_items").run();

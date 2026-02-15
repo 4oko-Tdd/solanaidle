@@ -3,6 +3,7 @@ import crypto from "crypto";
 import type { ActiveRaid, RaidId } from "@solanaidle/shared";
 import { getRaid, RAIDS } from "./game-config.js";
 import { getGuildByMember, getGuildMembers } from "./guild-service.js";
+import { checkAndGrantAchievements } from "./achievement-service.js";
 
 // Get available raids for a guild (based on member count)
 export function getAvailableRaids(guildId: string) {
@@ -174,6 +175,9 @@ export function claimRaid(
   if (remaining.count === 0) {
     db.prepare("DELETE FROM active_raids WHERE id = ?").run(active.id);
   }
+
+  // Achievement: Raid Victor
+  checkAndGrantAchievements(wallet, char.id, "raid_claim", {}).catch(() => {});
 
   return {
     lootMultiplier: raid.lootMultiplier,
