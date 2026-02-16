@@ -20,21 +20,7 @@ export function BossFight() {
   }
 
   if (!boss) {
-    return (
-      <div className="rounded-2xl border border-white/[0.08] bg-[#0d1525] p-6 text-center space-y-3">
-        <div className="flex items-center justify-center w-14 h-14 rounded-full bg-neon-red/10 border border-neon-red/20 mx-auto">
-          <Skull className="h-7 w-7 text-neon-red/40" />
-        </div>
-        <h3 className="text-lg font-display text-muted-foreground">No Active Boss</h3>
-        <p className="text-xs text-muted-foreground/70 max-w-[260px] mx-auto">
-          The Protocol Leviathan spawns on Saturdays. Check back then to join the hunt.
-        </p>
-        <div className="flex items-center justify-center gap-1.5 pt-1">
-          <Clock className="h-3 w-3 text-muted-foreground/50" />
-          <span className="text-[10px] text-muted-foreground/50 font-mono">Boss phase starts Saturday</span>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   const hpPercent = boss.maxHp > 0 ? Math.max(0, (boss.currentHp / boss.maxHp) * 100) : 0;

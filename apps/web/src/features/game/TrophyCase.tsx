@@ -30,7 +30,7 @@ export function TrophyCase() {
 
   if (badges.length === 0 && relics.length === 0) {
     return (
-      <div className="rounded-2xl border border-white/[0.06] bg-[#0d1525] p-4 text-center">
+      <div className="rounded-xl border border-[#1a3a5c]/60 bg-[#0a1628]/80 backdrop-blur-lg p-4 text-center">
         <div className="flex items-center justify-center gap-2 mb-2">
           <Award className="h-5 w-5 text-neon-purple/40" />
           <span className="text-sm font-display font-semibold text-muted-foreground">
@@ -45,7 +45,7 @@ export function TrophyCase() {
   }
 
   return (
-    <div className="rounded-2xl border border-white/[0.06] bg-[#0d1525] p-4 space-y-3">
+    <div className="rounded-xl border border-[#1a3a5c]/60 bg-[#0a1628]/80 backdrop-blur-lg p-4 space-y-3">
       <div className="flex items-center gap-2">
         <Award className="h-4 w-4 text-neon-purple" />
         <span className="text-sm font-display font-semibold text-white">

@@ -19,7 +19,8 @@ const app = new Hono<Env>();
 
 // GET /boss — public, but includes player contribution if authenticated
 app.get("/", (c) => {
-  const boss = getOrSpawnBoss();
+  // getOrSpawnBoss only works during boss phase; fall back to getCurrentBoss for dev-spawned bosses
+  const boss = getOrSpawnBoss() ?? getCurrentBoss();
   if (!boss) {
     return c.json({ boss: null });
   }

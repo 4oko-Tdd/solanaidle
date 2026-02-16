@@ -244,6 +244,35 @@ if (process.env.NODE_ENV !== "production") {
     return c.json({ message: "Quests reset" });
   });
 
+  // Dev: Force-spawn boss (bypasses weekend check)
+  app.post("/dev/spawn-boss", async (c) => {
+    const { randomUUID } = await import("crypto");
+    const db = (await import("./db/database.js")).default;
+    const { getWeekStart, getActivePlayerCount } = await import("./services/boss-service.js");
+    const { BOSS_BASE_HP, BOSS_SCALING_FACTOR, BOSS_NAME } = await import("./services/game-config.js");
+
+    const weekStart = getWeekStart();
+    const existing = db
+      .prepare("SELECT id FROM world_boss WHERE week_start = ?")
+      .get(weekStart) as { id: string } | undefined;
+
+    if (existing) {
+      return c.json({ message: "Boss already exists this week" });
+    }
+
+    const playerCount = getActivePlayerCount();
+    const maxHp = Math.max(BOSS_BASE_HP, Math.floor(BOSS_BASE_HP * playerCount * BOSS_SCALING_FACTOR));
+    const id = randomUUID();
+    const now = new Date().toISOString();
+
+    db.prepare(
+      `INSERT INTO world_boss (id, name, max_hp, current_hp, week_start, spawned_at, killed)
+       VALUES (?, ?, ?, ?, ?, ?, 0)`
+    ).run(id, BOSS_NAME, maxHp, maxHp, weekStart, now);
+
+    return c.json({ message: `Boss spawned: ${BOSS_NAME} (${maxHp} HP)` });
+  });
+
   // Dev: Reset DB -- wipe everything for this player
   app.post("/dev/reset-player", async (c) => {
     const header = c.req.header("Authorization");

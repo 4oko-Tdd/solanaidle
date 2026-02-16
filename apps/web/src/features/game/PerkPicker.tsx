@@ -2,51 +2,110 @@ import { usePerks } from "@/hooks/usePerks";
 import { Button } from "@/components/ui/button";
 import type { PerkDefinition } from "@solanaidle/shared";
 import { useState } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, Sparkles, Zap, Crown } from "lucide-react";
 
-const TIER_STYLES: Record<string, { border: string; glow: string; badge: string; badgeText: string }> = {
+const TIER_CONFIG: Record<
+  string,
+  {
+    border: string;
+    glow: string;
+    badge: string;
+    badgeText: string;
+    animate: string;
+    accent: string;
+    Icon: typeof Sparkles;
+    iconColor: string;
+  }
+> = {
   common: {
-    border: "border-white/20",
+    border: "border-white/[0.12]",
     glow: "",
     badge: "bg-white/10",
     badgeText: "text-muted-foreground",
+    animate: "",
+    accent: "",
+    Icon: Sparkles,
+    iconColor: "text-white/40",
   },
   rare: {
-    border: "border-neon-cyan/50",
-    glow: "shadow-[0_0_20px_rgba(0,212,255,0.15)]",
+    border: "border-neon-cyan/40",
+    glow: "shadow-[0_0_15px_rgba(0,212,255,0.1)]",
     badge: "bg-neon-cyan/20",
     badgeText: "text-neon-cyan",
+    animate: "",
+    accent: "",
+    Icon: Zap,
+    iconColor: "text-neon-cyan",
   },
   legendary: {
-    border: "border-neon-amber/50",
-    glow: "shadow-[0_0_30px_rgba(255,184,0,0.2)]",
+    border: "border-neon-amber/40",
+    glow: "",
     badge: "bg-neon-amber/20",
     badgeText: "text-neon-amber",
+    animate: "animate-golden-glow",
+    accent: "h-1 rounded-t-lg bg-gradient-to-r from-neon-amber to-yellow-400",
+    Icon: Crown,
+    iconColor: "text-neon-amber",
   },
 };
 
-function PerkCard({ perk, onChoose, disabled }: { perk: PerkDefinition; onChoose: () => void; disabled: boolean }) {
-  const style = TIER_STYLES[perk.tier] || TIER_STYLES.common;
+function PerkCard({
+  perk,
+  onChoose,
+  disabled,
+}: {
+  perk: PerkDefinition;
+  onChoose: () => void;
+  disabled: boolean;
+}) {
+  const cfg = TIER_CONFIG[perk.tier] || TIER_CONFIG.common;
+  const { Icon } = cfg;
 
   return (
-    <div className={`flex flex-col items-center gap-3 rounded-xl border ${style.border} ${style.glow} bg-[#0d1525] p-4 text-center`}>
-      <span className={`text-[10px] font-mono uppercase px-2 py-0.5 rounded-full ${style.badge} ${style.badgeText}`}>
-        {perk.tier}
-      </span>
-      <h3 className="text-sm font-display font-semibold text-white">{perk.name}</h3>
-      <p className="text-xs text-muted-foreground leading-relaxed">{perk.description}</p>
-      {perk.stackable && (
-        <span className="text-[10px] text-muted-foreground/60 font-mono">Stackable</span>
-      )}
-      <Button
-        size="sm"
-        variant="outline"
-        className="mt-auto w-full"
-        onClick={onChoose}
-        disabled={disabled}
-      >
-        Choose
-      </Button>
+    <div
+      className={`relative overflow-hidden rounded-lg border bg-[#0d1525] ${cfg.border} ${cfg.glow} ${cfg.animate}`}
+    >
+      {/* Legendary accent strip */}
+      {cfg.accent && <div className={cfg.accent} />}
+
+      <div className="flex items-center gap-3 p-3">
+        {/* Icon area */}
+        <div className="flex shrink-0 items-center justify-center">
+          <Icon className={`h-5 w-5 ${cfg.iconColor}`} />
+        </div>
+
+        {/* Text content */}
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-1.5">
+            <h3 className="truncate text-sm font-display font-semibold text-white">
+              {perk.name}
+            </h3>
+            <span
+              className={`shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-mono uppercase ${cfg.badge} ${cfg.badgeText}`}
+            >
+              {perk.tier}
+            </span>
+          </div>
+          <p className="mt-0.5 text-xs leading-snug text-muted-foreground">
+            {perk.description}
+          </p>
+          {perk.stackable && (
+            <span className="mt-0.5 block text-[9px] font-mono text-muted-foreground/60">
+              Stackable
+            </span>
+          )}
+        </div>
+
+        {/* Choose button */}
+        <Button
+          size="sm"
+          className="shrink-0"
+          onClick={onChoose}
+          disabled={disabled}
+        >
+          Choose
+        </Button>
+      </div>
     </div>
   );
 }
@@ -55,7 +114,15 @@ export function PerkPicker() {
   const { offers, hasPending, choosePerk, loading } = usePerks();
   const [choosing, setChoosing] = useState(false);
 
-  if (loading || !hasPending || offers.length === 0) return null;
+  if (!hasPending || offers.length === 0) return null;
+
+  if (loading) {
+    return (
+      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   const handleChoose = async (perkId: string) => {
     setChoosing(true);
@@ -67,14 +134,20 @@ export function PerkPicker() {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-      <div className="w-full max-w-md space-y-4">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
+      <div className="w-full max-w-md animate-fade-in-up space-y-4">
+        {/* Header */}
         <div className="text-center space-y-1">
-          <h2 className="text-lg font-display font-bold text-white">Level Up!</h2>
-          <p className="text-xs text-muted-foreground">Choose a perk to enhance your node</p>
+          <h2 className="text-gradient text-2xl font-display font-black uppercase tracking-wider">
+            Level Up
+          </h2>
+          <p className="text-xs text-muted-foreground">
+            Choose a perk to enhance your node
+          </p>
         </div>
 
-        <div className="grid grid-cols-3 gap-3">
+        {/* Perk cards — single column */}
+        <div className="grid grid-cols-1 gap-2.5">
           {offers.map((perk) => (
             <PerkCard
               key={perk.id}
@@ -85,6 +158,7 @@ export function PerkPicker() {
           ))}
         </div>
 
+        {/* Choosing indicator */}
         {choosing && (
           <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
             <Loader2 className="h-3 w-3 animate-spin" />

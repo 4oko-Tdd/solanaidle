@@ -1,9 +1,3 @@
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import type { UpgradeInfo, GearTrack } from "@solanaidle/shared";
 import { Shield, Zap, Search, ArrowUp } from "lucide-react";
@@ -16,20 +10,17 @@ interface Props {
   onUpgrade: (track: GearTrack) => void;
 }
 
-const TRACKS: { id: GearTrack; label: string; icon: React.ReactNode; color: string }[] = [
-  { id: "armor", label: "Firewall", icon: <Shield className="h-5 w-5" />, color: "text-neon-cyan" },
-  { id: "engine", label: "Turbo", icon: <Zap className="h-5 w-5" />, color: "text-neon-amber" },
-  { id: "scanner", label: "Scanner", icon: <Search className="h-5 w-5" />, color: "text-neon-green" },
+const TRACKS: { id: GearTrack; label: string; icon: React.ReactNode; color: string; borderAccent: string; bgAccent: string }[] = [
+  { id: "armor", label: "Firewall", icon: <Shield className="h-5 w-5" />, color: "text-neon-cyan", borderAccent: "border-neon-cyan/20", bgAccent: "bg-neon-cyan/10" },
+  { id: "engine", label: "Turbo", icon: <Zap className="h-5 w-5" />, color: "text-neon-amber", borderAccent: "border-neon-amber/20", bgAccent: "bg-neon-amber/10" },
+  { id: "scanner", label: "Scanner", icon: <Search className="h-5 w-5" />, color: "text-neon-green", borderAccent: "border-neon-green/20", bgAccent: "bg-neon-green/10" },
 ];
 
 export function UpgradePanel({ upgradeInfo, onUpgrade }: Props) {
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base font-display">Node Upgrades</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-3 gap-2 items-stretch">
+    <div className="rounded-xl border border-[#1a3a5c]/60 bg-[#0a1628]/80 backdrop-blur-lg p-4 space-y-3">
+      <h3 className="text-base font-display font-semibold text-white">Node Upgrades</h3>
+      <div className="grid grid-cols-3 gap-2 items-stretch">
           {TRACKS.map((track) => {
             const info = upgradeInfo[track.id];
             const isMaxed = info.next === null;
@@ -37,10 +28,10 @@ export function UpgradePanel({ upgradeInfo, onUpgrade }: Props) {
             return (
               <div
                 key={track.id}
-                className="flex flex-col items-center rounded-lg border border-white/[0.06] bg-white/[0.02] p-2.5 gap-1"
+                className={`flex flex-col items-center rounded-lg border ${track.borderAccent} bg-white/[0.02] p-2.5 gap-1`}
               >
                 {/* Fixed top section */}
-                <div className={track.color}>{track.icon}</div>
+                <div className={`${track.color} ${track.bgAccent} rounded-lg p-1.5`}>{track.icon}</div>
                 <span className="text-xs font-display font-bold">{track.label}</span>
                 <span className="text-[10px] font-mono text-muted-foreground">
                   Lv {info.level}/{info.maxLevel}
@@ -93,8 +84,7 @@ export function UpgradePanel({ upgradeInfo, onUpgrade }: Props) {
               </div>
             );
           })}
-        </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

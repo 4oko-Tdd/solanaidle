@@ -1,10 +1,4 @@
 import { useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { api } from "@/lib/api";
@@ -56,18 +50,17 @@ export function MissionTimer({
   };
 
   return (
-    <Card className={`transition-all duration-300 ${
+    <div className={`rounded-xl border border-[#1a3a5c]/60 bg-[#0a1628]/80 backdrop-blur-lg p-4 space-y-3 transition-all duration-300 ${
       isComplete
         ? "border-neon-green/50 glow-green animate-glow-pulse"
         : isUrgent
         ? "border-neon-amber/40 glow-purple"
         : ""
     }`}>
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-base font-display">
-            {missionDef?.name ?? "Transaction"} in Progress
-          </CardTitle>
+      <div className="flex items-center justify-between">
+        <h3 className="text-base font-display font-semibold text-white">
+          {missionDef?.name ?? "Transaction"} in Progress
+        </h3>
           {isComplete && (
             <span className="text-xs font-medium text-neon-green font-mono uppercase tracking-wider animate-bounce-in">
               Complete!
@@ -78,43 +71,40 @@ export function MissionTimer({
               Almost...
             </span>
           )}
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <div className={isUrgent ? "animate-glow-pulse rounded-full" : ""}>
-          <Progress value={progressPercent} className={`h-2.5 transition-all duration-500 ${isComplete ? "h-3" : ""}`} />
-        </div>
-        <div className="flex items-center justify-between text-sm">
-          <span className={`text-muted-foreground ${isUrgent ? "animate-urgency font-bold text-neon-amber" : ""}`}>
-            {isComplete ? (
-              <span className="text-neon-green font-bold animate-bounce-in">Ready to claim!</span>
-            ) : (
-              <span className="font-mono">{formatTime(remaining)}</span>
-            )}
-          </span>
-          <div className="flex items-center gap-2">
-            {import.meta.env.DEV && !isComplete && (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={handleSkipTimer}
-                disabled={skipping}
-                className="text-xs text-neon-amber border-neon-amber/50 hover:bg-neon-amber/10"
-              >
-                {skipping ? "Skipping..." : "Skip (Dev)"}
-              </Button>
-            )}
+      </div>
+      <div className={isUrgent ? "animate-glow-pulse rounded-full" : ""}>
+        <Progress value={progressPercent} className={`h-2.5 transition-all duration-500 ${isComplete ? "h-3" : ""}`} />
+      </div>
+      <div className="flex items-center justify-between text-sm">
+        <span className={`text-muted-foreground ${isUrgent ? "animate-urgency font-bold text-neon-amber" : ""}`}>
+          {isComplete ? (
+            <span className="text-neon-green font-bold animate-bounce-in">Ready to claim!</span>
+          ) : (
+            <span className="font-mono">{formatTime(remaining)}</span>
+          )}
+        </span>
+        <div className="flex items-center gap-2">
+          {import.meta.env.DEV && !isComplete && (
             <Button
               size="sm"
-              disabled={!isComplete}
-              onClick={onClaim}
-              className={isComplete ? "btn-shimmer" : ""}
+              variant="outline"
+              onClick={handleSkipTimer}
+              disabled={skipping}
+              className="text-xs text-neon-amber border-neon-amber/50 hover:bg-neon-amber/10"
             >
-              {isComplete ? "Claim Reward" : "In Progress..."}
+              {skipping ? "Skipping..." : "Skip (Dev)"}
             </Button>
-          </div>
+          )}
+          <Button
+            size="sm"
+            disabled={!isComplete}
+            onClick={onClaim}
+            className={isComplete ? "btn-shimmer" : ""}
+          >
+            {isComplete ? "Claim Reward" : "In Progress..."}
+          </Button>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

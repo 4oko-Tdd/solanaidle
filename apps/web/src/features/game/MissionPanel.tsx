@@ -1,10 +1,4 @@
 import { useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import type { MissionType, CharacterState, MissionId, ClassId, Inventory } from "@solanaidle/shared";
 import { Clock, Skull, Lock, AlertTriangle, Star, Sparkles, Shield, Minus, Plus, Crown, Fish } from "lucide-react";
@@ -324,11 +318,9 @@ export function MissionPanel({ missions, characterState, onStart, characterLevel
   }
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base font-display">Transactions</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
+    <div className="rounded-xl border border-[#1a3a5c]/60 bg-[#0a1628]/80 backdrop-blur-lg p-4 space-y-3">
+      <h3 className="text-base font-display font-semibold text-white">Transactions</h3>
+      <div className="space-y-3">
         {missions.map((mission) => {
           const locked = isTierLocked(mission.id);
           const lockLabel = getTierLabel(mission.id);
@@ -511,7 +503,7 @@ export function MissionPanel({ missions, characterState, onStart, characterLevel
               : "Node is recovering from slash"}
           </p>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
