@@ -151,10 +151,6 @@ export function getCurrentBoss(): Boss | null {
 export function joinBossFight(
   walletAddress: string
 ): { success: boolean; error?: string; participant?: Participant } {
-  if (!isBossPhase()) {
-    return { success: false, error: "BOSS_NOT_ACTIVE" };
-  }
-
   const boss = getCurrentBoss();
   if (!boss) {
     return { success: false, error: "BOSS_NOT_SPAWNED" };
