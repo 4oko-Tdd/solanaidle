@@ -11,10 +11,10 @@ import {
 
 // Program ID — must match deployed vrf-roller program
 const VRF_ROLLER_PROGRAM_ID = new PublicKey(
-  "3khuFQS11YeGuUUhoxLmz6fPi9Dsu6FahXLyGrzpbhUt"
+  "6poGeFLevD7oDWtY9FYHHXQ669vwJvMRa8R5iT98ESKN"
 );
 
-// MagicBlock VRF constants (from ephemeral_vrf_sdk::consts)
+// MagicBlock VRF constants (from ephemeral-vrf-sdk::consts)
 // These are the devnet addresses — update for mainnet
 const VRF_PROGRAM_ID = new PublicKey(
   "VRFzBcmMEXpDUcTpSmXbcNMKjLPKuAHCFb3jRKr1V4L"

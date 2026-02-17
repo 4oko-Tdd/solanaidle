@@ -3,7 +3,7 @@ use ephemeral_rollups_sdk::anchor::{commit, delegate, ephemeral};
 use ephemeral_rollups_sdk::cpi::DelegateConfig;
 use ephemeral_rollups_sdk::ephem::commit_and_undelegate_accounts;
 
-declare_id!("GtL43yR1JyZPjcbH8LkCj5j5aDdCTXkWH9K1xTWZa5Zr");
+declare_id!("AeMcgM2YYj4fFrMGEUvPeS3YcHiaDaUeSXYXjz5382up");
 
 pub const BOSS_SEED: &[u8] = b"boss";
 
@@ -131,6 +131,7 @@ pub struct ApplyDamage<'info> {
     pub boss_state: Account<'info, BossState>,
 }
 
+#[commit]
 #[derive(Accounts)]
 pub struct FinalizeAndCommit<'info> {
     #[account(mut)]
@@ -138,12 +139,6 @@ pub struct FinalizeAndCommit<'info> {
 
     #[account(mut)]
     pub boss_state: Account<'info, BossState>,
-
-    /// CHECK: Magic context for ephemeral rollup commit
-    pub magic_context: AccountInfo<'info>,
-
-    /// CHECK: Magic program for ephemeral rollup
-    pub magic_program: AccountInfo<'info>,
 }
 
 // ── State ──

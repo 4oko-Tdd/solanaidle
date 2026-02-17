@@ -13,7 +13,10 @@ apps/api/data/
 .vercel
 .agents/
 
-# Solana
+# Solana / Anchor
 *-keypair.json
 *.json.bak
 target/
+.anchor/
+test-ledger/
+programs/*/Cargo.lock

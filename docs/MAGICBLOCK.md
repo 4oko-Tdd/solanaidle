@@ -276,7 +276,7 @@ All branding uses the MagicBlock logo (inverted for dark theme).
 
 | Component | Technology |
 |-----------|-----------|
-| VRF SDK | `ephemeral_vrf_sdk` (Rust, `anchor` feature) |
+| VRF SDK | `ephemeral-vrf-sdk` (Rust, `anchor` feature) |
 | ER SDK | `ephemeral-rollups-sdk` (Rust, `anchor` feature) |
 | Framework | Anchor 0.32.1 |
 | Network | Solana devnet |

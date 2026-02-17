@@ -3,7 +3,7 @@ use ephemeral_rollups_sdk::anchor::{commit, delegate, ephemeral};
 use ephemeral_rollups_sdk::cpi::DelegateConfig;
 use ephemeral_rollups_sdk::ephem::commit_and_undelegate_accounts;
 
-declare_id!("6hsMMZ89QGgicwjq7YjE23JPkVw5Lbrb3VUpGNkpur78");
+declare_id!("8umphbZnJMMVNqR5QnaMurNCf6TcpbgQV5CWKKbChzcL");
 
 pub const PROGRESS_SEED: &[u8] = b"progress";
 

@@ -6,7 +6,7 @@ import type { EpochBonusRewards, WeeklyRun } from "@solanaidle/shared";
 
 // Program ID — update after deploying vrf-roller to devnet
 const VRF_ROLLER_PROGRAM_ID = new PublicKey(
-  "3khuFQS11YeGuUUhoxLmz6fPi9Dsu6FahXLyGrzpbhUt"
+  "6poGeFLevD7oDWtY9FYHHXQ669vwJvMRa8R5iT98ESKN"
 );
 
 const VRF_RESULT_SEED = Buffer.from("vrf_result");

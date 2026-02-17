@@ -3,7 +3,7 @@ use ephemeral_vrf_sdk::anchor::vrf;
 use ephemeral_vrf_sdk::instructions::{create_request_randomness_ix, RequestRandomnessParams};
 use ephemeral_vrf_sdk::types::SerializableAccountMeta;
 
-declare_id!("3khuFQS11YeGuUUhoxLmz6fPi9Dsu6FahXLyGrzpbhUt");
+declare_id!("6poGeFLevD7oDWtY9FYHHXQ669vwJvMRa8R5iT98ESKN");
 
 pub const VRF_RESULT_SEED: &[u8] = b"vrf_result";
 
@@ -109,13 +109,13 @@ pub struct ConsumeRandomnessCtx<'info> {
 #[derive(InitSpace)]
 pub struct VrfResult {
     /// The player who requested randomness.
-    pub player: Pubkey,     // 32 bytes
+    pub player: Pubkey, // 32 bytes
     /// The random bytes from the oracle.
     pub randomness: [u8; 32], // 32 bytes
     /// 0 = pending, 1 = fulfilled.
-    pub status: u8,          // 1 byte
+    pub status: u8, // 1 byte
     /// Unix timestamp of the request.
-    pub created_at: i64,     // 8 bytes
+    pub created_at: i64, // 8 bytes
     /// PDA bump seed.
-    pub bump: u8,            // 1 byte
+    pub bump: u8, // 1 byte
 }

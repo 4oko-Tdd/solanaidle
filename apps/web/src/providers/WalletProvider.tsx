@@ -13,7 +13,7 @@ import { clusterApiUrl } from "@solana/web3.js";
 
 export function WalletProvider({ children }: { children: React.ReactNode }) {
   const endpoint = useMemo(
-    () => import.meta.env.VITE_RPC_URL || clusterApiUrl("mainnet-beta"),
+    () => import.meta.env.VITE_RPC_URL || clusterApiUrl("devnet"),
     [],
   );
 
@@ -27,7 +27,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
           icon: "favicon.ico",
         },
         authorizationResultCache: createDefaultAuthorizationResultCache(),
-        cluster: "mainnet-beta",
+        cluster: "devnet",
         onWalletNotFound: createDefaultWalletNotFoundHandler(),
       }),
     ],

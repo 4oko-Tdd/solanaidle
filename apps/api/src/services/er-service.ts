@@ -24,7 +24,7 @@ import {
 // ── Constants ──
 
 const PROGRESS_PROGRAM_ID = new PublicKey(
-  "6hsMMZ89QGgicwjq7YjE23JPkVw5Lbrb3VUpGNkpur78"
+  "8umphbZnJMMVNqR5QnaMurNCf6TcpbgQV5CWKKbChzcL"
 );
 const DELEGATION_PROGRAM_ID = new PublicKey(
   "DELeGGvXpWV2fqJUhqcF5ZSYMS4JTLjteaAMARRSaeSh"

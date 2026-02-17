@@ -1,0 +1,20 @@
+[toolchain]
+
+[features]
+resolution = true
+skip-lint = false
+
+[programs.devnet]
+progress_tracker = "8umphbZnJMMVNqR5QnaMurNCf6TcpbgQV5CWKKbChzcL"
+vrf_roller = "6poGeFLevD7oDWtY9FYHHXQ669vwJvMRa8R5iT98ESKN"
+boss_tracker = "AeMcgM2YYj4fFrMGEUvPeS3YcHiaDaUeSXYXjz5382up"
+
+[registry]
+url = "https://api.apr.dev"
+
+[provider]
+cluster = "devnet"
+wallet = "~/.config/solana/solana-idle.json"
+
+[workspace]
+members = ["programs/*"]

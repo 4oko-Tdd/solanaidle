@@ -23,7 +23,7 @@ import {
 // ── Constants ──
 
 const BOSS_PROGRAM_ID = new PublicKey(
-  "GtL43yR1JyZPjcbH8LkCj5j5aDdCTXkWH9K1xTWZa5Zr"
+  "AeMcgM2YYj4fFrMGEUvPeS3YcHiaDaUeSXYXjz5382up"
 );
 const DELEGATION_PROGRAM_ID = new PublicKey(
   "DELeGGvXpWV2fqJUhqcF5ZSYMS4JTLjteaAMARRSaeSh"
