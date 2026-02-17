@@ -322,34 +322,33 @@ export function RunEndScreen({ run, signMessage, onFinalized }: Props) {
         {/* Gradient accent bar */}
         <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${style.gradient}`} />
 
-        <div className="p-5 text-center space-y-4">
+        <div className="p-4 text-center space-y-3">
           {/* Epoch label */}
-          <div className="inline-flex items-center gap-2 rounded-full bg-white/[0.04] border border-white/[0.08] px-3 py-1">
-            <Trophy className="h-3 w-3 text-neon-amber" />
-            <span className="text-[11px] font-mono text-muted-foreground uppercase tracking-wider">Epoch {weekNum} Complete</span>
+          <div className="inline-flex items-center gap-1.5 rounded-full bg-white/[0.04] border border-white/[0.08] px-2.5 py-0.5">
+            <Trophy className="h-2.5 w-2.5 text-neon-amber" />
+            <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">Epoch {weekNum} Complete</span>
           </div>
 
-          {/* Character avatar + grade */}
-          <div className="relative inline-block">
-            <div className={`rounded-full border-2 ${style.border} bg-[#111d30] p-2`}>
-              <ClassIcon classId={run.classId} className="h-20 w-20 rounded-full" />
+          {/* Character + score in a row */}
+          <div className="flex items-center justify-center gap-4">
+            {/* Avatar + grade */}
+            <div className="relative shrink-0">
+              <div className={`rounded-full border-2 ${style.border} bg-[#111d30] p-1.5`}>
+                <ClassIcon classId={run.classId} className="h-14 w-14 rounded-full" />
+              </div>
+              <div className={`absolute -top-0.5 -right-0.5 w-6 h-6 rounded-full bg-[#0d1525] border-2 ${style.border} flex items-center justify-center`}>
+                <span className={`text-[10px] font-display font-bold ${grade.color}`}>{grade.letter}</span>
+              </div>
             </div>
-            {/* Grade badge */}
-            <div className={`absolute -top-1 -right-1 w-8 h-8 rounded-full bg-[#0d1525] border-2 ${style.border} flex items-center justify-center`}>
-              <span className={`text-sm font-display font-bold ${grade.color}`}>{grade.letter}</span>
+
+            {/* Class + score */}
+            <div className="text-left">
+              <span className={`text-xs font-display font-medium ${style.text}`}>
+                {CLASS_NAMES[run.classId]}
+              </span>
+              <div className="text-4xl font-display font-bold text-neon-green leading-none mt-0.5">{run.score}</div>
+              <p className="text-[9px] text-muted-foreground font-mono uppercase tracking-widest mt-0.5">Final Score</p>
             </div>
-          </div>
-
-          <div>
-            <span className={`text-sm font-display font-medium ${style.text}`}>
-              {CLASS_NAMES[run.classId]}
-            </span>
-          </div>
-
-          {/* Big score */}
-          <div>
-            <div className="text-5xl font-display font-bold text-neon-green leading-none">{run.score}</div>
-            <p className="text-[10px] text-muted-foreground font-mono mt-1.5 uppercase tracking-widest">Final Score</p>
           </div>
         </div>
       </div>
@@ -421,13 +420,6 @@ export function RunEndScreen({ run, signMessage, onFinalized }: Props) {
           )}
         </div>
       )}
-
-      {/* On-chain badge */}
-      <div className="flex items-center justify-center gap-1.5 py-0.5">
-        <ShieldCheck className="h-3 w-3 text-neon-cyan/60" />
-        <span className="text-[10px] text-muted-foreground/60">On-chain via</span>
-        <img src={magicblockLogo} alt="MagicBlock" className="h-3 invert opacity-40" />
-      </div>
 
       {/* VRF CTA card */}
       <div className="rounded-2xl border border-neon-purple/25 bg-[#12102a] overflow-hidden">

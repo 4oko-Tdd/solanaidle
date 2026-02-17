@@ -1,27 +1,24 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { useBoss } from "@/hooks/useBoss";
 import { useToast } from "@/components/ToastProvider";
-import { Skull, Swords, Users, Zap, Loader2, Clock } from "lucide-react";
+import { Skull, Swords, Users, Zap, Loader2 } from "lucide-react";
+import type { WorldBoss } from "@solanaidle/shared";
 
-export function BossFight() {
-  const { boss, participantCount, totalDamage, playerContribution, loading, join, overload, refresh } = useBoss();
+interface Props {
+  boss: WorldBoss;
+  participantCount: number;
+  totalDamage: number;
+  playerContribution: number;
+  onJoin: () => Promise<void>;
+  onOverload: () => Promise<void>;
+  onRefresh: () => void;
+}
+
+export function BossFight({ boss, participantCount, totalDamage, playerContribution, onJoin, onOverload, onRefresh }: Props) {
   const { addToast } = useToast();
   const [joining, setJoining] = useState(false);
   const [overloading, setOverloading] = useState(false);
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-6 w-6 animate-spin text-neon-purple" />
-      </div>
-    );
-  }
-
-  if (!boss) {
-    return null;
-  }
 
   const hpPercent = boss.maxHp > 0 ? Math.max(0, (boss.currentHp / boss.maxHp) * 100) : 0;
   const isDefeated = boss.killed;
@@ -31,7 +28,7 @@ export function BossFight() {
   const handleJoin = async () => {
     setJoining(true);
     try {
-      await join();
+      await onJoin();
       addToast("Joined the hunt!", "success");
     } catch (e: unknown) {
       const err = e as { message?: string };
@@ -44,7 +41,7 @@ export function BossFight() {
   const handleOverload = async () => {
     setOverloading(true);
     try {
-      await overload();
+      await onOverload();
       addToast("OVERLOAD! Critical damage dealt!", "success");
     } catch (e: unknown) {
       const err = e as { message?: string };
@@ -55,20 +52,20 @@ export function BossFight() {
   };
 
   return (
-    <div className="space-y-3">
-      {/* Boss header */}
-      <div className={`relative rounded-2xl border overflow-hidden ${
+    <div>
+      {/* Boss panel */}
+      <div className={`relative rounded-xl border overflow-hidden ${
         isDefeated
-          ? "border-neon-green/30 bg-gradient-to-b from-neon-green/5 to-transparent"
-          : "border-neon-red/30 bg-gradient-to-b from-neon-red/5 to-transparent"
+          ? "border-neon-green/30 bg-[#0a1628]/80 backdrop-blur-lg"
+          : "border-neon-red/30 bg-[#0a1628]/80 backdrop-blur-lg"
       }`}>
-        <div className={`absolute top-0 left-0 right-0 h-1 ${
+        <div className={`absolute top-0 left-0 right-0 h-0.5 ${
           isDefeated
             ? "bg-gradient-to-r from-neon-green via-neon-amber to-neon-green"
             : "bg-gradient-to-r from-neon-red via-neon-purple to-neon-red"
         }`} />
 
-        <div className="p-5 space-y-4">
+        <div className="p-4 space-y-3">
           {/* Name & HP */}
           <div className="text-center space-y-1">
             <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-[0.2em]">World Boss</p>
@@ -158,7 +155,7 @@ export function BossFight() {
               <p className="text-xs text-muted-foreground">
                 The Leviathan has been destroyed. Check rewards in your collection.
               </p>
-              <Button variant="outline" size="sm" onClick={refresh}>
+              <Button variant="outline" size="sm" onClick={onRefresh}>
                 Refresh
               </Button>
             </div>

@@ -236,4 +236,25 @@ export function initSchema() {
     db.exec("ALTER TABLE nft_claims ADD COLUMN mint_address TEXT");
   }
 
+  // Migrations — characters: update CHECK constraint to include 'in_boss_fight'
+  const charInfo = db.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='characters'").get() as { sql: string } | undefined;
+  if (charInfo && !charInfo.sql.includes("in_boss_fight")) {
+    db.exec(`
+      CREATE TABLE characters_new (
+        id TEXT PRIMARY KEY,
+        wallet_address TEXT UNIQUE NOT NULL,
+        level INTEGER NOT NULL DEFAULT 1,
+        xp INTEGER NOT NULL DEFAULT 0,
+        hp INTEGER NOT NULL DEFAULT 100,
+        gear_level INTEGER NOT NULL DEFAULT 1,
+        state TEXT NOT NULL DEFAULT 'idle' CHECK(state IN ('idle', 'on_mission', 'in_boss_fight', 'dead')),
+        revive_at TEXT,
+        created_at TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+      INSERT INTO characters_new SELECT * FROM characters;
+      DROP TABLE characters;
+      ALTER TABLE characters_new RENAME TO characters;
+    `);
+  }
+
 }

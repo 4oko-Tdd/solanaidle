@@ -40,6 +40,7 @@ import {
 import { ClassIcon } from "@/components/ClassIcon";
 import magicblockLogo from "@/assets/icons/MagicBlock-Logo-Black.png";
 import { TrophyCase } from "./TrophyCase";
+import { useBoss } from "@/hooks/useBoss";
 import { useState, useEffect } from "react";
 import type { Inventory } from "@solanaidle/shared";
 
@@ -107,6 +108,7 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
 
   const { signMessage } = useWalletSign();
   const { addToast } = useToast();
+  const { boss, participantCount, totalDamage, playerContribution, join: bossJoin, overload: bossOverload, refresh: bossRefresh } = useBoss();
   const [activeTab, setActiveTab] = useState<Tab>("game");
   const [dailyStatus, setDailyStatus] = useState<DailyLoginStatus | null>(null);
   const [showDailyModal, setShowDailyModal] = useState(false);
@@ -410,7 +412,18 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
                 run={activeRun}
               />
 
-              {activeMission ? (
+              {/* Show boss fight OR missions — not both */}
+              {boss && !activeMission ? (
+                <BossFight
+                  boss={boss}
+                  participantCount={participantCount}
+                  totalDamage={totalDamage}
+                  playerContribution={playerContribution}
+                  onJoin={bossJoin}
+                  onOverload={bossOverload}
+                  onRefresh={bossRefresh}
+                />
+              ) : activeMission ? (
                 <MissionTimer
                   activeMission={activeMission}
                   missionDef={activeMissionDef}
@@ -429,9 +442,6 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
                   bossDefeated={activeRun?.bossDefeated}
                 />
               )}
-
-              {/* Boss fight — only renders when boss is active */}
-              <BossFight />
 
               {activeRun && (
                 <RunLog runId={activeRun.id} weekStart={activeRun.weekStart} />
