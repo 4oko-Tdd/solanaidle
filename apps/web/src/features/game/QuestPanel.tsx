@@ -26,7 +26,7 @@ import { useToast } from "../../components/ToastProvider";
 import jupiterLogo from "../../assets/icons/poweredbyjupiter-dark.svg";
 import scrapIcon from "@/assets/icons/scrap.png";
 import crystalIcon from "@/assets/icons/tokens.png";
-import artifactIcon from "@/assets/icons/25.png";
+import artifactIcon from "@/assets/icons/key.png";
 
 // ── Constants ──
 
@@ -82,7 +82,7 @@ function RewardIcons({ scrap, crystal, artifact, boost }: {
       )}
       {!!artifact && (
         <span className="inline-flex items-center gap-0.5">
-          <img src={artifactIcon} alt="" className="h-3 w-3" />
+          <img src={artifactIcon} alt="" className="h-5 w-5" />
           <span className="text-[9px] font-mono text-white/50">{artifact}</span>
         </span>
       )}

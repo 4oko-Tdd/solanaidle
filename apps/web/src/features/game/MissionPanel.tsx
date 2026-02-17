@@ -5,7 +5,7 @@ import { Clock, Skull, Lock, AlertTriangle, Sparkles, Shield, Minus, Plus, Crown
 import scrapIcon from "@/assets/icons/scrap.png";
 import expIcon from "@/assets/icons/exp.png";
 import crystalIcon from "@/assets/icons/tokens.png";
-import artifactIcon from "@/assets/icons/25.png";
+import artifactIcon from "@/assets/icons/key.png";
 
 const REROLL_COST_PER_STACK = 10;
 const MAX_REROLL_STACKS = 3;
@@ -194,7 +194,7 @@ export function MissionPanel({ missions, characterState, onStart, characterLevel
                 <span className="font-mono">50-100</span>
               </span>
               <span className="flex items-center gap-1">
-                <img src={artifactIcon} alt="" className="h-3.5 w-3.5" />
+                <img src={artifactIcon} alt="" className="h-6 w-6" />
                 <span className="font-mono">2-5</span>
               </span>
             </div>
@@ -397,7 +397,7 @@ export function MissionPanel({ missions, characterState, onStart, characterLevel
                   )}
                   {r.artifact && (
                     <span className="flex items-center gap-1">
-                      <img src={artifactIcon} alt="" className="h-3.5 w-3.5" />
+                      <img src={artifactIcon} alt="" className="h-6 w-6" />
                       <span className="font-mono">{r.artifact[0]}-{r.artifact[1]}</span>
                     </span>
                   )}

@@ -2,7 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import type { Inventory } from "@solanaidle/shared";
 import scrapIcon from "@/assets/icons/scrap.png";
 import crystalIcon from "@/assets/icons/tokens.png";
-import artifactIcon from "@/assets/icons/25.png";
+import artifactIcon from "@/assets/icons/key.png";
 
 interface Props {
   inventory: Inventory;

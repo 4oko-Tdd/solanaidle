@@ -11,7 +11,7 @@ import { Loader2, Gift, Check } from "lucide-react";
 import type { DailyLoginStatus } from "@solanaidle/shared";
 import scrapIcon from "@/assets/icons/scrap.png";
 import crystalIcon from "@/assets/icons/tokens.png";
-import artifactIcon from "@/assets/icons/25.png";
+import artifactIcon from "@/assets/icons/key.png";
 
 interface Props {
   status: DailyLoginStatus;
@@ -98,7 +98,7 @@ export function DailyLoginModal({ status, open, onClaim, onClose }: Props) {
             )}
             {reward.artifact > 0 && (
               <div className="flex items-center gap-1">
-                <img src={artifactIcon} alt="Keys" className="h-5 w-5" />
+                <img src={artifactIcon} alt="Keys" className="h-8 w-8" />
                 <span className="font-mono font-bold text-neon-green">+{reward.artifact}</span>
               </div>
             )}

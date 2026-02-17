@@ -3,7 +3,7 @@ import type { UpgradeInfo, GearTrack } from "@solanaidle/shared";
 import { Shield, Zap, Search, ArrowUp } from "lucide-react";
 import scrapIcon from "@/assets/icons/scrap.png";
 import crystalIcon from "@/assets/icons/tokens.png";
-import artifactIcon from "@/assets/icons/25.png";
+import artifactIcon from "@/assets/icons/key.png";
 
 interface Props {
   upgradeInfo: UpgradeInfo;
@@ -64,7 +64,7 @@ export function UpgradePanel({ upgradeInfo, onUpgrade }: Props) {
                       ) : null}
                       {info.next!.cost.artifact ? (
                         <div className="flex items-center gap-0.5">
-                          <img src={artifactIcon} alt="" className="h-3 w-3" />
+                          <img src={artifactIcon} alt="" className="h-5 w-5" />
                           <span className="text-[10px] font-mono">{info.next!.cost.artifact}</span>
                         </div>
                       ) : null}
