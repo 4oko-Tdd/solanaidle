@@ -257,7 +257,12 @@ if (process.env.NODE_ENV !== "production") {
       .get(weekStart) as { id: string } | undefined;
 
     if (existing) {
-      return c.json({ message: "Boss already exists this week" });
+      // Despawn — remove boss and participants
+      db.prepare("DELETE FROM boss_participants WHERE boss_id = ?").run(existing.id);
+      db.prepare("DELETE FROM world_boss WHERE id = ?").run(existing.id);
+      // Reset any characters stuck in boss fight
+      db.prepare("UPDATE characters SET state = 'idle' WHERE state = 'in_boss_fight'").run();
+      return c.json({ message: "Boss despawned", spawned: false });
     }
 
     const playerCount = getActivePlayerCount();
@@ -270,7 +275,7 @@ if (process.env.NODE_ENV !== "production") {
        VALUES (?, ?, ?, ?, ?, ?, 0)`
     ).run(id, BOSS_NAME, maxHp, maxHp, weekStart, now);
 
-    return c.json({ message: `Boss spawned: ${BOSS_NAME} (${maxHp} HP)` });
+    return c.json({ message: `Boss spawned: ${BOSS_NAME} (${maxHp} HP)`, spawned: true });
   });
 
   // Dev: Reset DB -- wipe everything for this player
