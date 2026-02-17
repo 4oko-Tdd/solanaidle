@@ -28,9 +28,11 @@ Four hackathon tracks are integrated:
 
 ### 2. MagicBlock
 - **VRF** — Verifiable random epoch bonus rolls (1x per week at finalization)
-- **Ephemeral Rollups** — Zero-fee on-chain progress tracking (every mission claim)
-- Both bundled into existing wallet signatures — zero extra popups
-- On-chain programs: `vrf-roller` + `progress-tracker` (Anchor)
+- **Ephemeral Rollups (Progress)** — Zero-fee on-chain progress tracking (every mission claim)
+- **Ephemeral Rollups (Boss HP)** — Real-time boss HP broadcast via websocket to all clients
+- Both progress operations bundled into existing wallet signatures — zero extra popups
+- Boss HP updates are server-signed (no player signatures for damage)
+- On-chain programs: `vrf-roller` + `progress-tracker` + `boss-tracker` (Anchor)
 - See [MAGICBLOCK.md](./MAGICBLOCK.md)
 
 ### 3. Metaplex Core
@@ -58,8 +60,9 @@ packages/
   shared/        → TypeScript types shared between FE and BE
 
 programs/
-  vrf-roller/    → MagicBlock VRF on-chain program (Anchor)
-  progress-tracker/ → Ephemeral Rollups progress PDA (Anchor)
+  vrf-roller/        → MagicBlock VRF on-chain program (Anchor)
+  progress-tracker/  → Ephemeral Rollups progress PDA (Anchor)
+  boss-tracker/      → Ephemeral Rollups boss HP PDA (Anchor)
 ```
 
 ## Key Dependencies

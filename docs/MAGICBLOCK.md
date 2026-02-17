@@ -7,7 +7,8 @@ In the game's cyberpunk narrative, the player is a **node operator** running mis
 | Product | What It Does | When It Runs |
 |---------|-------------|--------------|
 | **Verifiable Randomness (VRF)** | Provably fair bonus rolls | Once per epoch (weekly) |
-| **Ephemeral Rollups (ER)** | Zero-fee on-chain progress tracking | Every mission claim |
+| **Ephemeral Rollups (ER)** — Progress | Zero-fee on-chain progress tracking | Every mission claim |
+| **Ephemeral Rollups (ER)** — Boss HP | Real-time boss HP broadcast via websocket | Every damage tick + OVERLOAD |
 
 ---
 
@@ -152,8 +153,84 @@ Everything gameplay-related:
 - RNG (success/fail, loot drops, reward variance)
 - Inventory, upgrades, skill tree
 - Guild, raids
+- Boss participant details (who joined, individual contributions, overload status)
 
-The server is the source of truth. ER provides a verifiable attestation layer.
+The server is the source of truth. ER provides a verifiable attestation layer + real-time broadcast.
+
+---
+
+## Ephemeral Rollups — Real-Time Boss HP
+
+### What It Does
+
+Boss HP is tracked on-chain via a **single global BossState PDA** per week. All players subscribe to this one account via websocket and see HP updates instantly when any player deals damage or uses OVERLOAD.
+
+### Why a Separate Program?
+
+The `boss-tracker` program is separate from `progress-tracker` because:
+- **Different PDA seeding:** progress = `[player, week_start]` (per-player); boss = `[week_start]` (one global)
+- **Different delegation lifecycle:** progress = per-epoch; boss = per-weekend
+- **Different write pattern:** progress = many PDAs, one writer each; boss = one PDA, one writer (server)
+
+### Flow
+
+```
+Boss Spawn (Saturday 00:00 UTC):
+  Server → SQLite INSERT → Base Layer (init BossState PDA + delegate to ER)
+
+Player Joins (POST /boss/join):
+  Server → SQLite INSERT participant
+  → ER: apply_damage(delta=0, count++) → websocket → all frontends
+
+Passive Damage Tick (every GET /boss poll, ~30s):
+  Server → SQLite recalc all passive damage
+  → ER: apply_damage(delta) → websocket → all frontends see HP drop
+
+OVERLOAD (POST /boss/overload):
+  Server → SQLite (zero inventory, record crit)
+  → ER: apply_damage(crit_delta) → websocket → instant HP drop in all tabs
+
+Boss Dies / Weekend Ends:
+  Server → SQLite (killed=1)
+  → ER: finalize_and_commit (commit PDA to base layer + undelegate)
+```
+
+### On-Chain Program: `boss-tracker`
+
+```rust
+// Seeds: ["boss", week_start_bytes]
+pub struct BossState {
+    pub authority: Pubkey,       // 32 — server keypair (sole writer)
+    pub week_start: i64,         // 8
+    pub max_hp: u64,             // 8
+    pub current_hp: u64,         // 8
+    pub total_damage: u64,       // 8
+    pub participant_count: u32,  // 4
+    pub killed: bool,            // 1
+    pub spawned_at: i64,         // 8
+    pub bump: u8,                // 1
+}
+```
+
+**Instructions:**
+- `initialize_and_delegate` — Server creates PDA + delegates to ER at boss spawn
+- `apply_damage` — Server pushes damage delta to ER (free, instant). `has_one = authority` constraint. Sets `killed = true` when HP hits 0.
+- `finalize_and_commit` — Server commits PDA back to base layer when boss dies or weekend ends
+
+### Frontend Subscription
+
+The frontend hooks (`useBossER.ts`) subscribe to the boss PDA via `connection.onAccountChange()` on the ER validator URL. When the websocket is connected:
+- HP updates appear instantly across all clients (no polling delay)
+- HTTP polling interval is reduced from 30s to 120s (still needed for player-specific data: `hasJoined`, `overloadUsed`, `playerContribution`)
+- A "LIVE" indicator dot appears next to the boss name
+- If the websocket disconnects, the frontend falls back to 30s HTTP polling seamlessly
+
+### Resilience
+
+All ER calls are wrapped in try/catch. If the ER is unavailable:
+- The game continues via SQLite with 30s HTTP polling (same as before)
+- Boss damage is still tracked server-side — no data loss
+- When ER comes back, the next damage tick re-syncs the on-chain state
 
 ---
 
@@ -163,18 +240,25 @@ The server is the source of truth. ER provides a verifiable attestation layer.
 programs/
   vrf-roller/                    → VRF randomness (Anchor, Solana devnet)
   progress-tracker/              → ER progress tracking (Anchor, Solana devnet)
+  boss-tracker/                  → ER real-time boss HP (Anchor, Solana devnet)
 
 apps/web/src/
   hooks/useVrfRoll.ts            → VRF: build tx, sign, poll PDA
   hooks/useEphemeralProgress.ts  → ER: delegation + finalize ix builders
+  hooks/useBossER.ts             → ER: websocket subscription to boss PDA
+  hooks/useBoss.ts               → Merges on-chain + HTTP boss state
   features/game/RunEndScreen.tsx → 3-phase UX: summary → rolling → bonus reveal
   features/game/ClassPicker.tsx  → Epoch start with ER delegation
+  features/game/BossFight.tsx    → Boss UI with LIVE indicator
 
 apps/api/src/
   services/vrf-service.ts       → Read VRF PDA, validate, compute bonus
   services/er-service.ts        → Update progress on ER, read from Solana
+  services/boss-er-service.ts   → Boss HP: init, apply_damage, finalize on ER
+  services/boss-service.ts      → Boss logic + ER integration calls
   services/mission-service.ts   → Calls ER update after each mission claim
   routes/runs.ts                → Finalize route: VRF + ER commit
+  routes/boss-routes.ts         → Boss endpoints + GET /boss/pda
 ```
 
 ## UX Design
@@ -215,4 +299,9 @@ anchor build && anchor deploy
 cd programs/progress-tracker
 anchor build && anchor deploy
 # Update program ID in: lib.rs, er-service.ts, useEphemeralProgress.ts
+
+# Boss tracker program
+cd programs/boss-tracker
+anchor build && anchor deploy
+# Update program ID in: lib.rs, boss-er-service.ts
 ```

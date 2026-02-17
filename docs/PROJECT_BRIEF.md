@@ -36,7 +36,7 @@ Each week is an **epoch** -- a self-contained roguelike run. Monday you start fr
 | 2 | Liquidity Run | Medium duration, balanced risk/reward |
 | 3 | Deep Farm | Long, high-resource deep dive |
 
-Missions reward **XP + resources only** (Lamports, Tokens, Keys). No loot drops from missions -- all rare loot comes from the world boss.
+Missions reward **XP + resources only** (Scrap, Crystal, Keys). No loot drops from missions -- all rare loot comes from the world boss.
 
 ### Roguelike Perk System
 
@@ -62,9 +62,9 @@ This is the core economic decision every epoch. There is no correct answer.
 The endgame. A community event every weekend.
 
 - **Saturday 00:00 UTC:** Boss spawns. All regular missions lock.
-- **Shared HP pool** scaled to active player count that week
+- **Shared HP pool** scaled to active player count that week, tracked on-chain via MagicBlock ER for **real-time visibility** across all clients
 - Players **"Join the Hunt"** -- locks character into the fight. Earlier join = more passive damage = more contribution.
-- **OVERLOAD** -- dump remaining resources into one critical strike burst
+- **OVERLOAD** -- dump remaining resources into one critical strike burst (HP drop visible instantly to all players via websocket)
 - **Sunday 23:59 UTC:** If the community kills the boss, drop rolls happen based on contribution %. If the boss survives, nobody gets drops.
 
 ### Boss Drop Table
@@ -111,10 +111,11 @@ Wallet serves three roles:
 
 ### 2. MagicBlock
 
-Two MagicBlock products bring game mechanics on-chain without sacrificing mobile UX:
+Three MagicBlock integrations bring game mechanics on-chain without sacrificing mobile UX:
 
 - **VRF (Verifiable Random Function)** -- Epoch bonus rolls use on-chain VRF for provably fair randomness. Results are verifiable on Solana Explorer. Fallback to server-side RNG if unavailable.
-- **Ephemeral Rollups** -- Zero-fee on-chain progress tracking. Game state is checkpointed to Solana without transaction fees or extra signatures.
+- **Ephemeral Rollups (Progress)** -- Zero-fee on-chain progress tracking. Game state is checkpointed to Solana without transaction fees or extra signatures.
+- **Ephemeral Rollups (Boss HP)** -- Real-time boss HP broadcast to all clients via websocket. One global BossState PDA per week, server-signed damage updates, instant visibility across all players. Falls back to HTTP polling when unavailable.
 
 ### 3. Metaplex Core
 
@@ -152,7 +153,7 @@ All game state is **server-authoritative**:
 |---|---|
 | Frontend | React 19 + Vite + TypeScript + Tailwind CSS + shadcn/ui |
 | Backend | Hono (TypeScript) on Node.js + SQLite (better-sqlite3) |
-| On-Chain | Anchor (Solana programs for VRF + Ephemeral Rollups) |
+| On-Chain | Anchor (3 programs: VRF, progress tracking, boss HP — all via MagicBlock) |
 | NFTs | Metaplex Core (Umi + mpl-core) |
 | DeFi | Jupiter API (price, swap, limit orders) |
 | Wallet | @solana/wallet-adapter-react + Mobile Wallet Adapter v2 |

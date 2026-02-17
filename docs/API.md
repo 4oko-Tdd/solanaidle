@@ -260,6 +260,93 @@ Initiate NFT mint. Returns a transaction for the wallet to sign.
 
 ---
 
+### Boss
+
+#### `GET /boss`
+Get current world boss status. Includes player contribution if authenticated. Triggers passive damage recalculation.
+
+**Response:**
+```json
+{
+  "boss": {
+    "id": "...",
+    "name": "Protocol Leviathan",
+    "maxHp": 1000000,
+    "currentHp": 847230,
+    "weekStart": "2026-02-16T00:00:00.000Z",
+    "spawnedAt": "2026-02-14T00:00:00.000Z",
+    "killed": false
+  },
+  "participantCount": 12,
+  "totalDamage": 152770,
+  "hasJoined": true,
+  "overloadUsed": false,
+  "playerContribution": 0.15
+}
+```
+
+Returns `{ "boss": null }` when no boss is active.
+
+#### `POST /boss/join` (auth required)
+Join the boss fight. Locks character into `in_boss_fight` state.
+
+**Response:**
+```json
+{
+  "success": true,
+  "participant": {
+    "bossId": "...",
+    "walletAddress": "...",
+    "joinedAt": "2026-02-14T12:00:00Z",
+    "passiveDamage": 0,
+    "critDamage": 0,
+    "critUsed": false
+  }
+}
+```
+
+#### `POST /boss/overload` (auth required)
+Use OVERLOAD — burns all resources for critical damage. Once per boss fight.
+
+**Response:**
+```json
+{
+  "success": true,
+  "damage": 4250
+}
+```
+
+#### `GET /boss/pda`
+Get the on-chain boss PDA address for websocket subscription. Public endpoint.
+
+**Response:**
+```json
+{
+  "pda": "BoSS...abc",
+  "erValidatorUrl": "https://devnet-us.magicblock.app"
+}
+```
+
+Frontend uses this to subscribe to the boss PDA via `connection.onAccountChange()` on the ER validator for real-time HP updates.
+
+#### `GET /boss/results` (auth required)
+Get boss fight results after boss is killed. Triggers drop rolls for the authenticated player.
+
+**Response:**
+```json
+{
+  "killed": true,
+  "participants": [
+    { "wallet": "...", "contribution": 0.15, "totalDamage": 23000 }
+  ],
+  "playerContribution": 0.15,
+  "playerDamage": 23000,
+  "drops": { "type": "weekly_buff", "buffId": "head_start" }
+}
+```
+
+---
+
 ## Error Responses
 
 All errors follow:
@@ -331,3 +418,10 @@ Common error codes:
 - `MAX_GEAR_LEVEL` — already at max gear
 - `CLAIM_NOT_FOUND` — invalid claim ID
 - `ALREADY_CLAIMED` — NFT already minted
+- `BOSS_NOT_SPAWNED` — no active boss
+- `BOSS_ALREADY_KILLED` — boss already defeated
+- `NO_ACTIVE_RUN` — player has no active weekly run
+- `ALREADY_JOINED` — already in the boss fight
+- `CHARACTER_BUSY` — character not idle
+- `NOT_IN_FIGHT` — player not in boss fight (overload)
+- `OVERLOAD_ALREADY_USED` — already used overload this fight

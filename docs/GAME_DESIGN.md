@@ -41,7 +41,7 @@ Each week is an **epoch** (matching Solana terminology). Epochs define the compe
 
 - Pick class (Validator / Staker / Oracle)
 - 3 lives. Level 1. Zero resources.
-- Run missions, earn XP + resources (Lamports, Tokens, Keys)
+- Run missions, earn XP + resources (Scrap, Crystal, Keys)
 - Spend resources on gear upgrades (Armor / Engine / Scanner)
 - Choose roguelike perks on each level-up
 - Build power score for the weekend boss
@@ -59,7 +59,8 @@ Each week is an **epoch** (matching Solana terminology). Epochs define the compe
 
 - Character deals **passive damage** based on power (gear level + upgrades + score)
 - **One OVERLOAD** available: dump remaining resources for a single burst of damage
-- Boss HP bar visible to all players in real-time
+- Boss HP bar visible to all players in **real-time via websocket** (powered by MagicBlock Ephemeral Rollups — `boss-tracker` program). A "LIVE" indicator appears when connected.
+- Falls back to 30s HTTP polling when websocket is unavailable
 - Guild members' damage stacks (incentive to coordinate)
 
 ### Sunday 23:59 UTC: Epoch Ends
@@ -76,7 +77,7 @@ Each week is an **epoch** (matching Solana terminology). Epochs define the compe
 | Resets Every Epoch | Persists Forever |
 |---|---|
 | Character level | Permanent rare loot (boss drops) |
-| Resources (Lamports, Tokens, Keys) | NFT artifacts (hand-crafted legendaries) |
+| Resources (Scrap, Crystal, Keys) | NFT artifacts (hand-crafted legendaries) |
 | Gear upgrades (Armor/Engine/Scanner) | Achievement badges |
 | Roguelike perks | Inventory capacity (Data Core expansions) |
 | Streak counter | |
@@ -120,8 +121,8 @@ Three mission tiers, themed as network operations. **No loot drops from missions
 
 | Mission | Theme | Duration | Fail Rate | Rewards | Unlock |
 |---|---|---|---|---|---|
-| Quick Swap | Scout op | 7h | 10% | Small XP + Lamports | Level 1 |
-| Liquidity Run | Expedition | 12h | 25% | Medium XP + Lamports + Tokens | Level 3 |
+| Quick Swap | Scout op | 7h | 10% | Small XP + Scrap | Level 1 |
+| Liquidity Run | Expedition | 12h | 25% | Medium XP + Scrap + Crystal | Level 3 |
 | Deep Farm | Deep dive | 24h | 40% | Large XP + all resources | Level 6 |
 
 ### Mission Flow
@@ -161,8 +162,8 @@ All resources are off-chain, stored in the server database. **Resources reset to
 
 | Resource | Display Name | Source | Use |
 |---|---|---|---|
-| scrap | Lamports | All missions | Basic upgrades, OVERLOAD fuel |
-| crystal | Tokens | Liquidity Run+ | Advanced upgrades, OVERLOAD fuel |
+| scrap | Scrap | All missions | Basic upgrades, OVERLOAD fuel |
+| crystal | Crystal | Liquidity Run+ | Advanced upgrades, OVERLOAD fuel |
 | artifact | Keys | Deep Farm | Rare upgrades, OVERLOAD fuel |
 
 ### The Spending Tension
@@ -186,11 +187,11 @@ Reduces the chance of mission failure.
 
 | Level | Fail Rate Reduction | Cost |
 |---|---|---|
-| 1 | -2% | 50 Lamports |
-| 2 | -4% | 120 Lamports |
-| 3 | -6% | 200 Lamports, 30 Tokens |
-| 4 | -9% | 350 Lamports, 80 Tokens |
-| 5 | -12% | 500 Lamports, 150 Tokens, 20 Keys |
+| 1 | -2% | 50 Scrap |
+| 2 | -4% | 120 Scrap |
+| 3 | -6% | 200 Scrap, 30 Crystal |
+| 4 | -9% | 350 Scrap, 80 Crystal |
+| 5 | -12% | 500 Scrap, 150 Crystal, 20 Keys |
 
 ### Engine (Mission Speed)
 
@@ -221,8 +222,8 @@ Small stackable stat bonuses. Can appear multiple times and stack.
 | Loot Scanner | +5% boss drop chance |
 | Armor Plating | -2% fail rate, +2% duration |
 | Overclock Core | -5% duration, +3% fail rate |
-| Salvage Protocol | +10% Lamports from missions |
-| Token Siphon | +15% Tokens from missions |
+| Salvage Protocol | +10% Scrap from missions |
+| Token Siphon | +15% Crystal from missions |
 | Key Decoder | +10% Keys from missions |
 
 ### Rare Perks (15% of offers)
@@ -300,7 +301,7 @@ damage_per_hour = base_power
 
 **OVERLOAD (one-time critical strike):**
 - Player dumps ALL remaining resources into one burst
-- `crit_damage = (lamports * 1) + (tokens * 3) + (keys * 10)`
+- `crit_damage = (scrap * 1) + (crystal * 3) + (keys * 10)`
 - Modified by perks (Critical Overload = 1.5x, Chain Reaction = guild boost)
 - Can only be used **once per boss fight**
 - Button text: "OVERLOAD" with resource amount shown
@@ -417,7 +418,7 @@ Raids function as cooperative timed missions during the weekday grind. All parti
 
 7-day reward cycle with escalating resources:
 
-- Day 1-7: increasing amounts of Lamports, Tokens, and occasional Keys
+- Day 1-7: increasing amounts of Scrap, Crystal, and occasional Keys
 - Missing a day resets the streak back to Day 1
 - Resources from login are epoch-local (reset with everything else)
 
@@ -472,7 +473,7 @@ Quests powered by Jupiter API integration. Players complete real DeFi-adjacent t
 
 ### Rewards
 
-- Resources (Lamports, Tokens)
+- Resources (Scrap, Crystal)
 - Temporary boosts: loot chance, speed, XP gain
 
 ---
@@ -498,7 +499,7 @@ The game world is **Solana's network as a cyberpunk city.**
 | Boss crit | OVERLOAD | Overclock your node beyond safe limits |
 | Permanent loot | On-chain artifacts | Fragments recovered from defeated Leviathans |
 | Weekly buffs | Residual charge | Energy left over from fighting the Leviathan |
-| Resources | Lamports / Tokens / Keys | Network-native currency |
+| Resources | Scrap / Crystal / Keys | Network-native currency |
 | Missions | Network operations | Quick Swap, Liquidity Run, Deep Farm |
 
 ### UI Text Tone
