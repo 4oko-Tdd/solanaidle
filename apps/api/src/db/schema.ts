@@ -237,6 +237,8 @@ export function initSchema() {
   }
 
   // Migrations — characters: update CHECK constraint to include 'in_boss_fight'
+  // Clean up leftover temp table from a previously failed migration
+  db.exec("DROP TABLE IF EXISTS characters_new");
   const charInfo = db.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='characters'").get() as { sql: string } | undefined;
   if (charInfo && !charInfo.sql.includes("in_boss_fight")) {
     db.exec(`
