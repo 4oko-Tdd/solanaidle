@@ -58,7 +58,7 @@ export function MissionResultDialog({ result, onClose, livesRemaining }: Props) 
             <p className="text-sm font-medium text-center font-display uppercase tracking-wider">Rewards:</p>
             <div className="flex flex-wrap justify-center gap-2">
               <Badge variant="secondary" className="animate-stagger-in stagger-1">+{result.rewards.xp} XP</Badge>
-              <Badge variant="secondary" className="animate-stagger-in stagger-2">+{result.rewards.scrap} Lamports</Badge>
+              <Badge variant="secondary" className="animate-stagger-in stagger-2">+{result.rewards.scrap} Scrap</Badge>
               {result.rewards.crystal ? (
                 <Badge variant="secondary" className="animate-stagger-in stagger-3">+{result.rewards.crystal} Tokens</Badge>
               ) : null}

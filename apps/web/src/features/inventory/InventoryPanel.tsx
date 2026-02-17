@@ -11,7 +11,7 @@ interface Props {
 
 export function InventoryPanel({ inventory }: Props) {
   const resources = [
-    { icon: scrapIcon, label: "Lamports", value: inventory.scrap, color: "text-neon-green" },
+    { icon: scrapIcon, label: "Scrap", value: inventory.scrap, color: "text-neon-green" },
     { icon: crystalIcon, label: "Tokens", value: inventory.crystal, color: "text-neon-cyan" },
     { icon: artifactIcon, label: "Keys", value: inventory.artifact, color: "text-neon-purple" },
   ];

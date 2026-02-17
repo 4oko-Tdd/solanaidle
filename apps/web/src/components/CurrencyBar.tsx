@@ -2,7 +2,7 @@ import { useRef, useEffect, useState } from "react";
 import type { Inventory } from "@solanaidle/shared";
 import scrapIcon from "@/assets/icons/scrap.png";
 import crystalIcon from "@/assets/icons/tokens.png";
-import artifactIcon from "@/assets/icons/25.png";
+import artifactIcon from "@/assets/icons/key.png";
 
 interface Props {
   inventory: Inventory;
@@ -70,7 +70,7 @@ function CurrencyItem({ icon, alt, value }: { icon: string; alt: string; value: 
 export function CurrencyBar({ inventory }: Props) {
   return (
     <div className="flex items-center gap-6">
-      <CurrencyItem icon={scrapIcon} alt="Lamports" value={inventory.scrap} />
+      <CurrencyItem icon={scrapIcon} alt="Scrap" value={inventory.scrap} />
       <CurrencyItem icon={crystalIcon} alt="Tokens" value={inventory.crystal} />
       <CurrencyItem icon={artifactIcon} alt="Keys" value={inventory.artifact} />
     </div>

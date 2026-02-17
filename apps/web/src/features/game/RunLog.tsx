@@ -44,7 +44,7 @@ function formatEvent(event: RunEvent): string {
     case "run_start":
       return `Epoch started as ${d.classId}`;
     case "mission_success":
-      return `${d.missionId} confirmed. +${d.xp} XP, +${d.scrap} lamports${d.crystal ? `, +${d.crystal} tokens` : ""}`;
+      return `${d.missionId} confirmed. +${d.xp} XP, +${d.scrap} scrap${d.crystal ? `, +${d.crystal} tokens` : ""}`;
     case "mission_fail":
       return d.escaped
         ? `${d.missionId} failed — Failover!`

@@ -146,7 +146,7 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
     if (!lastClaimResult) return;
     if (lastClaimResult.result === "success" && lastClaimResult.rewards) {
       const r = lastClaimResult.rewards;
-      addToast(`+${r.scrap} Lamports${r.crystal ? `, +${r.crystal} Tokens` : ""}${r.artifact ? `, +${r.artifact} Keys` : ""}`, "success");
+      addToast(`+${r.scrap} Scrap${r.crystal ? `, +${r.crystal} Tokens` : ""}${r.artifact ? `, +${r.artifact} Keys` : ""}`, "success");
       if (r.streakMultiplier && r.streakMultiplier > 1) {
         addToast(`${r.streakMultiplier}x Streak Bonus!`, "warning");
       }

@@ -86,7 +86,7 @@ export function DailyLoginModal({ status, open, onClaim, onClose }: Props) {
           <div className="flex items-center justify-center gap-4">
             {reward.scrap > 0 && (
               <div className="flex items-center gap-1">
-                <img src={scrapIcon} alt="Lamports" className="h-8 w-8" />
+                <img src={scrapIcon} alt="Scrap" className="h-8 w-8" />
                 <span className="font-mono font-bold text-neon-green">+{reward.scrap}</span>
               </div>
             )}

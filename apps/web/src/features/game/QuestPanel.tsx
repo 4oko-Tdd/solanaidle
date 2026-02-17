@@ -330,7 +330,7 @@ export function QuestPanel() {
         {showInfo && (
           <div className="mt-1.5 pl-5 space-y-1 text-[9px] text-white/35 leading-relaxed">
             <p>Daily ops reset every 24h. Weekly ops reset on Monday.</p>
-            <p>Each op rewards Lamports, Tokens, or Keys — plus temporary boosts to XP, loot chance, or mission speed.</p>
+            <p>Each op rewards Scrap, Tokens, or Keys — plus temporary boosts to XP, loot chance, or mission speed.</p>
             <p>Supply Run performs a real 0.001 SOL swap on Solana via Jupiter.</p>
           </div>
         )}
