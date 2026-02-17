@@ -6,6 +6,11 @@ import {
   BOSS_NAME,
   OVERLOAD_MULTIPLIERS,
 } from "./game-config.js";
+import {
+  initializeBossOnChain,
+  applyDamageOnER,
+  finalizeBossOnChain,
+} from "./boss-er-service.js";
 
 // ── Helpers ──
 
@@ -126,6 +131,10 @@ export function getOrSpawnBoss(): Boss | null {
     `INSERT INTO world_boss (id, name, max_hp, current_hp, week_start, spawned_at, killed)
      VALUES (?, ?, ?, ?, ?, ?, 0)`
   ).run(id, BOSS_NAME, maxHp, maxHp, weekStart, now);
+
+  // Initialize boss PDA on-chain and delegate to ER
+  const weekStartTs = Math.floor(new Date(weekStart).getTime() / 1000);
+  initializeBossOnChain(weekStartTs, maxHp).catch(() => {});
 
   return {
     id,
@@ -360,6 +369,22 @@ export function useOverload(
   });
   overloadTx();
 
+  // Push overload damage to ER
+  const weekStartOverload = getWeekStart();
+  const weekStartTsOverload = Math.floor(new Date(weekStartOverload).getTime() / 1000);
+  const overloadStatus = getBossStatus(bossId);
+  if (overloadStatus) {
+    applyDamageOnER(weekStartTsOverload, overloadStatus.totalDamage, overloadStatus.participantCount).catch(() => {});
+  }
+
+  // If boss was killed, finalize on-chain
+  const bossAfterOverload = db
+    .prepare("SELECT killed FROM world_boss WHERE id = ?")
+    .get(bossId) as { killed: number } | undefined;
+  if (bossAfterOverload?.killed === 1) {
+    finalizeBossOnChain(weekStartTsOverload).catch(() => {});
+  }
+
   return { success: true, damage };
 }
 
@@ -399,6 +424,16 @@ export function updateAllPassiveDamage(bossId: string): void {
   if (newHp <= 0) {
     db.prepare("UPDATE world_boss SET killed = 1 WHERE id = ?").run(bossId);
   }
+
+  // Push damage to ER
+  const weekStartPassive = getWeekStart();
+  const weekStartTsPassive = Math.floor(new Date(weekStartPassive).getTime() / 1000);
+  applyDamageOnER(weekStartTsPassive, totalDamage, participants.length).catch(() => {});
+
+  // If boss was killed, finalize on-chain
+  if (newHp <= 0) {
+    finalizeBossOnChain(weekStartTsPassive).catch(() => {});
+  }
 }
 
 /** Get boss status with optional player contribution. */
@@ -435,6 +470,8 @@ export function getBossStatus(
     participantCount: number;
     totalDamage: number;
     playerContribution?: number;
+    hasJoined?: boolean;
+    overloadUsed?: boolean;
   } = {
     boss,
     participantCount: countRow.cnt,
@@ -444,10 +481,12 @@ export function getBossStatus(
   if (walletAddress) {
     const playerRow = db
       .prepare(
-        "SELECT (passive_damage + crit_damage) as player_total FROM boss_participants WHERE boss_id = ? AND wallet_address = ?"
+        "SELECT (passive_damage + crit_damage) as player_total, crit_used FROM boss_participants WHERE boss_id = ? AND wallet_address = ?"
       )
-      .get(bossId, walletAddress) as { player_total: number } | undefined;
+      .get(bossId, walletAddress) as { player_total: number; crit_used: number } | undefined;
 
+    result.hasJoined = !!playerRow;
+    result.overloadUsed = !!playerRow && playerRow.crit_used === 1;
     if (playerRow && dmgRow.total > 0) {
       result.playerContribution = playerRow.player_total / dmgRow.total;
     } else {

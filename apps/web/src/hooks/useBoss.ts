@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { api } from "@/lib/api";
+import { useBossER } from "./useBossER";
 import type { WorldBoss } from "@solanaidle/shared";
 
 interface BossStatus {
@@ -7,6 +8,8 @@ interface BossStatus {
   participantCount: number;
   totalDamage: number;
   playerContribution?: number;
+  hasJoined?: boolean;
+  overloadUsed?: boolean;
 }
 
 interface BossState {
@@ -14,9 +17,14 @@ interface BossState {
   participantCount: number;
   totalDamage: number;
   playerContribution: number;
+  hasJoined: boolean;
+  overloadUsed: boolean;
   loading: boolean;
   error: string | null;
 }
+
+const POLL_INTERVAL_DEFAULT = 30000;
+const POLL_INTERVAL_WITH_WS = 120000;
 
 export function useBoss() {
   const [state, setState] = useState<BossState>({
@@ -24,10 +32,15 @@ export function useBoss() {
     participantCount: 0,
     totalDamage: 0,
     playerContribution: 0,
+    hasJoined: false,
+    overloadUsed: false,
     loading: true,
     error: null,
   });
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Subscribe to on-chain boss state via websocket
+  const er = useBossER(state.boss !== null && !state.boss.killed);
 
   const refresh = useCallback(async () => {
     try {
@@ -37,6 +50,8 @@ export function useBoss() {
         participantCount: data.participantCount,
         totalDamage: data.totalDamage,
         playerContribution: data.playerContribution ?? 0,
+        hasJoined: data.hasJoined ?? false,
+        overloadUsed: data.overloadUsed ?? false,
         loading: false,
         error: null,
       });
@@ -50,14 +65,15 @@ export function useBoss() {
     }
   }, []);
 
+  // Adjust polling interval based on websocket connection
   useEffect(() => {
     refresh();
-    // Poll every 30s during boss phase
-    intervalRef.current = setInterval(refresh, 30000);
+    const interval = er.connected ? POLL_INTERVAL_WITH_WS : POLL_INTERVAL_DEFAULT;
+    intervalRef.current = setInterval(refresh, interval);
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [refresh]);
+  }, [refresh, er.connected]);
 
   const join = useCallback(async () => {
     await api("/boss/join", { method: "POST" });
@@ -69,8 +85,27 @@ export function useBoss() {
     await refresh();
   }, [refresh]);
 
+  // Merge on-chain state with HTTP state when websocket is connected
+  const mergedBoss: WorldBoss | null = state.boss
+    ? er.connected && er.onChainHp !== null
+      ? {
+          ...state.boss,
+          currentHp: er.onChainHp,
+          killed: er.onChainKilled ?? state.boss.killed,
+        }
+      : state.boss
+    : null;
+
   return {
     ...state,
+    boss: mergedBoss,
+    participantCount: er.connected && er.onChainParticipants !== null
+      ? er.onChainParticipants
+      : state.participantCount,
+    totalDamage: er.connected && er.onChainTotalDamage !== null
+      ? er.onChainTotalDamage
+      : state.totalDamage,
+    wsConnected: er.connected,
     join,
     overload,
     refresh,

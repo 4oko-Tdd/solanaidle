@@ -73,11 +73,11 @@ function getGrade(score: number, missions: number, bossDefeated: boolean): { let
 type Tab = "game" | "ops" | "base" | "guild" | "ranks";
 
 const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
-  { id: "game", label: "Game", icon: <Swords className="h-4 w-4" /> },
-  { id: "ops", label: "Ops", icon: <Search className="h-4 w-4" /> },
-  { id: "base", label: "Base", icon: <Wrench className="h-4 w-4" /> },
-  { id: "guild", label: "Guild", icon: <Users className="h-4 w-4" /> },
-  { id: "ranks", label: "Ranks", icon: <Trophy className="h-4 w-4" /> },
+  { id: "game", label: "Game", icon: <Swords className="h-5 w-5" /> },
+  { id: "ops", label: "Ops", icon: <Search className="h-5 w-5" /> },
+  { id: "base", label: "Base", icon: <Wrench className="h-5 w-5" /> },
+  { id: "guild", label: "Guild", icon: <Users className="h-5 w-5" /> },
+  { id: "ranks", label: "Ranks", icon: <Trophy className="h-5 w-5" /> },
 ];
 
 interface Props {
@@ -108,7 +108,7 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
 
   const { signMessage } = useWalletSign();
   const { addToast } = useToast();
-  const { boss, participantCount, totalDamage, playerContribution, join: bossJoin, overload: bossOverload, refresh: bossRefresh } = useBoss();
+  const { boss, participantCount, totalDamage, playerContribution, hasJoined, overloadUsed, wsConnected, join: bossJoin, overload: bossOverload, refresh: bossRefresh } = useBoss();
   const [activeTab, setActiveTab] = useState<Tab>("game");
   const [dailyStatus, setDailyStatus] = useState<DailyLoginStatus | null>(null);
   const [showDailyModal, setShowDailyModal] = useState(false);
@@ -207,7 +207,7 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
             <div>
               <button
                 onClick={() => setDevOpen((o) => !o)}
-                className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
               >
                 <Wrench className="h-3 w-3" />
                 Dev
@@ -215,17 +215,17 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
               </button>
               {devOpen && (
                 <div className="flex flex-wrap gap-1.5 mt-1.5">
-                  <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2" onClick={async () => {
+                  <Button variant="ghost" size="sm" className="h-6 text-xs px-2" onClick={async () => {
                     await api("/dev/add-resources", { method: "POST" });
                     addToast("+Resources", "success");
                     await refresh();
                   }}>+Resources</Button>
-                  <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2" onClick={async () => {
+                  <Button variant="ghost" size="sm" className="h-6 text-xs px-2" onClick={async () => {
                     const res = await api<{ message: string }>("/dev/add-xp", { method: "POST" });
                     addToast(res.message, "success");
                     await refresh();
                   }}>+XP</Button>
-                  <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2" onClick={async () => {
+                  <Button variant="ghost" size="sm" className="h-6 text-xs px-2" onClick={async () => {
                     const res = await api<{ message: string }>("/dev/reset-quests", { method: "POST" });
                     addToast(res.message, "success");
                     await refresh();
@@ -233,17 +233,17 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
 
                   {activeRun && (
                     <>
-                      <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2" onClick={async () => {
+                      <Button variant="ghost" size="sm" className="h-6 text-xs px-2" onClick={async () => {
                         await api("/dev/skip-timer", { method: "POST" });
                         addToast("Timer skipped", "success");
                         await refresh();
                       }}>Skip Timer</Button>
-                      <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2 text-neon-red" onClick={async () => {
+                      <Button variant="ghost" size="sm" className="h-6 text-xs px-2 text-neon-red" onClick={async () => {
                         await api<{ message: string }>("/dev/end-epoch", { method: "POST" });
                         addToast("Epoch ended", "warning");
                         await refresh();
                       }}>End Epoch</Button>
-                      <Button variant="ghost" size="sm" className={`h-6 text-[10px] px-2 ${boss ? "text-neon-red" : "text-neon-purple"}`} onClick={async () => {
+                      <Button variant="ghost" size="sm" className={`h-6 text-xs px-2 ${boss ? "text-neon-red" : "text-neon-purple"}`} onClick={async () => {
                         const res = await api<{ message: string }>("/dev/spawn-boss", { method: "POST" });
                         addToast(res.message, boss ? "warning" : "success");
                         await bossRefresh();
@@ -253,14 +253,14 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
                   )}
 
                   {!activeRun && (
-                    <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2 text-neon-green" onClick={async () => {
+                    <Button variant="ghost" size="sm" className="h-6 text-xs px-2 text-neon-green" onClick={async () => {
                       const res = await api<{ message: string }>("/dev/reset-epoch", { method: "POST" });
                       addToast(res.message, "success");
                       await refresh();
                     }}>New Epoch</Button>
                   )}
 
-                  <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2 text-neon-red/60" onClick={async () => {
+                  <Button variant="ghost" size="sm" className="h-6 text-xs px-2 text-neon-red/60" onClick={async () => {
                     if (!confirm("Wipe all player data?")) return;
                     const res = await api<{ message: string }>("/dev/reset-player", { method: "POST" });
                     addToast(res.message, "warning");
@@ -271,7 +271,7 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
                     <select
                       value={devLootItem}
                       onChange={(e) => setDevLootItem(e.target.value)}
-                      className="h-6 text-[10px] rounded border border-white/20 bg-white/5 text-foreground px-2"
+                      className="h-6 text-xs rounded border border-white/20 bg-white/5 text-foreground px-2"
                     >
                       <option value="ram_stick">RAM Stick</option>
                       <option value="lan_cable">LAN Cable</option>
@@ -285,12 +285,12 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
                       max={99}
                       value={devLootQty}
                       onChange={(e) => setDevLootQty(Math.max(1, Math.min(99, parseInt(e.target.value, 10) || 1)))}
-                      className="h-6 w-12 text-[10px] rounded border border-white/20 bg-white/5 text-foreground px-1 text-center"
+                      className="h-6 w-12 text-xs rounded border border-white/20 bg-white/5 text-foreground px-1 text-center"
                     />
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-6 text-[10px] px-2"
+                      className="h-6 text-xs px-2"
                       disabled={devLootAdding}
                       onClick={async () => {
                         setDevLootAdding(true);
@@ -329,14 +329,14 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
                       <ClassIcon classId={endedRun.classId} className="h-11 w-11 rounded-full" />
                     </div>
                     <div className={`absolute -top-0.5 -right-0.5 w-5 h-5 rounded-full bg-[#0d1525] border-2 ${epochStyle.border} flex items-center justify-center`}>
-                      <span className={`text-[9px] font-display font-bold ${epochGrade.color}`}>{epochGrade.letter}</span>
+                      <span className={`text-xs font-display font-bold ${epochGrade.color}`}>{epochGrade.letter}</span>
                     </div>
                   </div>
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1 mb-0.5">
                       <Trophy className="h-2.5 w-2.5 text-neon-amber shrink-0" />
-                      <span className="text-[9px] font-mono text-muted-foreground uppercase tracking-wider">Epoch {epochWeekNum}</span>
+                      <span className="text-xs font-mono text-muted-foreground uppercase tracking-wider">Epoch {epochWeekNum}</span>
                     </div>
                     <span className={`text-sm font-display font-semibold ${epochStyle.text}`}>
                       {CLASS_NAMES[endedRun.classId]}
@@ -345,7 +345,7 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
 
                   <div className="text-right shrink-0">
                     <div className="text-2xl font-display font-bold text-neon-green leading-none">{endedRun.score}</div>
-                    <p className="text-[8px] text-muted-foreground font-mono mt-0.5 uppercase tracking-wider">Score</p>
+                    <p className="text-xs text-muted-foreground font-mono mt-0.5 uppercase tracking-wider">Score</p>
                   </div>
                 </div>
               </div>
@@ -361,7 +361,7 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
                   <div key={stat.label} className="rounded-lg border border-white/[0.06] bg-[#0d1525] py-1.5 px-1 text-center">
                     <div className="flex justify-center mb-0.5">{stat.icon}</div>
                     <div className={`font-bold text-xs font-mono leading-none ${stat.color}`}>{stat.value}</div>
-                    <div className="text-[7px] text-muted-foreground font-mono uppercase mt-0.5">{stat.label}</div>
+                    <div className="text-sm text-muted-foreground font-mono uppercase mt-0.5">{stat.label}</div>
                   </div>
                 ))}
               </div>
@@ -371,13 +371,13 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
                 <div className="flex items-center gap-2">
                   <Clock className="h-3.5 w-3.5 text-neon-green shrink-0" />
                   <div>
-                    <h3 className="text-xs font-display font-semibold text-white leading-none">Waiting for Next Epoch</h3>
-                    <p className="text-[10px] text-muted-foreground mt-0.5">Score sealed. New epoch starts next week.</p>
+                    <h3 className="text-sm font-display font-semibold text-white leading-none">Waiting for Next Epoch</h3>
+                    <p className="text-sm text-muted-foreground mt-0.5">Score sealed. New epoch starts next week.</p>
                   </div>
                 </div>
 
                 <div className="rounded-lg bg-[#111d30] p-2.5 space-y-1.5">
-                  <p className="text-[9px] font-mono text-muted-foreground uppercase tracking-wider">What carries over</p>
+                  <p className="text-sm font-mono text-muted-foreground uppercase tracking-wider">What carries over</p>
                   <div className="grid grid-cols-2 gap-x-2 gap-y-1">
                     {[
                       { keeps: true, text: "Boss Loot" },
@@ -389,7 +389,7 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
                     ].map((item) => (
                       <div key={item.text} className="flex items-center gap-1">
                         <div className={`w-1 h-1 rounded-full ${item.keeps ? "bg-neon-green" : "bg-neon-red/60"}`} />
-                        <span className={`text-[10px] ${item.keeps ? "text-foreground/80" : "text-muted-foreground"}`}>{item.text}</span>
+                        <span className={`text-sm ${item.keeps ? "text-foreground/80" : "text-muted-foreground"}`}>{item.text}</span>
                       </div>
                     ))}
                   </div>
@@ -398,7 +398,7 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
 
               <div className="flex items-center justify-center gap-1.5">
                 <ShieldCheck className="h-2.5 w-2.5 text-neon-cyan/50" />
-                <span className="text-[9px] text-muted-foreground/50">Sealed on-chain via</span>
+                <span className="text-sm text-muted-foreground/50">Sealed on-chain via</span>
                 <img src={magicblockLogo} alt="MagicBlock" className="h-2.5 invert opacity-35" />
               </div>
             </div>
@@ -420,6 +420,9 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
                   participantCount={participantCount}
                   totalDamage={totalDamage}
                   playerContribution={playerContribution}
+                  hasJoined={hasJoined}
+                  overloadUsed={overloadUsed}
+                  wsConnected={wsConnected}
                   onJoin={bossJoin}
                   onOverload={bossOverload}
                   onRefresh={bossRefresh}
@@ -467,7 +470,7 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
               <TrophyCase />
 
               <div className="rounded-lg border border-white/[0.06] bg-[#0a1628]/60 p-2.5 space-y-1">
-                <p className="text-[9px] font-mono text-muted-foreground uppercase tracking-wider">Epoch Rules</p>
+                <p className="text-sm font-mono text-muted-foreground uppercase tracking-wider">Epoch Rules</p>
                 <div className="grid grid-cols-2 gap-x-2 gap-y-0.5">
                   {[
                     { keeps: false, text: "Resources reset" },
@@ -477,7 +480,7 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
                   ].map((item) => (
                     <div key={item.text} className="flex items-center gap-1">
                       <div className={`w-1 h-1 rounded-full ${item.keeps ? "bg-neon-green" : "bg-neon-red/60"}`} />
-                      <span className={`text-[10px] ${item.keeps ? "text-foreground/80" : "text-muted-foreground"}`}>{item.text}</span>
+                      <span className={`text-sm ${item.keeps ? "text-foreground/80" : "text-muted-foreground"}`}>{item.text}</span>
                     </div>
                   ))}
                 </div>
@@ -509,7 +512,7 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-[10px] transition-all relative ${
+              className={`flex flex-1 flex-col items-center gap-1 py-2.5 text-xs transition-all relative ${
                 activeTab === tab.id
                   ? "text-[#14F195]"
                   : "text-[#4a7a9b] active:text-[#7ab8d9]"

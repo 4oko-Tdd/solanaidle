@@ -12,6 +12,7 @@ import {
 } from "../services/boss-service.js";
 import { rollBossDrops, applyDrops } from "../services/drop-service.js";
 import { getWeekStart } from "../services/boss-service.js";
+import { getBossPdaAddress, BOSS_ER_CONSTANTS } from "../services/boss-er-service.js";
 
 type Env = { Variables: { wallet: string } };
 
@@ -42,6 +43,17 @@ app.get("/", (c) => {
   }
 
   return c.json(status);
+});
+
+// GET /boss/pda — public, returns PDA address for websocket subscription
+app.get("/pda", (c) => {
+  const weekStart = getWeekStart();
+  const weekStartTs = Math.floor(new Date(weekStart).getTime() / 1000);
+  const pda = getBossPdaAddress(weekStartTs);
+  return c.json({
+    pda,
+    erValidatorUrl: BOSS_ER_CONSTANTS.ER_VALIDATOR_URL,
+  });
 });
 
 // All routes below require auth

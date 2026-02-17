@@ -10,19 +10,22 @@ interface Props {
   participantCount: number;
   totalDamage: number;
   playerContribution: number;
+  hasJoined: boolean;
+  overloadUsed: boolean;
+  wsConnected?: boolean;
   onJoin: () => Promise<void>;
   onOverload: () => Promise<void>;
   onRefresh: () => void;
 }
 
-export function BossFight({ boss, participantCount, totalDamage, playerContribution, onJoin, onOverload, onRefresh }: Props) {
+export function BossFight({ boss, participantCount, totalDamage, playerContribution, hasJoined, overloadUsed, wsConnected, onJoin, onOverload, onRefresh }: Props) {
   const { addToast } = useToast();
   const [joining, setJoining] = useState(false);
   const [overloading, setOverloading] = useState(false);
 
   const hpPercent = boss.maxHp > 0 ? Math.max(0, (boss.currentHp / boss.maxHp) * 100) : 0;
   const isDefeated = boss.killed;
-  const hasJoined = playerContribution > 0;
+  // hasJoined comes from props (server-tracked)
   const contributionPercent = totalDamage > 0 ? ((playerContribution / totalDamage) * 100).toFixed(1) : "0.0";
 
   const handleJoin = async () => {
@@ -68,7 +71,15 @@ export function BossFight({ boss, participantCount, totalDamage, playerContribut
         <div className="p-4 space-y-3">
           {/* Name & HP */}
           <div className="text-center space-y-1">
-            <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-[0.2em]">World Boss</p>
+            <div className="flex items-center justify-center gap-2">
+              <p className="text-sm font-mono text-muted-foreground uppercase tracking-[0.2em]">World Boss</p>
+              {wsConnected && (
+                <span className="flex items-center gap-1">
+                  <span className="h-1.5 w-1.5 rounded-full bg-neon-green animate-pulse" />
+                  <span className="text-[10px] font-mono text-neon-green uppercase">Live</span>
+                </span>
+              )}
+            </div>
             <h2 className={`text-2xl font-display tracking-wide ${isDefeated ? "text-neon-green" : "text-neon-red"}`}>
               {boss.name}
             </h2>
@@ -90,7 +101,7 @@ export function BossFight({ boss, participantCount, totalDamage, playerContribut
                 className="h-4 bg-white/[0.06]"
               />
               <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-[10px] font-mono font-bold text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+                <span className="text-xs font-mono font-bold text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
                   {hpPercent.toFixed(1)}%
                 </span>
               </div>
@@ -102,17 +113,17 @@ export function BossFight({ boss, participantCount, totalDamage, playerContribut
             <div className="rounded-lg bg-white/[0.04] border border-white/[0.06] p-2.5 text-center">
               <Users className="h-4 w-4 text-neon-cyan mx-auto mb-1" />
               <div className="text-sm font-bold font-mono text-neon-cyan">{participantCount}</div>
-              <div className="text-[10px] text-muted-foreground">Hunters</div>
+              <div className="text-sm text-muted-foreground">Hunters</div>
             </div>
             <div className="rounded-lg bg-white/[0.04] border border-white/[0.06] p-2.5 text-center">
               <Swords className="h-4 w-4 text-neon-amber mx-auto mb-1" />
               <div className="text-sm font-bold font-mono text-neon-amber">{totalDamage.toLocaleString()}</div>
-              <div className="text-[10px] text-muted-foreground">Total DMG</div>
+              <div className="text-sm text-muted-foreground">Total DMG</div>
             </div>
             <div className="rounded-lg bg-white/[0.04] border border-white/[0.06] p-2.5 text-center">
               <Zap className="h-4 w-4 text-neon-purple mx-auto mb-1" />
               <div className="text-sm font-bold font-mono text-neon-purple">{contributionPercent}%</div>
-              <div className="text-[10px] text-muted-foreground">Your Share</div>
+              <div className="text-sm text-muted-foreground">Your Share</div>
             </div>
           </div>
 
@@ -133,18 +144,32 @@ export function BossFight({ boss, participantCount, totalDamage, playerContribut
                   Join the Hunt
                 </Button>
               ) : (
-                <Button
-                  onClick={handleOverload}
-                  disabled={overloading}
-                  className="w-full bg-neon-purple/20 text-neon-purple border border-neon-purple/40 hover:bg-neon-purple/30 h-11 font-display animate-glow-pulse"
-                >
-                  {overloading ? (
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-center gap-2 py-1">
+                    <Swords className="h-4 w-4 text-neon-green" />
+                    <span className="text-sm font-display font-semibold text-neon-green">Hunting</span>
+                  </div>
+                  {overloadUsed ? (
+                    <div className="flex items-center justify-center gap-2 h-11 rounded-lg bg-white/[0.03] border border-white/[0.08] opacity-50">
+                      <Zap className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-display font-semibold text-muted-foreground line-through">OVERLOAD</span>
+                      <span className="text-xs text-muted-foreground ml-1">Used</span>
+                    </div>
                   ) : (
-                    <Zap className="h-4 w-4 mr-2" />
+                    <Button
+                      onClick={handleOverload}
+                      disabled={overloading}
+                      className="w-full bg-neon-purple/20 text-neon-purple border border-neon-purple/40 hover:bg-neon-purple/30 h-11 font-display animate-glow-pulse"
+                    >
+                      {overloading ? (
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      ) : (
+                        <Zap className="h-4 w-4 mr-2" />
+                      )}
+                      OVERLOAD
+                    </Button>
                   )}
-                  OVERLOAD
-                </Button>
+                </div>
               )}
             </div>
           )}
@@ -152,7 +177,7 @@ export function BossFight({ boss, participantCount, totalDamage, playerContribut
           {isDefeated && (
             <div className="text-center space-y-2 pt-1">
               <p className="text-sm font-display font-bold text-neon-green">DEFEATED</p>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 The Leviathan has been destroyed. Check rewards in your collection.
               </p>
               <Button variant="outline" size="sm" onClick={onRefresh}>

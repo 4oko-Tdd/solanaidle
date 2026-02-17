@@ -18,9 +18,12 @@ Player sends a character on timed missions (7h/12h/24h/48h), waits real time, cl
 ## Architecture
 
 ```
-apps/web     → React SPA, communicates with API
-apps/api     → Hono REST API, manages game state + timers
-packages/shared → TypeScript types shared between FE and BE
+apps/web              → React SPA, communicates with API
+apps/api              → Hono REST API, manages game state + timers
+packages/shared       → TypeScript types shared between FE and BE
+programs/progress-tracker → Anchor program: per-player-per-epoch progress PDA on MagicBlock ER
+programs/vrf-roller       → Anchor program: VRF randomness via MagicBlock
+programs/boss-tracker     → Anchor program: global boss HP PDA on MagicBlock ER (one per week)
 ```
 
 ## Key Commands
@@ -72,6 +75,32 @@ pnpm build            # Build all packages
 - Frontend: vitest + testing-library for component tests
 - No E2E in MVP — manual testing is fine
 
+## On-Chain Programs (MagicBlock Ephemeral Rollups)
+
+Three separate Anchor programs, each with a distinct PDA lifecycle:
+
+| Program | PDA Seed | Lifecycle | Purpose |
+|---------|----------|-----------|---------|
+| `progress-tracker` | `[b"progress", player, week_start]` | Per-player, per-epoch | Player score/missions/deaths mirror |
+| `vrf-roller` | — | On-demand | Verifiable randomness for epoch bonuses |
+| `boss-tracker` | `[b"boss", week_start]` | One global, per-weekend | Real-time boss HP via websocket |
+
+**Server-authority pattern:** The API server holds a keypair (`SERVER_KEYPAIR` env var) that is the sole writer for ER updates. Players never sign damage transactions.
+
+**Boss HP data flow:**
+- Boss spawn → `initializeBossOnChain` (base layer init + delegate to ER)
+- Passive damage tick / OVERLOAD → `applyDamageOnER` (free tx on ER, delta-based)
+- Boss killed / weekend ends → `finalizeBossOnChain` (commit + undelegate to base layer)
+- Frontend subscribes to one PDA via websocket → instant HP updates across all clients
+- SQLite remains source of truth for participant details; ER is for real-time HP broadcast
+
+**Key services:**
+- `apps/api/src/services/er-service.ts` — Player progress ER operations
+- `apps/api/src/services/boss-er-service.ts` — Boss HP ER operations
+- `apps/web/src/hooks/useBossER.ts` — Websocket subscription to boss PDA
+
+**Resilience:** All ER calls are wrapped in try/catch. If ER is unavailable, the game continues via SQLite with 30s HTTP polling fallback.
+
 ## Important Notes
 
 - All timers are SERVER-side (prevent client manipulation)
@@ -80,3 +109,5 @@ pnpm build            # Build all packages
 - Mobile Wallet Adapter (MWA) is provided via `SolanaMobileWalletAdapter` in the wallets array
 - Browser wallets (Phantom, etc.) self-register via Wallet Standard — no explicit adapter needed
 - SQLite DB file lives at `apps/api/data/game.db` (gitignored)
+- Anchor programs live in `programs/` — build with `anchor build`, deploy with `anchor deploy`
+- Program IDs in `boss-tracker` are placeholder until first deploy — update in both `lib.rs` and `boss-er-service.ts`

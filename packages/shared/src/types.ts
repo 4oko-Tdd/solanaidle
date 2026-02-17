@@ -462,6 +462,27 @@ export interface BossParticipant {
 
 export type BossDropType = "weekly_buff" | "permanent_loot" | "data_core" | "nft_artifact";
 
+// ── On-Chain Boss State (Ephemeral Rollups) ──
+
+export interface OnChainBossState {
+  /** Server keypair (sole authority) */
+  authority: string;
+  /** Week start timestamp */
+  weekStart: number;
+  /** Maximum HP at spawn */
+  maxHp: number;
+  /** Current HP */
+  currentHp: number;
+  /** Total cumulative damage */
+  totalDamage: number;
+  /** Number of participants */
+  participantCount: number;
+  /** Whether boss is killed */
+  killed: boolean;
+  /** Spawn timestamp */
+  spawnedAt: number;
+}
+
 // ── Achievement Badges & Relic NFTs ──
 
 export type AchievementId =
