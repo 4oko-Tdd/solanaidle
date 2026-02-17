@@ -19,9 +19,6 @@ import {
 import { useVrfRoll } from "@/hooks/useVrfRoll";
 import { ClassIcon } from "@/components/ClassIcon";
 import type { WeeklyRun, RunEvent, ClassId, EpochFinalizeResponse, EpochBonusRewards } from "@solanaidle/shared";
-import scrapIcon from "@/assets/icons/res1.png";
-import crystalIcon from "@/assets/icons/res2.png";
-import artifactIcon from "@/assets/icons/25.png";
 import magicblockLogo from "@/assets/icons/MagicBlock-Logo-Black.png";
 
 interface Props {
@@ -245,38 +242,37 @@ export function RunEndScreen({ run, signMessage, onFinalized }: Props) {
           </div>
         </div>
 
-        {/* Multiplier — big reveal */}
-        <div className="rounded-2xl border border-white/[0.08] bg-[#0d1525] p-5 text-center animate-stagger-in stagger-1">
+        {/* Score multiplier — big reveal */}
+        <div className="rounded-2xl border border-white/[0.08] bg-[#0d1525] p-4 text-center animate-stagger-in stagger-1">
           <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest mb-2">{mult.label} Roll</p>
-          <div className={`text-6xl font-display font-bold ${mult.color} animate-scale-pop`}>
+          <div className={`text-5xl font-display font-bold ${mult.color} animate-scale-pop`}>
             {bonus.multiplier}x
           </div>
-          <p className="text-xs text-muted-foreground mt-2">Reward Multiplier</p>
+          <p className="text-xs text-muted-foreground mt-2">Score Multiplier</p>
         </div>
 
-        {/* Resource rewards — 3 columns */}
-        <div className="grid grid-cols-3 gap-2.5">
-          {[
-            { icon: scrapIcon, value: bonus.bonusScrap, label: "Lamports", color: "text-neon-green", stagger: "stagger-2" },
-            { icon: crystalIcon, value: bonus.bonusCrystal, label: "Tokens", color: "text-neon-cyan", stagger: "stagger-3" },
-            { icon: artifactIcon, value: bonus.bonusArtifact, label: "Keys", color: "text-neon-purple", stagger: "stagger-4" },
-          ].map((r) => (
-            <div
-              key={r.label}
-              className={`rounded-xl border border-white/[0.08] bg-[#0d1525] p-3 text-center animate-stagger-in ${r.stagger}`}
-            >
-              <img src={r.icon} alt={r.label} className="h-9 w-9 mx-auto mb-1.5" />
-              <div className={`font-bold font-mono text-lg ${r.color}`}>+{r.value}</div>
-              <div className="text-[10px] text-muted-foreground">{r.label}</div>
+        {/* Score boost result */}
+        <div className="rounded-xl border border-white/[0.08] bg-[#0d1525] p-4 animate-stagger-in stagger-2">
+          <div className="flex items-center justify-center gap-3">
+            <div className="text-center">
+              <div className="text-lg font-mono text-muted-foreground">{bonus.originalScore}</div>
+              <p className="text-[9px] text-muted-foreground uppercase">Before</p>
             </div>
-          ))}
+            <TrendingUp className={`h-5 w-5 ${mult.color} shrink-0`} />
+            <div className="text-center">
+              <div className={`text-2xl font-display font-bold ${bonus.multiplier > 1 ? "text-neon-green" : "text-foreground"}`}>
+                {bonus.boostedScore}
+              </div>
+              <p className="text-[9px] text-muted-foreground uppercase">Final Score</p>
+            </div>
+          </div>
         </div>
 
         {/* Permanent loot drop */}
         {bonus.permanentLootDrop && bonus.permanentLootItemId && (
-          <div className="space-y-2 animate-stagger-in stagger-5">
+          <div className="animate-stagger-in stagger-3">
             <div className="rounded-xl border border-neon-amber/20 bg-neon-amber/5 p-3 flex items-center justify-center gap-2.5 animate-golden-glow">
-              <Sparkles className="h-4.5 w-4.5 text-neon-amber" />
+              <Sparkles className="h-4 w-4 text-neon-amber" />
               <span className="text-sm font-display font-bold text-neon-amber">
                 Permanent Loot: {bonus.permanentLootItemId}
               </span>

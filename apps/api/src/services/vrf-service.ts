@@ -184,11 +184,6 @@ export async function computeEpochBonus(
 ): Promise<EpochBonusRewards | null> {
   if (!run || !characterId) return null;
 
-  // Base rewards scale with score
-  const baseScrap = Math.floor(run.score * 0.1) + 50;
-  const baseCrystal = Math.floor(run.score * 0.02) + 10;
-  const baseArtifact = run.bossDefeated ? 3 : 1;
-
   let randomBytes: Uint8Array;
   let vrfVerified = false;
   let vrfAccount: string | null = null;
@@ -209,26 +204,28 @@ export async function computeEpochBonus(
   }
 
   // Derive rewards from random bytes
-  // byte[0] = multiplier, byte[1] = permanent loot drop, byte[2] = loot item selection
+  // byte[0] = score multiplier, byte[1] = permanent loot drop, byte[2] = loot item selection
   const multiplier = deriveMultiplier(randomBytes[0]);
   const permanentLootDrop = derivePermanentLootDrop(randomBytes[1]);
 
-  const bonusScrap = Math.floor(baseScrap * multiplier);
-  const bonusCrystal = Math.floor(baseCrystal * multiplier);
-  const bonusArtifact = Math.floor(baseArtifact * multiplier);
+  // Apply score multiplier to leaderboard (score persists, resources don't)
+  const originalScore = run.score;
+  const boostedScore = Math.floor(originalScore * multiplier);
+  if (multiplier > 1) {
+    db.prepare(
+      "UPDATE leaderboard SET score = ? WHERE wallet_address = ? AND week_start = ?"
+    ).run(boostedScore, wallet, run.weekStart);
+    db.prepare(
+      "UPDATE weekly_runs SET score = ? WHERE id = ?"
+    ).run(boostedScore, run.id);
+  }
 
-  // Grant resources to character's inventory
-  db.prepare(
-    "UPDATE inventories SET scrap = scrap + ?, crystal = crystal + ?, artifact = artifact + ? WHERE character_id = ?"
-  ).run(bonusScrap, bonusCrystal, bonusArtifact, characterId);
-
-  // Grant permanent loot drop if rolled
+  // Grant permanent loot drop if rolled (persists across epochs)
   let permanentLootItemId: string | null = null;
   if (permanentLootDrop && PERMANENT_LOOT_DEFINITIONS.length > 0) {
     const lootIndex = randomBytes[2] % PERMANENT_LOOT_DEFINITIONS.length;
     const lootDef = PERMANENT_LOOT_DEFINITIONS[lootIndex];
     permanentLootItemId = lootDef.id;
-    // Insert into permanent_loot table
     db.prepare(
       "INSERT OR IGNORE INTO permanent_loot (id, wallet_address, item_id, acquired_at) VALUES (?, ?, ?, ?)"
     ).run(crypto.randomUUID(), wallet, permanentLootItemId, new Date().toISOString());
@@ -236,9 +233,11 @@ export async function computeEpochBonus(
 
   return {
     multiplier,
-    bonusScrap,
-    bonusCrystal,
-    bonusArtifact,
+    boostedScore,
+    originalScore,
+    bonusScrap: 0,
+    bonusCrystal: 0,
+    bonusArtifact: 0,
     permanentLootDrop,
     permanentLootItemId,
     vrfVerified,

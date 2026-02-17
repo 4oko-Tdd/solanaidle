@@ -270,13 +270,17 @@ export interface ActiveRaid {
 // ── Epoch Finalization (VRF-powered) ──
 
 export interface EpochBonusRewards {
-  /** Resource multiplier applied (1.0x - 3.0x) */
+  /** Score multiplier applied (1.0x - 3.0x) */
   multiplier: number;
-  /** Bonus scrap from VRF roll */
+  /** Score after multiplier */
+  boostedScore: number;
+  /** Original score before multiplier */
+  originalScore: number;
+  /** @deprecated Resources no longer granted at epoch end */
   bonusScrap: number;
-  /** Bonus crystal from VRF roll */
+  /** @deprecated Resources no longer granted at epoch end */
   bonusCrystal: number;
-  /** Bonus artifact from VRF roll */
+  /** @deprecated Resources no longer granted at epoch end */
   bonusArtifact: number;
   /** Whether a permanent loot item was dropped */
   permanentLootDrop: boolean;
