@@ -288,23 +288,37 @@ if (process.env.NODE_ENV !== "production") {
     const db = (await import("./db/database.js")).default;
     const { getCharacter } = await import("./services/character-service.js");
     const char = getCharacter(payload.wallet);
+    const w = payload.wallet;
 
-    // Delete quest data (wallet-level, before character deletion)
-    db.prepare("DELETE FROM quest_completions WHERE wallet_address = ?").run(payload.wallet);
-    db.prepare("DELETE FROM quest_boosts WHERE wallet_address = ?").run(payload.wallet);
+    db.pragma("foreign_keys = OFF");
+    try {
+      // Wallet-level data
+      db.prepare("DELETE FROM quest_completions WHERE wallet_address = ?").run(w);
+      db.prepare("DELETE FROM quest_boosts WHERE wallet_address = ?").run(w);
+      db.prepare("DELETE FROM boss_participants WHERE wallet_address = ?").run(w);
+      db.prepare("DELETE FROM permanent_loot WHERE wallet_address = ?").run(w);
+      db.prepare("DELETE FROM weekly_buffs WHERE wallet_address = ?").run(w);
+      db.prepare("DELETE FROM inventory_capacity WHERE wallet_address = ?").run(w);
+      db.prepare("DELETE FROM leaderboard WHERE wallet_address = ?").run(w);
+      db.prepare("DELETE FROM daily_logins WHERE wallet_address = ?").run(w);
 
-    if (char) {
-      // Delete runs + events
-      const runs = db.prepare("SELECT id FROM weekly_runs WHERE wallet_address = ?").all(payload.wallet) as any[];
+      // Runs + events
+      const runs = db.prepare("SELECT id FROM weekly_runs WHERE wallet_address = ?").all(w) as any[];
       for (const r of runs) {
         db.prepare("DELETE FROM run_events WHERE run_id = ?").run(r.id);
+        db.prepare("DELETE FROM character_perks WHERE run_id = ?").run(r.id);
       }
-      db.prepare("DELETE FROM weekly_runs WHERE wallet_address = ?").run(payload.wallet);
-      db.prepare("DELETE FROM leaderboard WHERE wallet_address = ?").run(payload.wallet);
+      db.prepare("DELETE FROM weekly_runs WHERE wallet_address = ?").run(w);
 
-      // Delete character data
-      db.prepare("DELETE FROM inventories WHERE character_id = ?").run(char.id);
-      db.prepare("DELETE FROM characters WHERE id = ?").run(char.id);
+      if (char) {
+        db.prepare("DELETE FROM guild_members WHERE character_id = ?").run(char.id);
+        db.prepare("DELETE FROM inventories WHERE character_id = ?").run(char.id);
+        db.prepare("DELETE FROM active_missions WHERE character_id = ?").run(char.id);
+        db.prepare("DELETE FROM nft_claims WHERE character_id = ?").run(char.id);
+        db.prepare("DELETE FROM characters WHERE id = ?").run(char.id);
+      }
+    } finally {
+      db.pragma("foreign_keys = ON");
     }
 
     return c.json({ message: "Player data wiped. Refresh to start over." });
