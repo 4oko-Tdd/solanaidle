@@ -237,10 +237,10 @@ export function initSchema() {
   }
 
   // Migrations — characters: update CHECK constraint to include 'in_boss_fight'
-  // Clean up leftover temp table from a previously failed migration
   db.exec("DROP TABLE IF EXISTS characters_new");
   const charInfo = db.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='characters'").get() as { sql: string } | undefined;
   if (charInfo && !charInfo.sql.includes("in_boss_fight")) {
+    db.pragma("foreign_keys = OFF");
     db.exec(`
       CREATE TABLE characters_new (
         id TEXT PRIMARY KEY,
@@ -257,6 +257,7 @@ export function initSchema() {
       DROP TABLE characters;
       ALTER TABLE characters_new RENAME TO characters;
     `);
+    db.pragma("foreign_keys = ON");
   }
 
 }
