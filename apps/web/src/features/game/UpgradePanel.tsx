@@ -1,8 +1,8 @@
 import { Button } from "@/components/ui/button";
 import type { UpgradeInfo, GearTrack } from "@solanaidle/shared";
 import { Shield, Zap, Search, ArrowUp } from "lucide-react";
-import scrapIcon from "@/assets/icons/res1.png";
-import crystalIcon from "@/assets/icons/res2.png";
+import scrapIcon from "@/assets/icons/scrap.png";
+import crystalIcon from "@/assets/icons/tokens.png";
 import artifactIcon from "@/assets/icons/25.png";
 
 interface Props {
@@ -53,12 +53,12 @@ export function UpgradePanel({ upgradeInfo, onUpgrade }: Props) {
 
                     <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5">
                       <div className="flex items-center gap-0.5">
-                        <img src={scrapIcon} alt="" className="h-3 w-3" />
+                        <img src={scrapIcon} alt="" className="h-5 w-5" />
                         <span className="text-[10px] font-mono">{info.next!.cost.scrap}</span>
                       </div>
                       {info.next!.cost.crystal ? (
                         <div className="flex items-center gap-0.5">
-                          <img src={crystalIcon} alt="" className="h-3 w-3" />
+                          <img src={crystalIcon} alt="" className="h-5 w-5" />
                           <span className="text-[10px] font-mono">{info.next!.cost.crystal}</span>
                         </div>
                       ) : null}

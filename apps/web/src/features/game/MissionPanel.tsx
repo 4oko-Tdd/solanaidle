@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import type { MissionType, CharacterState, MissionId, ClassId, Inventory } from "@solanaidle/shared";
-import { Clock, Skull, Lock, AlertTriangle, Star, Sparkles, Shield, Minus, Plus, Crown, Fish } from "lucide-react";
-import scrapIcon from "@/assets/icons/res1.png";
-import crystalIcon from "@/assets/icons/res2.png";
+import { Clock, Skull, Lock, AlertTriangle, Sparkles, Shield, Minus, Plus, Crown, Fish } from "lucide-react";
+import scrapIcon from "@/assets/icons/scrap.png";
+import expIcon from "@/assets/icons/exp.png";
+import crystalIcon from "@/assets/icons/tokens.png";
 import artifactIcon from "@/assets/icons/25.png";
 
 const REROLL_COST_PER_STACK = 10;
@@ -181,15 +182,15 @@ export function MissionPanel({ missions, characterState, onStart, characterLevel
             {/* Bonus loot info */}
             <div className="flex items-center justify-center gap-4 pt-1 text-xs text-muted-foreground">
               <span className="flex items-center gap-1">
-                <Star className="h-3 w-3 text-neon-amber" />
+                <img src={expIcon} alt="" className="h-[18px] w-[18px]" />
                 <span className="font-mono">500-1000 XP</span>
               </span>
               <span className="flex items-center gap-1">
-                <img src={scrapIcon} alt="" className="h-3.5 w-3.5" />
+                <img src={scrapIcon} alt="" className="h-6 w-6" />
                 <span className="font-mono">200-500</span>
               </span>
               <span className="flex items-center gap-1">
-                <img src={crystalIcon} alt="" className="h-3.5 w-3.5" />
+                <img src={crystalIcon} alt="" className="h-6 w-6" />
                 <span className="font-mono">50-100</span>
               </span>
               <span className="flex items-center gap-1">
@@ -248,7 +249,7 @@ export function MissionPanel({ missions, characterState, onStart, characterLevel
                   </Button>
                   {rerollStacks > 0 && (
                     <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <img src={scrapIcon} alt="" className="h-3 w-3" />
+                      <img src={scrapIcon} alt="" className="h-5 w-5" />
                       <span className="font-mono">{rerollCost}</span>
                     </span>
                   )}
@@ -274,7 +275,7 @@ export function MissionPanel({ missions, characterState, onStart, characterLevel
                   </Button>
                   {insured && (
                     <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <img src={crystalIcon} alt="" className="h-3 w-3" />
+                      <img src={crystalIcon} alt="" className="h-5 w-5" />
                       <span className="font-mono">{insuranceCost}</span>
                     </span>
                   )}
@@ -381,16 +382,16 @@ export function MissionPanel({ missions, characterState, onStart, characterLevel
               {!locked && (
                 <div className="flex items-center gap-3 border-t border-white/[0.04] pt-2 text-xs text-muted-foreground">
                   <span className="flex items-center gap-1">
-                    <Star className="h-3 w-3 text-neon-amber" />
+                    <img src={expIcon} alt="" className="h-[18px] w-[18px]" />
                     <span className="font-mono">{r.xpRange[0]}-{r.xpRange[1]}</span>
                   </span>
                   <span className="flex items-center gap-1">
-                    <img src={scrapIcon} alt="" className="h-3.5 w-3.5" />
+                    <img src={scrapIcon} alt="" className="h-6 w-6" />
                     <span className="font-mono">{r.scrap[0]}-{r.scrap[1]}</span>
                   </span>
                   {r.crystal && (
                     <span className="flex items-center gap-1">
-                      <img src={crystalIcon} alt="" className="h-3.5 w-3.5" />
+                      <img src={crystalIcon} alt="" className="h-6 w-6" />
                       <span className="font-mono">{r.crystal[0]}-{r.crystal[1]}</span>
                     </span>
                   )}
@@ -440,7 +441,7 @@ export function MissionPanel({ missions, characterState, onStart, characterLevel
                       </Button>
                       {rerollStacks > 0 && (
                         <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <img src={scrapIcon} alt="" className="h-3 w-3" />
+                          <img src={scrapIcon} alt="" className="h-5 w-5" />
                           <span className="font-mono">{rerollCost}</span>
                         </span>
                       )}
@@ -466,7 +467,7 @@ export function MissionPanel({ missions, characterState, onStart, characterLevel
                       </Button>
                       {insured && (
                         <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <img src={crystalIcon} alt="" className="h-3 w-3" />
+                          <img src={crystalIcon} alt="" className="h-5 w-5" />
                           <span className="font-mono">{insuranceCost}</span>
                         </span>
                       )}

@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import type { Character, ClassId, WeeklyRun, CharacterState } from "@solanaidle/shared";
-import { Star, Heart, HeartCrack } from "lucide-react";
+import { Heart, HeartCrack } from "lucide-react";
 import { ClassIcon } from "@/components/ClassIcon";
 import expIcon from "@/assets/icons/exp.png"
 

@@ -24,8 +24,8 @@ import {
 } from "lucide-react";
 import { useToast } from "../../components/ToastProvider";
 import jupiterLogo from "../../assets/icons/poweredbyjupiter-dark.svg";
-import scrapIcon from "@/assets/icons/res1.png";
-import crystalIcon from "@/assets/icons/res2.png";
+import scrapIcon from "@/assets/icons/scrap.png";
+import crystalIcon from "@/assets/icons/tokens.png";
 import artifactIcon from "@/assets/icons/25.png";
 
 // ── Constants ──
@@ -70,13 +70,13 @@ function RewardIcons({ scrap, crystal, artifact, boost }: {
     <div className="flex items-center gap-1.5">
       {!!scrap && (
         <span className="inline-flex items-center gap-0.5">
-          <img src={scrapIcon} alt="" className="h-3 w-3" />
+          <img src={scrapIcon} alt="" className="h-5 w-5" />
           <span className="text-[9px] font-mono text-white/50">{scrap}</span>
         </span>
       )}
       {!!crystal && (
         <span className="inline-flex items-center gap-0.5">
-          <img src={crystalIcon} alt="" className="h-3 w-3" />
+          <img src={crystalIcon} alt="" className="h-5 w-5" />
           <span className="text-[9px] font-mono text-white/50">{crystal}</span>
         </span>
       )}

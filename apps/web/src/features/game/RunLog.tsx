@@ -9,10 +9,10 @@ import {
   Heart,
   ChevronDown,
   ChevronUp,
-  Star,
   Gem,
 } from "lucide-react";
 import type { RunEvent, RunEventType } from "@solanaidle/shared";
+import expIcon from "@/assets/icons/exp.png";
 
 interface Props {
   runId: string;
@@ -26,7 +26,7 @@ const EVENT_ICONS: Record<RunEventType, React.ReactNode> = {
   death: <Skull className="h-3.5 w-3.5 text-neon-red" />,
   revive: <Heart className="h-3.5 w-3.5 text-neon-green" />,
   level_up: <ArrowUp className="h-3.5 w-3.5 text-neon-cyan" />,
-  boss_kill: <Star className="h-3.5 w-3.5 text-neon-amber" />,
+  boss_kill: <img src={expIcon} alt="" className="h-[18px] w-[18px]" />,
   perk_pick: <Sparkles className="h-3.5 w-3.5 text-neon-purple" />,
   nft_drop: <Gem className="h-3.5 w-3.5 text-neon-amber" />,
   run_end: <Swords className="h-3.5 w-3.5 text-muted-foreground" />,

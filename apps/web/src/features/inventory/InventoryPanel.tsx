@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import type { Inventory } from "@solanaidle/shared";
-import scrapIcon from "@/assets/icons/res1.png";
-import crystalIcon from "@/assets/icons/res2.png";
+import scrapIcon from "@/assets/icons/scrap.png";
+import crystalIcon from "@/assets/icons/tokens.png";
 import artifactIcon from "@/assets/icons/25.png";
 
 interface Props {
