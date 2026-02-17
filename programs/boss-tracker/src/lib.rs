@@ -3,7 +3,7 @@ use ephemeral_rollups_sdk::anchor::{commit, delegate, ephemeral};
 use ephemeral_rollups_sdk::cpi::DelegateConfig;
 use ephemeral_rollups_sdk::ephem::commit_and_undelegate_accounts;
 
-declare_id!("BoSSTrkr1111111111111111111111111111111111111");
+declare_id!("GtL43yR1JyZPjcbH8LkCj5j5aDdCTXkWH9K1xTWZa5Zr");
 
 pub const BOSS_SEED: &[u8] = b"boss";
 

@@ -12,3 +12,8 @@ coverage/
 apps/api/data/
 .vercel
 .agents/
+
+# Solana
+*-keypair.json
+*.json.bak
+target/
