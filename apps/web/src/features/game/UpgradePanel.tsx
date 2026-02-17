@@ -33,10 +33,10 @@ export function UpgradePanel({ upgradeInfo, onUpgrade }: Props) {
                 {/* Fixed top section */}
                 <div className={`${track.color} ${track.bgAccent} rounded-lg p-1.5`}>{track.icon}</div>
                 <span className="text-xs font-display font-bold">{track.label}</span>
-                <span className="text-[10px] font-mono text-muted-foreground">
+                <span className="text-sm font-mono text-muted-foreground">
                   Lv {info.level}/{info.maxLevel}
                 </span>
-                <span className={`text-[10px] font-mono font-bold ${track.color}`}>
+                <span className={`text-xs font-mono font-bold ${track.color}`}>
                   {info.effectLabel}
                 </span>
 
@@ -54,18 +54,18 @@ export function UpgradePanel({ upgradeInfo, onUpgrade }: Props) {
                     <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5">
                       <div className="flex items-center gap-0.5">
                         <img src={scrapIcon} alt="" className="h-5 w-5" />
-                        <span className="text-[10px] font-mono">{info.next!.cost.scrap}</span>
+                        <span className="text-xs font-mono">{info.next!.cost.scrap}</span>
                       </div>
                       {info.next!.cost.crystal ? (
                         <div className="flex items-center gap-0.5">
                           <img src={crystalIcon} alt="" className="h-5 w-5" />
-                          <span className="text-[10px] font-mono">{info.next!.cost.crystal}</span>
+                          <span className="text-xs font-mono">{info.next!.cost.crystal}</span>
                         </div>
                       ) : null}
                       {info.next!.cost.artifact ? (
                         <div className="flex items-center gap-0.5">
                           <img src={artifactIcon} alt="" className="h-5 w-5" />
-                          <span className="text-[10px] font-mono">{info.next!.cost.artifact}</span>
+                          <span className="text-xs font-mono">{info.next!.cost.artifact}</span>
                         </div>
                       ) : null}
                     </div>

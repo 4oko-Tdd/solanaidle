@@ -43,7 +43,7 @@ function AnimatedNumber({ value, onFlash }: { value: number; onFlash?: (flashing
 
   return (
     <span
-      className={`text-base font-mono font-bold transition-transform duration-200 ${
+      className={`text-lg font-mono transition-transform duration-200 ${
         flash ? "text-white scale-110" : "text-neon-green"
       }`}
     >

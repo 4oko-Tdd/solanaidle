@@ -7,9 +7,9 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['"Exo 2"', "system-ui", "sans-serif"],
-        display: ['"Exo 2"', "system-ui", "sans-serif"],
-        mono: ['"JetBrains Mono"', "ui-monospace", "monospace"],
+        sans: ['"Rajdhani"', "system-ui", "sans-serif"],
+        display: ['"Orbitron"', "system-ui", "sans-serif"],
+        mono: ['"Orbitron"', "ui-monospace", "monospace"],
       },
       borderRadius: {
         lg: "var(--radius)",

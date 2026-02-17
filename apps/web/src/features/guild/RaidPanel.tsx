@@ -94,7 +94,7 @@ export function RaidPanel() {
         <Swords className="h-5 w-5 text-neon-amber" />
         <h3 className="text-base font-display font-semibold text-white">Raids</h3>
       </div>
-      <p className="text-[11px] text-[#4a7a9b] leading-relaxed">
+      <p className="text-xs text-[#4a7a9b] leading-relaxed">
         Co-op missions for your guild. Start a raid and wait for members to join before time runs out.
       </p>
 
@@ -104,7 +104,7 @@ export function RaidPanel() {
             <span className="font-medium text-sm font-display text-white">
               {raids.find((r) => r.id === activeRaid.raidId)?.name || activeRaid.raidId}
             </span>
-            <Badge className={`text-[10px] py-0 px-2 ${
+            <Badge className={`text-xs py-0 px-2 ${
               activeRaid.timeRemaining && activeRaid.timeRemaining > 0
                 ? "bg-[#1a3a5c]/40 text-[#4a7a9b] border-[#1a3a5c]/60"
                 : "bg-[#14F195]/15 text-[#14F195] border-[#14F195]/30"
@@ -153,11 +153,11 @@ export function RaidPanel() {
             >
               <div className="flex items-center justify-between">
                 <span className="font-medium text-sm font-display text-white">{raid.name}</span>
-                <Badge className="text-[10px] py-0 px-2 bg-neon-amber/15 text-neon-amber border-neon-amber/30">
+                <Badge className="text-xs py-0 px-2 bg-neon-amber/15 text-neon-amber border-neon-amber/30">
                   {raid.lootMultiplier}x loot
                 </Badge>
               </div>
-              <div className="flex items-center gap-3 text-[10px] text-[#4a7a9b]">
+              <div className="flex items-center gap-3 text-xs text-[#4a7a9b]">
                 <span className="flex items-center gap-1">
                   <Users className="h-3 w-3" />
                   <span className="font-mono">{raid.requiredPlayers}p</span>
@@ -167,7 +167,7 @@ export function RaidPanel() {
                   <span className="font-mono">{formatTime(raid.duration)}</span>
                 </span>
               </div>
-              <p className="text-[10px] text-[#4a7a9b]/70">{raid.description}</p>
+              <p className="text-xs text-[#4a7a9b]/70">{raid.description}</p>
               <Button
                 size="sm"
                 className="w-full text-xs h-7"

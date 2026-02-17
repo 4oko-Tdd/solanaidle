@@ -15,7 +15,7 @@
     --secondary: 240 10% 12%;
     --secondary-foreground: 210 40% 98%;
     --muted: 240 10% 12%;
-    --muted-foreground: 215 20% 55%;
+    --muted-foreground: 215 20% 65%;
     --accent: 162 95% 50%;
     --accent-foreground: 0 0% 0%;
     --destructive: 345 90% 55%;
@@ -44,7 +44,7 @@
     --secondary: 240 10% 12%;
     --secondary-foreground: 210 40% 98%;
     --muted: 240 10% 12%;
-    --muted-foreground: 215 20% 55%;
+    --muted-foreground: 215 20% 65%;
     --accent: 162 95% 50%;
     --accent-foreground: 0 0% 0%;
     --destructive: 345 90% 55%;
@@ -61,7 +61,9 @@
   }
   body {
     @apply bg-background text-foreground font-sans;
-    font-family: 'Exo 2', system-ui, sans-serif;
+    font-family: 'Rajdhani', system-ui, sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.01em;
   }
 }
 
@@ -156,11 +158,20 @@
 
   /* Font utilities */
   .font-display {
-    font-family: 'Exo 2', system-ui, sans-serif;
+    font-family: 'Orbitron', system-ui, sans-serif;
     font-weight: 700;
+    letter-spacing: 0.04em;
   }
   .font-mono {
-    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-family: 'Orbitron', ui-monospace, monospace;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+  .font-mono.font-bold {
+    font-weight: 700;
+  }
+  .font-mono.font-semibold {
+    font-weight: 600;
   }
 }
 

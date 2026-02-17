@@ -9,6 +9,7 @@ import {
 } from "../services/game-config.js";
 import { getActiveRun } from "../services/run-service.js";
 import { getCharacter } from "../services/character-service.js";
+import { insertEvent } from "../services/event-service.js";
 import db from "../db/database.js";
 import type { PerkDefinition } from "@solanaidle/shared";
 
@@ -193,6 +194,14 @@ app.post("/choose", async (c) => {
       "INSERT INTO character_perks (id, run_id, perk_id, stacks) VALUES (?, ?, ?, 1)"
     ).run(randomUUID(), run.id, perkId);
   }
+
+  // Log perk pick event
+  insertEvent(run.id, "perk_pick", {
+    perkId: perk.id,
+    perkName: perk.name,
+    tier: perk.tier,
+    level: char.level,
+  });
 
   // Return updated perks
   const perks = db

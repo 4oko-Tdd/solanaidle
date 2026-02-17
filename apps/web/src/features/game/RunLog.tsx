@@ -58,7 +58,7 @@ function formatEvent(event: RunEvent): string {
     case "boss_kill":
       return "Whale Hunt complete!";
     case "perk_pick":
-      return `Chose perk: ${d.perkName ?? d.perkId}`;
+      return `Perk acquired: ${d.perkName ?? d.perkId}${d.tier ? ` [${d.tier}]` : ""}`;
     case "nft_drop":
       return `RARE: NFT Drop — ${d.nftName}!`;
     case "run_end":

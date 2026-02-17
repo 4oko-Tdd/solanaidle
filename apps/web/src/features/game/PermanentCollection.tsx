@@ -64,7 +64,7 @@ export function PermanentCollection() {
               </div>
               <div>
                 <h3 className="text-sm font-display font-bold text-white tracking-wide uppercase">Leviathan Salvage</h3>
-                <p className="text-[10px] font-mono text-muted-foreground">Protocol artifacts • persist forever</p>
+                <p className="text-sm font-mono text-muted-foreground">Protocol artifacts • persist forever</p>
               </div>
             </div>
             <div className="flex items-center gap-1.5 rounded-md bg-white/[0.04] border border-white/[0.08] px-2 py-1">
@@ -78,7 +78,7 @@ export function PermanentCollection() {
                   />
                 ))}
               </div>
-              <span className="text-[10px] font-mono text-muted-foreground">{usedSlots}/{maxSlots}</span>
+              <span className="text-xs font-mono text-muted-foreground">{usedSlots}/{maxSlots}</span>
             </div>
           </div>
         </div>
@@ -91,7 +91,7 @@ export function PermanentCollection() {
                 <Skull className="h-5 w-5 text-neon-purple/30" />
               </div>
               <p className="text-sm font-display text-[#4a7a9b]">No salvage recovered</p>
-              <p className="text-[10px] text-[#4a7a9b]/70 max-w-[240px] mx-auto leading-relaxed">
+              <p className="text-sm text-[#4a7a9b]/70 max-w-[240px] mx-auto leading-relaxed">
                 Destroy the Protocol Leviathan to extract rare artifacts from its corrupted core.
               </p>
             </div>
@@ -112,10 +112,10 @@ export function PermanentCollection() {
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-display font-semibold text-white truncate">{item.itemName}</p>
                       <div className="flex items-center gap-1.5 mt-0.5">
-                        <span className={`text-[10px] font-mono font-bold ${meta.color}`}>
+                        <span className={`text-xs font-mono font-bold ${meta.color}`}>
                           {formatPerkValue(item.perkType, item.perkValue)}
                         </span>
-                        <span className="text-[10px] text-muted-foreground">{meta.label}</span>
+                        <span className="text-sm text-muted-foreground">{meta.label}</span>
                       </div>
                     </div>
                     <Button
@@ -155,7 +155,7 @@ export function PermanentCollection() {
                   <span className="text-foreground/80">{buff.buffName}</span>
                 </div>
                 {buff.consumed && (
-                  <span className="text-[9px] font-mono text-muted-foreground/60 uppercase">consumed</span>
+                  <span className="text-xs font-mono text-muted-foreground/60 uppercase">consumed</span>
                 )}
               </div>
             ))}

@@ -22,15 +22,15 @@ interface Props {
 
 function getStatusBadge(state: CharacterState, runActive?: boolean) {
   if (runActive === false) {
-    return <Badge variant="secondary" className="text-[10px] py-0 px-1.5 bg-muted text-muted-foreground">EPOCH OVER</Badge>;
+    return <Badge variant="secondary" className="text-xs py-0 px-1.5 bg-muted text-muted-foreground">EPOCH OVER</Badge>;
   }
   if (state === "dead") {
-    return <Badge variant="destructive" className="text-[10px] py-0 px-1.5 animate-pulse bg-neon-red/20 text-neon-red">SLASHED</Badge>;
+    return <Badge variant="destructive" className="text-xs py-0 px-1.5 animate-pulse bg-neon-red/20 text-neon-red">SLASHED</Badge>;
   }
   if (state === "on_mission") {
-    return <Badge className="text-[10px] py-0 px-1.5 bg-[#9945FF]/20 text-[#c4a0ff]">ON CHAIN</Badge>;
+    return <Badge className="text-xs py-0 px-1.5 bg-[#9945FF]/20 text-[#c4a0ff]">ON CHAIN</Badge>;
   }
-  return <Badge className="text-[10px] py-0 px-1.5 bg-[#14F195]/15 text-[#14F195]">ONLINE</Badge>;
+  return <Badge className="text-xs py-0 px-1.5 bg-[#14F195]/15 text-[#14F195]">ONLINE</Badge>;
 }
 
 export function CharacterCard({ character, classId, livesRemaining, run }: Props) {
@@ -59,7 +59,7 @@ export function CharacterCard({ character, classId, livesRemaining, run }: Props
       {/* Row 2: XP bar (thin) */}
       <div className="flex items-center gap-2">
         <Progress value={xpPercent} className="h-1.5 flex-1" />
-        <span className="text-[10px] font-mono text-[#4a7a9b] shrink-0">
+        <span className="text-xs font-mono text-[#4a7a9b] shrink-0">
           {character.xp}/{xpForNextLevel}
         </span>
       </div>
@@ -75,11 +75,11 @@ export function CharacterCard({ character, classId, livesRemaining, run }: Props
             )
           )}
           {lives === 1 && (
-            <span className="ml-1 text-[10px] font-bold text-neon-red">LAST LIFE</span>
+            <span className="ml-1 text-xs font-bold text-neon-red">LAST LIFE</span>
           )}
         </div>
         {run && (
-          <div className="flex items-center gap-2.5 text-[10px]">
+          <div className="flex items-center gap-2.5 text-xs">
             <span className="text-[#4a7a9b]">Score <span className="font-mono font-bold text-[#14F195]">{run.score}</span></span>
             {run.streak >= 2 && (
               <span className="text-[#4a7a9b]">
@@ -94,11 +94,11 @@ export function CharacterCard({ character, classId, livesRemaining, run }: Props
       {/* Warning banners */}
       {lives === 1 && run?.active && character.state !== "dead" && (
         <div className="rounded bg-neon-red/10 border border-neon-red/30 px-2 py-0.5 text-center animate-pulse">
-          <span className="text-[10px] font-bold text-neon-red">FAILURE MEANS SLASHING. 1 LIFE REMAINING.</span>
+          <span className="text-xs font-bold text-neon-red">FAILURE MEANS SLASHING. 1 LIFE REMAINING.</span>
         </div>
       )}
       {character.state === "dead" && character.reviveAt && (
-        <p className="text-[10px] text-neon-red text-center">
+        <p className="text-xs text-neon-red text-center">
           Back online at {new Date(character.reviveAt).toLocaleTimeString()}
         </p>
       )}

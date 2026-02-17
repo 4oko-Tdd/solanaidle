@@ -71,7 +71,7 @@ export function DailyLoginModal({ status, open, onClaim, onClose }: Props) {
                 {isPast ? (
                   <Check className="h-3.5 w-3.5 text-neon-green mt-0.5" />
                 ) : (
-                  <Gift className={`h-3.5 w-3.5 mt-0.5 ${isCurrent ? "text-neon-amber" : "text-muted-foreground"}`} />
+                  <Gift className={`h-4 w-4 mt-0.5 ${isCurrent ? "text-neon-amber" : "text-muted-foreground"}`} />
                 )}
               </div>
             );
@@ -86,19 +86,19 @@ export function DailyLoginModal({ status, open, onClaim, onClose }: Props) {
           <div className="flex items-center justify-center gap-4">
             {reward.scrap > 0 && (
               <div className="flex items-center gap-1">
-                <img src={scrapIcon} alt="Scrap" className="h-8 w-8" />
+                <img src={scrapIcon} alt="Scrap" className="h-10 w-10" />
                 <span className="font-mono font-bold text-neon-green">+{reward.scrap}</span>
               </div>
             )}
             {reward.crystal > 0 && (
               <div className="flex items-center gap-1">
-                <img src={crystalIcon} alt="Tokens" className="h-8 w-8" />
+                <img src={crystalIcon} alt="Tokens" className="h-10 w-10" />
                 <span className="font-mono font-bold text-neon-green">+{reward.crystal}</span>
               </div>
             )}
             {reward.artifact > 0 && (
               <div className="flex items-center gap-1">
-                <img src={artifactIcon} alt="Keys" className="h-8 w-8" />
+                <img src={artifactIcon} alt="Keys" className="h-10 w-10" />
                 <span className="font-mono font-bold text-neon-green">+{reward.artifact}</span>
               </div>
             )}

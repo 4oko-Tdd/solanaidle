@@ -84,15 +84,15 @@ export function MissionPanel({ missions, characterState, onStart, characterLevel
   };
 
   const isTierLocked = (missionId: string): boolean => {
-    if (missionId === "expedition" && characterLevel < 2) return true;
-    if (missionId === "deep_dive" && characterLevel < 3) return true;
+    if (missionId === "expedition" && characterLevel < 3) return true;
+    if (missionId === "deep_dive" && characterLevel < 6) return true;
     if (missionId === "boss" && characterLevel < 5) return true;
     return false;
   };
 
   const getTierLabel = (missionId: string): string | null => {
-    if (missionId === "expedition" && characterLevel < 2) return "Unlocks at Lv.2";
-    if (missionId === "deep_dive" && characterLevel < 3) return "Unlocks at Lv.3";
+    if (missionId === "expedition" && characterLevel < 3) return "Unlocks at Lv.3";
+    if (missionId === "deep_dive" && characterLevel < 6) return "Unlocks at Lv.6";
     if (missionId === "boss" && characterLevel < 5) return "Unlocks at Lv.5";
     return null;
   };
@@ -117,20 +117,20 @@ export function MissionPanel({ missions, characterState, onStart, characterLevel
               <div className="rounded-lg bg-white/[0.04] border border-white/[0.06] p-2.5 text-center">
                 <Sparkles className="h-4 w-4 text-neon-purple mx-auto mb-1" />
                 <div className="text-sm font-bold font-mono text-neon-purple">+2 SP</div>
-                <div className="text-[10px] text-muted-foreground">Claimed</div>
+                <div className="text-sm text-muted-foreground">Claimed</div>
               </div>
               <div className="rounded-lg bg-white/[0.04] border border-white/[0.06] p-2.5 text-center">
                 <Crown className="h-4 w-4 text-neon-amber mx-auto mb-1" />
                 <div className="text-sm font-bold font-mono text-neon-amber">Crown</div>
-                <div className="text-[10px] text-muted-foreground">On ranks</div>
+                <div className="text-sm text-muted-foreground">On ranks</div>
               </div>
               <div className="rounded-lg bg-white/[0.04] border border-white/[0.06] p-2.5 text-center">
                 <Fish className="h-4 w-4 text-neon-green mx-auto mb-1" />
                 <div className="text-sm font-bold font-mono text-neon-green">Slain</div>
-                <div className="text-[10px] text-muted-foreground">This epoch</div>
+                <div className="text-sm text-muted-foreground">This epoch</div>
               </div>
             </div>
-            <p className="text-xs text-muted-foreground pt-1">
+            <p className="text-sm text-muted-foreground pt-1">
               Regular transactions return tomorrow.
             </p>
           </div>
@@ -150,13 +150,13 @@ export function MissionPanel({ missions, characterState, onStart, characterLevel
         <div className="relative overflow-hidden rounded-xl border border-neon-amber/40 bg-gradient-to-b from-neon-amber/10 via-neon-amber/5 to-transparent backdrop-blur-md">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(251,191,36,0.08),transparent_70%)] bg-black/30 pointer-events-none" />
           <div className="relative p-5 text-center space-y-3">
-            <p className="text-[10px] font-mono text-neon-amber/60 uppercase tracking-[0.2em]">Sunday Weekly Event</p>
+            <p className="text-xs font-mono text-neon-amber/60 uppercase tracking-[0.2em]">Sunday Weekly Event</p>
             <div className="flex items-center justify-center gap-3">
               <Fish className="h-7 w-7 text-neon-amber drop-shadow-[0_0_12px_rgba(251,191,36,0.5)]" />
               <h2 className="text-3xl font-display text-neon-amber tracking-wide">WHALE HUNT</h2>
               <Fish className="h-7 w-7 text-neon-amber drop-shadow-[0_0_12px_rgba(251,191,36,0.5)] -scale-x-100" />
             </div>
-            <p className="text-xs text-muted-foreground max-w-[260px] mx-auto">
+            <p className="text-sm text-muted-foreground max-w-[260px] mx-auto">
               A massive whale has surfaced. One chance per epoch to take it down.
             </p>
 
@@ -165,22 +165,22 @@ export function MissionPanel({ missions, characterState, onStart, characterLevel
               <div className="rounded-lg bg-white/[0.04] border border-white/[0.06] p-2.5 text-center">
                 <Sparkles className="h-4 w-4 text-neon-purple mx-auto mb-1" />
                 <div className="text-sm font-bold font-mono text-neon-purple">+2 SP</div>
-                <div className="text-[10px] text-muted-foreground">Skill Points</div>
+                <div className="text-sm text-muted-foreground">Skill Points</div>
               </div>
               <div className="rounded-lg bg-white/[0.04] border border-white/[0.06] p-2.5 text-center">
                 <Crown className="h-4 w-4 text-neon-amber mx-auto mb-1" />
                 <div className="text-sm font-bold font-mono text-neon-amber">Crown</div>
-                <div className="text-[10px] text-muted-foreground">Leaderboard</div>
+                <div className="text-sm text-muted-foreground">Leaderboard</div>
               </div>
               <div className="rounded-lg bg-white/[0.04] border border-white/[0.06] p-2.5 text-center">
                 <Sparkles className="h-4 w-4 text-neon-green mx-auto mb-1" />
                 <div className="text-sm font-bold font-mono text-neon-green">20%</div>
-                <div className="text-[10px] text-muted-foreground">NFT Drop</div>
+                <div className="text-sm text-muted-foreground">NFT Drop</div>
               </div>
             </div>
 
             {/* Bonus loot info */}
-            <div className="flex items-center justify-center gap-4 pt-1 text-xs text-muted-foreground">
+            <div className="flex items-center justify-center gap-4 pt-1 text-sm text-muted-foreground">
               <span className="flex items-center gap-1">
                 <img src={expIcon} alt="" className="h-[18px] w-[18px]" />
                 <span className="font-mono">500-1000 XP</span>
@@ -213,7 +213,7 @@ export function MissionPanel({ missions, characterState, onStart, characterLevel
               </span>
             </div>
             {bossLocked ? (
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                 <Lock className="h-3.5 w-3.5" />
                 <span>Requires Lv.5</span>
               </div>
@@ -235,7 +235,7 @@ export function MissionPanel({ missions, characterState, onStart, characterLevel
             <div className="border-t border-neon-amber/20 bg-white/[0.02] px-5 py-3 space-y-2 animate-fade-in-up">
               {/* Reroll stacks */}
               <div className="flex items-center justify-between">
-                <div className="text-xs">
+                <div className="text-sm">
                   <span className="text-muted-foreground">Reroll</span>
                   <span className="text-neon-cyan ml-1 font-mono">-{rerollStacks * REROLL_REDUCTION}% fail</span>
                 </div>
@@ -248,7 +248,7 @@ export function MissionPanel({ missions, characterState, onStart, characterLevel
                     <Plus className="h-3 w-3" />
                   </Button>
                   {rerollStacks > 0 && (
-                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1 text-sm text-muted-foreground">
                       <img src={scrapIcon} alt="" className="h-5 w-5" />
                       <span className="font-mono">{rerollCost}</span>
                     </span>
@@ -258,7 +258,7 @@ export function MissionPanel({ missions, characterState, onStart, characterLevel
 
               {/* Insurance */}
               <div className="flex items-center justify-between">
-                <div className="text-xs">
+                <div className="text-sm">
                   <span className="text-muted-foreground">Insurance</span>
                   <span className="text-neon-amber ml-1">protect streak</span>
                 </div>
@@ -274,7 +274,7 @@ export function MissionPanel({ missions, characterState, onStart, characterLevel
                     {insured ? "ON" : "OFF"}
                   </Button>
                   {insured && (
-                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1 text-sm text-muted-foreground">
                       <img src={crystalIcon} alt="" className="h-5 w-5" />
                       <span className="font-mono">{insuranceCost}</span>
                     </span>
@@ -303,14 +303,14 @@ export function MissionPanel({ missions, characterState, onStart, characterLevel
         </div>
 
         {!canStart && (
-          <p className="text-xs text-muted-foreground text-center">
+          <p className="text-sm text-muted-foreground text-center">
             {characterState === "on_mission"
               ? "Node is processing on chain"
               : "Node is recovering from slash"}
           </p>
         )}
         {import.meta.env.DEV && (
-          <p className="text-[9px] text-muted-foreground/50 text-center font-mono">
+          <p className="text-sm text-muted-foreground/50 text-center font-mono">
             dbg: state={characterState} lvl={characterLevel} canStart={String(canStart)} bossLocked={String(bossLocked)}
           </p>
         )}
@@ -349,7 +349,7 @@ export function MissionPanel({ missions, characterState, onStart, characterLevel
                       {locked ? mission.name : dynamicLabel}
                     </p>
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-3 text-sm text-muted-foreground">
                     <span className="flex items-center gap-1">
                       <Clock className="h-3 w-3" />
                       <span className="font-mono">{formatDuration(displayDuration)}</span>
@@ -362,7 +362,7 @@ export function MissionPanel({ missions, characterState, onStart, characterLevel
                     </span>
                   </div>
                   {lockLabel && (
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
                       <Lock className="h-3 w-3" />
                       <span>{lockLabel}</span>
                     </div>
@@ -380,24 +380,24 @@ export function MissionPanel({ missions, characterState, onStart, characterLevel
 
               {/* Rewards row */}
               {!locked && (
-                <div className="flex items-center gap-3 border-t border-white/[0.04] pt-2 text-xs text-muted-foreground">
+                <div className="flex items-center gap-3 border-t border-white/[0.04] pt-2 text-sm text-muted-foreground">
                   <span className="flex items-center gap-1">
-                    <img src={expIcon} alt="" className="h-[18px] w-[18px]" />
+                    <img src={expIcon} alt="" className="h-6 w-6" />
                     <span className="font-mono">{r.xpRange[0]}-{r.xpRange[1]}</span>
                   </span>
                   <span className="flex items-center gap-1">
-                    <img src={scrapIcon} alt="" className="h-6 w-6" />
+                    <img src={scrapIcon} alt="" className="h-9 w-9" />
                     <span className="font-mono">{r.scrap[0]}-{r.scrap[1]}</span>
                   </span>
                   {r.crystal && (
                     <span className="flex items-center gap-1">
-                      <img src={crystalIcon} alt="" className="h-6 w-6" />
+                      <img src={crystalIcon} alt="" className="h-8 w-8" />
                       <span className="font-mono">{r.crystal[0]}-{r.crystal[1]}</span>
                     </span>
                   )}
                   {r.artifact && (
                     <span className="flex items-center gap-1">
-                      <img src={artifactIcon} alt="" className="h-6 w-6" />
+                      <img src={artifactIcon} alt="" className="h-8 w-8" />
                       <span className="font-mono">{r.artifact[0]}-{r.artifact[1]}</span>
                     </span>
                   )}
@@ -440,7 +440,7 @@ export function MissionPanel({ missions, characterState, onStart, characterLevel
                         <Plus className="h-3 w-3" />
                       </Button>
                       {rerollStacks > 0 && (
-                        <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1 text-sm text-muted-foreground">
                           <img src={scrapIcon} alt="" className="h-5 w-5" />
                           <span className="font-mono">{rerollCost}</span>
                         </span>
@@ -466,7 +466,7 @@ export function MissionPanel({ missions, characterState, onStart, characterLevel
                         {insured ? "ON" : "OFF"}
                       </Button>
                       {insured && (
-                        <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1 text-sm text-muted-foreground">
                           <img src={crystalIcon} alt="" className="h-5 w-5" />
                           <span className="font-mono">{insuranceCost}</span>
                         </span>
@@ -498,7 +498,7 @@ export function MissionPanel({ missions, characterState, onStart, characterLevel
           );
         })}
         {!canStart && (
-          <p className="text-xs text-muted-foreground text-center">
+          <p className="text-sm text-muted-foreground text-center">
             {characterState === "on_mission"
               ? "Node is processing on chain"
               : "Node is recovering from slash"}

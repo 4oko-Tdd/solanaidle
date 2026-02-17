@@ -81,16 +81,16 @@ function PerkCard({
               {perk.name}
             </h3>
             <span
-              className={`shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-mono uppercase ${cfg.badge} ${cfg.badgeText}`}
+              className={`shrink-0 rounded-full px-1.5 py-0.5 text-xs font-mono uppercase ${cfg.badge} ${cfg.badgeText}`}
             >
               {perk.tier}
             </span>
           </div>
-          <p className="mt-0.5 text-xs leading-snug text-muted-foreground">
+          <p className="mt-0.5 text-sm leading-snug text-muted-foreground">
             {perk.description}
           </p>
           {perk.stackable && (
-            <span className="mt-0.5 block text-[9px] font-mono text-muted-foreground/60">
+            <span className="mt-0.5 block text-sm font-mono text-muted-foreground/60">
               Stackable
             </span>
           )}

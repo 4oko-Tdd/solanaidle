@@ -22,11 +22,11 @@ export function InventoryPanel({ inventory }: Props) {
       <div className="rounded-xl border border-[#1a3a5c]/60 bg-[#0a1628]/80 backdrop-blur-lg p-4 space-y-3">
         <div className="flex items-center justify-between">
           <h3 className="text-base font-display font-semibold text-white">Resources</h3>
-          <Badge className="text-[10px] py-0 px-2 bg-[#1a3a5c]/40 text-[#4a7a9b] border-[#1a3a5c]/60">
+          <Badge className="text-xs py-0 px-2 bg-[#1a3a5c]/40 text-[#4a7a9b] border-[#1a3a5c]/60">
             Epoch
           </Badge>
         </div>
-        <p className="text-[11px] text-[#4a7a9b] leading-relaxed">
+        <p className="text-sm text-[#4a7a9b] leading-relaxed">
           Resources are earned from missions and spent on upgrades. They reset each epoch.
         </p>
 
@@ -38,7 +38,7 @@ export function InventoryPanel({ inventory }: Props) {
             >
               <img src={r.icon} alt={r.label} className="h-10 w-10 mx-auto mb-1.5" />
               <div className={`font-bold font-mono text-lg ${r.color}`}>{r.value}</div>
-              <div className="text-[10px] text-muted-foreground">{r.label}</div>
+              <div className="text-xs text-muted-foreground">{r.label}</div>
             </div>
           ))}
         </div>
@@ -46,19 +46,19 @@ export function InventoryPanel({ inventory }: Props) {
 
       {/* What resets */}
       <div className="rounded-xl border border-white/[0.06] bg-[#0a1628]/60 p-4 space-y-2">
-        <h4 className="text-xs font-display font-semibold text-white">Economy Notes</h4>
+        <h4 className="text-sm font-display font-semibold text-white">Economy Notes</h4>
         <div className="space-y-1.5">
           <div className="flex items-center gap-2">
             <div className="w-1 h-1 rounded-full bg-neon-red/60" />
-            <span className="text-[11px] text-muted-foreground">Resources, upgrades, perks reset each epoch</span>
+            <span className="text-sm text-muted-foreground">Resources, upgrades, perks reset each epoch</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-1 h-1 rounded-full bg-neon-green" />
-            <span className="text-[11px] text-foreground/80">Permanent loot and badges carry over forever</span>
+            <span className="text-sm text-foreground/80">Permanent loot and badges carry over forever</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-1 h-1 rounded-full bg-neon-green" />
-            <span className="text-[11px] text-foreground/80">Character level persists across epochs</span>
+            <span className="text-sm text-foreground/80">Character level persists across epochs</span>
           </div>
         </div>
       </div>

@@ -205,7 +205,7 @@ export function RunEndScreen({ run, signMessage, onFinalized }: Props) {
             </div>
 
             <div className="flex items-center justify-center gap-1.5 pt-1">
-              <span className="text-[10px] text-muted-foreground/60">Powered by</span>
+              <span className="text-xs text-muted-foreground/60">Powered by</span>
               <img src={magicblockLogo} alt="MagicBlock" className="h-3.5 invert opacity-40" />
             </div>
           </div>
@@ -235,7 +235,7 @@ export function RunEndScreen({ run, signMessage, onFinalized }: Props) {
             {bonus.vrfVerified && (
               <div className="inline-flex items-center gap-1.5 rounded-full bg-neon-cyan/10 border border-neon-cyan/20 px-3 py-1">
                 <ShieldCheck className="h-3 w-3 text-neon-cyan" />
-                <span className="text-[11px] text-neon-cyan font-medium">Verified by</span>
+                <span className="text-xs text-neon-cyan font-medium">Verified by</span>
                 <img src={magicblockLogo} alt="MagicBlock" className="h-3 invert" />
               </div>
             )}
@@ -244,7 +244,7 @@ export function RunEndScreen({ run, signMessage, onFinalized }: Props) {
 
         {/* Score multiplier — big reveal */}
         <div className="rounded-2xl border border-white/[0.08] bg-[#0d1525] p-4 text-center animate-stagger-in stagger-1">
-          <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest mb-2">{mult.label} Roll</p>
+          <p className="text-xs font-mono text-muted-foreground uppercase tracking-widest mb-2">{mult.label} Roll</p>
           <div className={`text-5xl font-display font-bold ${mult.color} animate-scale-pop`}>
             {bonus.multiplier}x
           </div>
@@ -256,14 +256,14 @@ export function RunEndScreen({ run, signMessage, onFinalized }: Props) {
           <div className="flex items-center justify-center gap-3">
             <div className="text-center">
               <div className="text-lg font-mono text-muted-foreground">{bonus.originalScore}</div>
-              <p className="text-[9px] text-muted-foreground uppercase">Before</p>
+              <p className="text-xs text-muted-foreground uppercase">Before</p>
             </div>
             <TrendingUp className={`h-5 w-5 ${mult.color} shrink-0`} />
             <div className="text-center">
               <div className={`text-2xl font-display font-bold ${bonus.multiplier > 1 ? "text-neon-green" : "text-foreground"}`}>
                 {bonus.boostedScore}
               </div>
-              <p className="text-[9px] text-muted-foreground uppercase">Final Score</p>
+              <p className="text-xs text-muted-foreground uppercase">Final Score</p>
             </div>
           </div>
         </div>
@@ -303,7 +303,7 @@ export function RunEndScreen({ run, signMessage, onFinalized }: Props) {
         </Button>
 
         <div className="flex items-center justify-center gap-1.5">
-          <span className="text-[10px] text-muted-foreground/50">Powered by</span>
+          <span className="text-xs text-muted-foreground/50">Powered by</span>
           <img src={magicblockLogo} alt="MagicBlock" className="h-3.5 invert opacity-35" />
         </div>
       </div>
@@ -322,7 +322,7 @@ export function RunEndScreen({ run, signMessage, onFinalized }: Props) {
           {/* Epoch label */}
           <div className="inline-flex items-center gap-1.5 rounded-full bg-white/[0.04] border border-white/[0.08] px-2.5 py-0.5">
             <Trophy className="h-2.5 w-2.5 text-neon-amber" />
-            <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">Epoch {weekNum} Complete</span>
+            <span className="text-xs font-mono text-muted-foreground uppercase tracking-wider">Epoch {weekNum} Complete</span>
           </div>
 
           {/* Character + score in a row */}
@@ -333,7 +333,7 @@ export function RunEndScreen({ run, signMessage, onFinalized }: Props) {
                 <ClassIcon classId={run.classId} className="h-14 w-14 rounded-full" />
               </div>
               <div className={`absolute -top-0.5 -right-0.5 w-6 h-6 rounded-full bg-[#0d1525] border-2 ${style.border} flex items-center justify-center`}>
-                <span className={`text-[10px] font-display font-bold ${grade.color}`}>{grade.letter}</span>
+                <span className={`text-xs font-display font-bold ${grade.color}`}>{grade.letter}</span>
               </div>
             </div>
 
@@ -343,7 +343,7 @@ export function RunEndScreen({ run, signMessage, onFinalized }: Props) {
                 {CLASS_NAMES[run.classId]}
               </span>
               <div className="text-4xl font-display font-bold text-neon-green leading-none mt-0.5">{run.score}</div>
-              <p className="text-[9px] text-muted-foreground font-mono uppercase tracking-widest mt-0.5">Final Score</p>
+              <p className="text-xs text-muted-foreground font-mono uppercase tracking-widest mt-0.5">Final Score</p>
             </div>
           </div>
         </div>
@@ -357,7 +357,7 @@ export function RunEndScreen({ run, signMessage, onFinalized }: Props) {
           </div>
           <div>
             <div className="font-bold text-lg font-mono text-neon-green leading-none">{run.missionsCompleted}</div>
-            <div className="text-[10px] text-muted-foreground font-mono uppercase mt-0.5">Missions</div>
+            <div className="text-xs text-muted-foreground font-mono uppercase mt-0.5">Missions</div>
           </div>
         </div>
 
@@ -367,7 +367,7 @@ export function RunEndScreen({ run, signMessage, onFinalized }: Props) {
           </div>
           <div>
             <div className="font-bold text-lg font-mono text-neon-red leading-none">{deaths}</div>
-            <div className="text-[10px] text-muted-foreground font-mono uppercase mt-0.5">Deaths</div>
+            <div className="text-xs text-muted-foreground font-mono uppercase mt-0.5">Deaths</div>
           </div>
         </div>
 
@@ -383,7 +383,7 @@ export function RunEndScreen({ run, signMessage, onFinalized }: Props) {
                 <span className="text-muted-foreground">—</span>
               )}
             </div>
-            <div className="text-[10px] text-muted-foreground font-mono uppercase mt-0.5">Boss</div>
+            <div className="text-xs text-muted-foreground font-mono uppercase mt-0.5">Boss</div>
           </div>
         </div>
 
@@ -393,7 +393,7 @@ export function RunEndScreen({ run, signMessage, onFinalized }: Props) {
           </div>
           <div>
             <div className="font-bold text-lg font-mono text-neon-cyan leading-none">{run.livesRemaining}</div>
-            <div className="text-[10px] text-muted-foreground font-mono uppercase mt-0.5">Lives Left</div>
+            <div className="text-xs text-muted-foreground font-mono uppercase mt-0.5">Lives Left</div>
           </div>
         </div>
       </div>
@@ -434,16 +434,16 @@ export function RunEndScreen({ run, signMessage, onFinalized }: Props) {
               { mult: "3x", pct: "2%", color: "bg-neon-purple/40" },
             ].map((tier) => (
               <div key={tier.mult} className="text-center">
-                <div className="text-[10px] font-mono font-bold text-foreground/80">{tier.mult}</div>
+                <div className="text-xs font-mono font-bold text-foreground/80">{tier.mult}</div>
                 <div className="h-1.5 rounded-full bg-white/5 mt-1 overflow-hidden">
                   <div className={`h-full rounded-full ${tier.color}`} style={{ width: tier.pct }} />
                 </div>
-                <div className="text-[9px] font-mono text-muted-foreground mt-0.5">{tier.pct}</div>
+                <div className="text-xs font-mono text-muted-foreground mt-0.5">{tier.pct}</div>
               </div>
             ))}
           </div>
 
-          <p className="text-[11px] text-center text-muted-foreground leading-relaxed">
+          <p className="text-xs text-center text-muted-foreground leading-relaxed">
             Seal your score on the leaderboard with verifiable on-chain randomness.
           </p>
 
@@ -463,7 +463,7 @@ export function RunEndScreen({ run, signMessage, onFinalized }: Props) {
         </div>
 
         <div className="flex items-center justify-center gap-1.5 py-2 bg-white/[0.02] border-t border-white/[0.04]">
-          <span className="text-[10px] text-muted-foreground/50">Powered by</span>
+          <span className="text-xs text-muted-foreground/50">Powered by</span>
           <img src={magicblockLogo} alt="MagicBlock" className="h-3.5 invert opacity-35" />
         </div>
       </div>

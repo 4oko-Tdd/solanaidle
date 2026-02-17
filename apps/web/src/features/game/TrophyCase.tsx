@@ -37,7 +37,7 @@ export function TrophyCase() {
             Trophy Case
           </span>
         </div>
-        <p className="text-xs text-muted-foreground/60">
+        <p className="text-sm text-muted-foreground/60">
           Complete missions to earn permanent on-chain trophies
         </p>
       </div>
@@ -51,7 +51,7 @@ export function TrophyCase() {
         <span className="text-sm font-display font-semibold text-white">
           Trophy Case
         </span>
-        <span className="ml-auto text-[10px] text-muted-foreground font-mono">
+        <span className="ml-auto text-sm text-muted-foreground font-mono">
           {badges.length + relics.length} items
         </span>
       </div>
@@ -59,7 +59,7 @@ export function TrophyCase() {
       {/* Badges */}
       {badges.length > 0 && (
         <div className="space-y-1.5">
-          <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">
+          <p className="text-sm font-mono text-muted-foreground uppercase tracking-wider">
             Achievements
           </p>
           <div className="flex flex-wrap gap-2">
@@ -72,10 +72,10 @@ export function TrophyCase() {
                   {ACHIEVEMENT_ICONS[badge.achievementId] ?? "🏅"}
                 </span>
                 <div className="min-w-0">
-                  <p className="text-[11px] font-medium text-white leading-none truncate">
+                  <p className="text-xs font-medium text-white leading-none truncate">
                     {badge.name}
                   </p>
-                  <p className="text-[9px] text-muted-foreground">
+                  <p className="text-sm text-muted-foreground">
                     {new Date(badge.earnedAt).toLocaleDateString()}
                   </p>
                 </div>
@@ -98,7 +98,7 @@ export function TrophyCase() {
       {/* Relics */}
       {relics.length > 0 && (
         <div className="space-y-1.5">
-          <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">
+          <p className="text-sm font-mono text-muted-foreground uppercase tracking-wider">
             Relics
           </p>
           <div className="flex flex-wrap gap-2">
@@ -109,10 +109,10 @@ export function TrophyCase() {
               >
                 <Gem className="h-3.5 w-3.5 text-neon-amber shrink-0" />
                 <div className="min-w-0">
-                  <p className="text-[11px] font-medium text-white leading-none truncate">
+                  <p className="text-xs font-medium text-white leading-none truncate">
                     {relic.name}
                   </p>
-                  <p className="text-[9px] text-muted-foreground">
+                  <p className="text-sm text-muted-foreground">
                     {relic.missionId}
                   </p>
                 </div>

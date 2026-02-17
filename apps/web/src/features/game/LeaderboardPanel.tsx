@@ -81,21 +81,21 @@ export function LeaderboardPanel({ currentWallet }: Props) {
               <Swords className="h-4 w-4 text-[#14F195] shrink-0 mt-0.5" />
               <div>
                 <p className="text-xs font-medium text-white">Missions</p>
-                <p className="text-[10px] text-[#4a7a9b]">Each successful transaction adds to your score. Harder missions = more points.</p>
+                <p className="text-xs text-[#4a7a9b]">Each successful transaction adds to your score. Harder missions = more points.</p>
               </div>
             </div>
             <div className="flex items-start gap-2.5">
               <Crown className="h-4 w-4 text-neon-amber shrink-0 mt-0.5" />
               <div>
                 <p className="text-xs font-medium text-white">Streaks</p>
-                <p className="text-[10px] text-[#4a7a9b]">Chain successful missions for multipliers: 2x HODL, 4x Diamond Hands, 6x To The Moon.</p>
+                <p className="text-xs text-[#4a7a9b]">Chain successful missions for multipliers: 2x HODL, 4x Diamond Hands, 6x To The Moon.</p>
               </div>
             </div>
             <div className="flex items-start gap-2.5">
               <Heart className="h-4 w-4 text-neon-red shrink-0 mt-0.5" />
               <div>
                 <p className="text-xs font-medium text-white">Survival</p>
-                <p className="text-[10px] text-[#4a7a9b]">3 lives per epoch. Lose them all and your run ends — choose missions wisely.</p>
+                <p className="text-xs text-[#4a7a9b]">3 lives per epoch. Lose them all and your run ends — choose missions wisely.</p>
               </div>
             </div>
           </div>
@@ -116,7 +116,7 @@ export function LeaderboardPanel({ currentWallet }: Props) {
             <Trophy className="h-5 w-5 text-neon-amber" />
             <h3 className="text-base font-display font-semibold text-white">Epoch Leaderboard</h3>
           </div>
-          <Badge className="text-[10px] py-0 px-2 bg-[#1a3a5c]/40 text-[#4a7a9b] border-[#1a3a5c]/60">
+          <Badge className="text-xs py-0 px-2 bg-[#1a3a5c]/40 text-[#4a7a9b] border-[#1a3a5c]/60">
             {safeEntries.length} {safeEntries.length === 1 ? "player" : "players"}
           </Badge>
         </div>

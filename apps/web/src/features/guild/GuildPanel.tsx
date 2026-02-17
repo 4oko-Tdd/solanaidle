@@ -91,21 +91,21 @@ export function GuildPanel() {
               <Shield className="h-4 w-4 text-[#14F195] shrink-0 mt-0.5" />
               <div>
                 <p className="text-xs font-medium text-white">Co-op Raids</p>
-                <p className="text-[10px] text-[#4a7a9b]">Team up for Pool Raids (2p) and Protocol Sieges (3p) with massive loot multipliers.</p>
+                <p className="text-xs text-[#4a7a9b]">Team up for Pool Raids (2p) and Protocol Sieges (3p) with massive loot multipliers.</p>
               </div>
             </div>
             <div className="flex items-start gap-2.5">
               <Zap className="h-4 w-4 text-neon-amber shrink-0 mt-0.5" />
               <div>
                 <p className="text-xs font-medium text-white">Boosted Rewards</p>
-                <p className="text-[10px] text-[#4a7a9b]">Raids give 2-3x loot multiplier plus guaranteed Tokens on higher tiers.</p>
+                <p className="text-xs text-[#4a7a9b]">Raids give 2-3x loot multiplier plus guaranteed Tokens on higher tiers.</p>
               </div>
             </div>
             <div className="flex items-start gap-2.5">
               <Gift className="h-4 w-4 text-[#9945FF] shrink-0 mt-0.5" />
               <div>
                 <p className="text-xs font-medium text-white">Invite Friends</p>
-                <p className="text-[10px] text-[#4a7a9b]">Share your guild invite code. Up to 5 members per guild.</p>
+                <p className="text-xs text-[#4a7a9b]">Share your guild invite code. Up to 5 members per guild.</p>
               </div>
             </div>
           </div>
@@ -123,7 +123,7 @@ export function GuildPanel() {
             <Users className="h-5 w-5 text-[#9945FF]" />
             <h3 className="text-base font-display font-semibold text-white">{guild.name}</h3>
           </div>
-          <Badge className="text-[10px] py-0 px-2 bg-[#9945FF]/15 text-[#c4a0ff] border-[#9945FF]/30">
+          <Badge className="text-xs py-0 px-2 bg-[#9945FF]/15 text-[#c4a0ff] border-[#9945FF]/30">
             {guild.memberCount}/5
           </Badge>
         </div>
@@ -131,7 +131,7 @@ export function GuildPanel() {
         {/* Invite code */}
         <div className="flex items-center gap-2">
           <div className="flex-1 flex items-center gap-2 rounded-lg bg-[#0d1f35] border border-[#1a3a5c]/40 px-3 py-2">
-            <span className="text-[10px] text-[#4a7a9b] uppercase tracking-wider">Invite</span>
+            <span className="text-xs text-[#4a7a9b] uppercase tracking-wider">Invite</span>
             <code className="font-mono text-sm text-white tracking-wider flex-1">{guild.inviteCode}</code>
           </div>
           <Button
@@ -146,7 +146,7 @@ export function GuildPanel() {
 
         {/* Members */}
         <div className="space-y-1.5">
-          <span className="text-[10px] text-[#4a7a9b] uppercase tracking-wider font-mono">Members</span>
+          <span className="text-xs text-[#4a7a9b] uppercase tracking-wider font-mono">Members</span>
           <div className="rounded-lg border border-[#1a3a5c]/30 overflow-hidden">
             {members.map((m, i) => (
               <div

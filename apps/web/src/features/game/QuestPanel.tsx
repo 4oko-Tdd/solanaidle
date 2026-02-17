@@ -61,35 +61,35 @@ function RewardIcons({ scrap, crystal, artifact, boost }: {
   boost?: { type: string; percentBonus: number };
 }) {
   const BOOST_ICON: Record<string, { icon: React.ReactNode; cls: string }> = {
-    xp: { icon: <Zap className="h-2.5 w-2.5" />, cls: "text-neon-amber" },
-    speed: { icon: <Clock className="h-2.5 w-2.5" />, cls: "text-neon-cyan" },
-    loot_chance: { icon: <Gem className="h-2.5 w-2.5" />, cls: "text-neon-purple" },
+    xp: { icon: <Zap className="h-3.5 w-3.5" />, cls: "text-neon-amber" },
+    speed: { icon: <Clock className="h-3.5 w-3.5" />, cls: "text-neon-cyan" },
+    loot_chance: { icon: <Gem className="h-3.5 w-3.5" />, cls: "text-neon-purple" },
   };
 
   return (
     <div className="flex items-center gap-1.5">
       {!!scrap && (
         <span className="inline-flex items-center gap-0.5">
-          <img src={scrapIcon} alt="" className="h-5 w-5" />
-          <span className="text-[9px] font-mono text-white/50">{scrap}</span>
+          <img src={scrapIcon} alt="" className="h-6 w-6" />
+          <span className="text-xs font-mono text-white/70">{scrap}</span>
         </span>
       )}
       {!!crystal && (
         <span className="inline-flex items-center gap-0.5">
-          <img src={crystalIcon} alt="" className="h-5 w-5" />
-          <span className="text-[9px] font-mono text-white/50">{crystal}</span>
+          <img src={crystalIcon} alt="" className="h-6 w-6" />
+          <span className="text-xs font-mono text-white/70">{crystal}</span>
         </span>
       )}
       {!!artifact && (
         <span className="inline-flex items-center gap-0.5">
-          <img src={artifactIcon} alt="" className="h-5 w-5" />
-          <span className="text-[9px] font-mono text-white/50">{artifact}</span>
+          <img src={artifactIcon} alt="" className="h-6 w-6" />
+          <span className="text-xs font-mono text-white/70">{artifact}</span>
         </span>
       )}
       {boost && (
         <span className={`inline-flex items-center gap-0.5 ${BOOST_ICON[boost.type]?.cls ?? "text-neon-amber"}`}>
-          {BOOST_ICON[boost.type]?.icon ?? <Zap className="h-2.5 w-2.5" />}
-          <span className="text-[9px] font-mono opacity-70">+{boost.percentBonus}%</span>
+          {BOOST_ICON[boost.type]?.icon ?? <Zap className="h-3.5 w-3.5" />}
+          <span className="text-xs font-mono opacity-80">+{boost.percentBonus}%</span>
         </span>
       )}
     </div>
@@ -99,9 +99,9 @@ function RewardIcons({ scrap, crystal, artifact, boost }: {
 // ── Boost pill ──
 
 const BOOST_LABEL: Record<string, { label: string; cls: string; icon: React.ReactNode }> = {
-  xp: { label: "XP", cls: "text-neon-amber border-neon-amber/20 bg-neon-amber/10", icon: <Zap className="h-2.5 w-2.5" /> },
-  speed: { label: "Speed", cls: "text-neon-cyan border-neon-cyan/20 bg-neon-cyan/10", icon: <Clock className="h-2.5 w-2.5" /> },
-  loot_chance: { label: "Loot", cls: "text-neon-purple border-neon-purple/20 bg-neon-purple/10", icon: <Gem className="h-2.5 w-2.5" /> },
+  xp: { label: "XP", cls: "text-neon-amber border-neon-amber/20 bg-neon-amber/10", icon: <Zap className="h-3.5 w-3.5" /> },
+  speed: { label: "Speed", cls: "text-neon-cyan border-neon-cyan/20 bg-neon-cyan/10", icon: <Clock className="h-3.5 w-3.5" /> },
+  loot_chance: { label: "Loot", cls: "text-neon-purple border-neon-purple/20 bg-neon-purple/10", icon: <Gem className="h-3.5 w-3.5" /> },
 };
 
 function BoostBar({ boosts }: { boosts: ActiveBoost[] }) {
@@ -112,7 +112,7 @@ function BoostBar({ boosts }: { boosts: ActiveBoost[] }) {
         const c = BOOST_LABEL[b.type] ?? BOOST_LABEL.xp;
         const mins = Math.max(0, Math.floor((new Date(b.expiresAt).getTime() - Date.now()) / 60000));
         return (
-          <span key={`${b.type}-${b.source}`} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[10px] font-mono ${c.cls}`}>
+          <span key={`${b.type}-${b.source}`} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-sm font-mono ${c.cls}`}>
             {c.icon} +{b.percentBonus}% {c.label} <span className="opacity-50">{mins}m</span>
           </span>
         );
@@ -176,7 +176,7 @@ function mintLabel(mint: string, isSOL?: boolean): string {
 
 function PortfolioStrip({ data }: { data: PortfolioResult }) {
   return (
-    <div className="mt-1.5 flex items-center gap-2 px-2 py-1 rounded bg-white/[0.03] text-[10px] font-mono overflow-hidden">
+    <div className="mt-1.5 flex items-center gap-2 px-2 py-1 rounded bg-white/[0.03] text-sm font-mono overflow-hidden">
       <span className="text-white/70">SOL: {fmtBal(data.solBalance)}</span>
       <span className="text-white/30">({fmtUsd(data.solBalance * data.solUsdPrice)})</span>
       <span className="text-white/20">|</span>
@@ -191,7 +191,7 @@ function PriceWatchStrip({ data }: { data: PriceWatchResult }) {
       {data.priceChanges.slice(0, 5).map((p) => {
         const { text, cls } = fmtChange(p.priceChange24h);
         return (
-          <span key={p.mint} className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded border text-[9px] font-mono ${cls}`}>
+          <span key={p.mint} className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded border text-xs font-mono ${cls}`}>
             {mintLabel(p.mint, p.isSOL)} {text}
           </span>
         );
@@ -290,7 +290,7 @@ export function QuestPanel() {
         {[1, 2, 3, 4].map((i) => (
           <div key={i} className="rounded-lg border border-white/[0.04] bg-[#0d1525] p-2.5 animate-pulse">
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-md bg-white/5" />
+              <div className="w-8 h-8 rounded-md bg-white/5" />
               <div className="flex-1 space-y-1">
                 <div className="h-3 w-20 bg-white/5 rounded" />
               </div>
@@ -308,27 +308,27 @@ export function QuestPanel() {
 
       {/* Error */}
       {error && (
-        <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-[10px] font-mono">
-          <AlertCircle className="h-3 w-3 shrink-0" />
+        <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-mono">
+          <AlertCircle className="h-4 w-4 shrink-0" />
           <span className="truncate flex-1">{error}</span>
           <button onClick={() => setError(null)} className="text-red-400/60 hover:text-red-400">x</button>
         </div>
       )}
 
       {/* Info block */}
-      <div className="rounded-lg border border-white/[0.06] bg-[#0b1220] px-2.5 py-2">
+      <div className="rounded-lg border border-white/[0.06] bg-[#0b1220] px-3 py-2.5">
         <button
           onClick={() => setShowInfo(!showInfo)}
           className="flex items-center gap-2 w-full text-left"
         >
-          <Info className="h-3 w-3 text-neon-cyan/60 shrink-0" />
-          <span className="text-[10px] font-display text-white/50 flex-1">
+          <Info className="h-4 w-4 text-neon-cyan/60 shrink-0" />
+          <span className="text-sm font-display text-white/60 flex-1">
             Field ops powered by Jupiter. Complete tasks to earn resources & boosts.
           </span>
-          <span className="text-[9px] text-white/20">{showInfo ? "−" : "+"}</span>
+          <span className="text-xs text-white/20">{showInfo ? "−" : "+"}</span>
         </button>
         {showInfo && (
-          <div className="mt-1.5 pl-5 space-y-1 text-[9px] text-white/35 leading-relaxed">
+          <div className="mt-1.5 pl-5 space-y-1 text-sm text-white/50 leading-relaxed">
             <p>Daily ops reset every 24h. Weekly ops reset on Monday.</p>
             <p>Each op rewards Scrap, Tokens, or Keys — plus temporary boosts to XP, loot chance, or mission speed.</p>
             <p>Supply Run performs a real 0.001 SOL swap on Solana via Jupiter.</p>
@@ -338,24 +338,24 @@ export function QuestPanel() {
 
       {/* Daily header */}
       <div className="flex items-center justify-between">
-        <span className="text-[10px] font-display font-semibold text-white/70 uppercase tracking-wider">Daily Ops</span>
+        <span className="text-sm font-display font-semibold text-white/70 uppercase tracking-wider">Daily Ops</span>
         <div className="flex items-center gap-1">
           {[0, 1, 2].map((i) => (
             <div key={i} className={`w-1.5 h-1.5 rounded-full ${i < dailyCount ? "bg-neon-green" : "bg-white/10"}`} />
           ))}
-          <span className="text-[9px] font-mono text-muted-foreground ml-0.5">{dailyCount}/3</span>
+          <span className="text-xs font-mono text-muted-foreground ml-0.5">{dailyCount}/3</span>
         </div>
       </div>
 
       {/* ── Recon Scan (Token Search) ── */}
-      <div className="rounded-lg border border-white/[0.06] bg-[#0d1525] px-2.5 py-2">
+      <div className="rounded-lg border border-white/[0.06] bg-[#0d1525] px-3 py-2.5">
         <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-md flex items-center justify-center shrink-0 bg-neon-green/10 border border-neon-green/20">
-            <Search className="h-3 w-3 text-neon-green" />
+          <div className="w-8 h-8 rounded-md flex items-center justify-center shrink-0 bg-neon-green/10 border border-neon-green/20">
+            <Search className="h-4 w-4 text-neon-green" />
           </div>
-          <span className="text-[12px] font-display font-semibold text-white leading-none flex-1">Recon Scan</span>
+          <span className="text-sm font-display font-semibold text-white leading-none flex-1">Recon Scan</span>
           <RewardIcons scrap={20} boost={{ type: "xp", percentBonus: 10 }} />
-          {done("token_scan") && <CheckCircle2 className="h-3.5 w-3.5 text-neon-green shrink-0" />}
+          {done("token_scan") && <CheckCircle2 className="h-4 w-4 text-neon-green shrink-0" />}
         </div>
         {/* Search input — hidden once completed */}
         {!done("token_scan") && <div className="flex gap-1 mt-1.5">
@@ -364,7 +364,7 @@ export function QuestPanel() {
             value={tokenQuery}
             onChange={(e) => setTokenQuery(e.target.value)}
             placeholder="SOL, BONK, JUP..."
-            className="flex-1 bg-[#0a1120] border border-white/10 rounded px-2 py-1 text-[11px] text-white placeholder:text-white/20 focus:outline-none focus:border-neon-green/30"
+            className="flex-1 bg-[#0a1120] border border-white/10 rounded px-2 py-1 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-neon-green/30"
             onKeyDown={(e) => {
               if (e.key === "Enter" && tokenQuery.trim()) {
                 run("token_scan", async () => {
@@ -382,9 +382,9 @@ export function QuestPanel() {
               }
             }}
             disabled={!tokenQuery.trim() || busy === "token_scan"}
-            className="px-2 py-1 bg-neon-green/15 text-neon-green border border-neon-green/25 hover:bg-neon-green/25 disabled:opacity-30 rounded text-[11px] font-mono font-semibold transition-colors shrink-0"
+            className="px-2 py-1 bg-neon-green/15 text-neon-green border border-neon-green/25 hover:bg-neon-green/25 disabled:opacity-30 rounded text-xs font-mono font-semibold transition-colors shrink-0"
           >
-            {busy === "token_scan" ? <Loader2 className="h-3 w-3 animate-spin" /> : <Search className="h-3 w-3" />}
+            {busy === "token_scan" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
           </button>
         </div>}
         {/* Token results — max 3, two-row compact cards */}
@@ -397,37 +397,37 @@ export function QuestPanel() {
               return (
                 <div key={t.address} className="rounded bg-white/[0.03] px-2 py-1">
                   {/* Row 1: icon + symbol + name + price + 24h change */}
-                  <div className="flex items-center gap-1.5 text-[10px]">
+                  <div className="flex items-center gap-1.5 text-xs">
                     {t.logoURI ? (
                       <img src={t.logoURI} alt={t.symbol} className="w-4 h-4 rounded-full shrink-0" />
                     ) : (
                       <div className="w-4 h-4 rounded-full bg-white/10 flex items-center justify-center shrink-0">
-                        <Coins className="h-2.5 w-2.5 text-white/30" />
+                        <Coins className="h-3.5 w-3.5 text-white/30" />
                       </div>
                     )}
                     <span className="font-semibold text-white">{t.symbol}</span>
-                    {t.isVerified && <ShieldCheck className="h-2.5 w-2.5 text-neon-green/50 shrink-0" />}
+                    {t.isVerified && <ShieldCheck className="h-3.5 w-3.5 text-neon-green/50 shrink-0" />}
                     <span className="text-white/25 truncate flex-1">{t.name}</span>
                     {t.price != null && (
-                      <span className="font-mono text-white/70 text-[10px]">{fmtPrice(t.price)}</span>
+                      <span className="font-mono text-white/70 text-xs">{fmtPrice(t.price)}</span>
                     )}
                     {ch != null && (
-                      <span className={`font-mono text-[9px] ${chCls}`}>{chSign}{ch.toFixed(1)}%</span>
+                      <span className={`font-mono text-xs ${chCls}`}>{chSign}{ch.toFixed(1)}%</span>
                     )}
                   </div>
                   {/* Row 2: mcap, liquidity, holders, volume */}
-                  <div className="flex items-center gap-2.5 mt-0.5 text-[9px] font-mono text-white/30 pl-[22px]">
+                  <div className="flex items-center gap-2.5 mt-0.5 text-xs font-mono text-white/50 pl-[22px]">
                     {t.mcap != null && t.mcap > 0 && (
                       <span title="Market Cap">MCap ${fmtCompact(t.mcap)}</span>
                     )}
                     {t.liquidity != null && t.liquidity > 0 && (
                       <span className="inline-flex items-center gap-0.5" title="Liquidity">
-                        <Droplets className="h-2 w-2" />${fmtCompact(t.liquidity)}
+                        <Droplets className="h-3 w-3" />${fmtCompact(t.liquidity)}
                       </span>
                     )}
                     {t.holderCount != null && t.holderCount > 0 && (
                       <span className="inline-flex items-center gap-0.5" title="Holders">
-                        <Users className="h-2 w-2" />{fmtCompact(t.holderCount)}
+                        <Users className="h-3 w-3" />{fmtCompact(t.holderCount)}
                       </span>
                     )}
                     {t.daily_volume != null && t.daily_volume > 0 && (
@@ -440,27 +440,27 @@ export function QuestPanel() {
           </div>
         )}
         {tokenResults && tokenResults.length === 0 && (
-          <p className="text-[9px] text-white/25 mt-1 text-center">No tokens found</p>
+          <p className="text-sm text-white/25 mt-1 text-center">No tokens found</p>
         )}
       </div>
 
       {/* ── Vault Audit (Portfolio) ── */}
-      <div className="rounded-lg border border-white/[0.06] bg-[#0d1525] px-2.5 py-2">
+      <div className="rounded-lg border border-white/[0.06] bg-[#0d1525] px-3 py-2.5">
         <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-md flex items-center justify-center shrink-0 bg-neon-cyan/10 border border-neon-cyan/20">
-            <Briefcase className="h-3 w-3 text-neon-cyan" />
+          <div className="w-8 h-8 rounded-md flex items-center justify-center shrink-0 bg-neon-cyan/10 border border-neon-cyan/20">
+            <Briefcase className="h-4 w-4 text-neon-cyan" />
           </div>
-          <span className="text-[12px] font-display font-semibold text-white leading-none flex-1">Vault Audit</span>
+          <span className="text-sm font-display font-semibold text-white leading-none flex-1">Vault Audit</span>
           <RewardIcons scrap={15} boost={{ type: "loot_chance", percentBonus: 10 }} />
           {done("portfolio_check") ? (
-            <CheckCircle2 className="h-3.5 w-3.5 text-neon-green shrink-0" />
+            <CheckCircle2 className="h-4 w-4 text-neon-green shrink-0" />
           ) : (
             <button
               onClick={() => run("portfolio", async () => { await completePortfolioCheck(); })}
               disabled={busy === "portfolio"}
-              className="px-2 py-0.5 bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.08] rounded text-[10px] font-mono text-white/80 font-semibold transition-colors shrink-0"
+              className="px-2 py-0.5 bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.08] rounded text-sm font-mono text-white/90 font-semibold transition-colors shrink-0"
             >
-              {busy === "portfolio" ? <Loader2 className="h-3 w-3 animate-spin" /> : "Go"}
+              {busy === "portfolio" ? <Loader2 className="h-4 w-4 animate-spin" /> : "Go"}
             </button>
           )}
         </div>
@@ -468,22 +468,22 @@ export function QuestPanel() {
       </div>
 
       {/* ── Signal Sweep (Price Watch) ── */}
-      <div className="rounded-lg border border-white/[0.06] bg-[#0d1525] px-2.5 py-2">
+      <div className="rounded-lg border border-white/[0.06] bg-[#0d1525] px-3 py-2.5">
         <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-md flex items-center justify-center shrink-0 bg-neon-amber/10 border border-neon-amber/20">
-            <TrendingUp className="h-3 w-3 text-neon-amber" />
+          <div className="w-8 h-8 rounded-md flex items-center justify-center shrink-0 bg-neon-amber/10 border border-neon-amber/20">
+            <TrendingUp className="h-4 w-4 text-neon-amber" />
           </div>
-          <span className="text-[12px] font-display font-semibold text-white leading-none flex-1">Signal Sweep</span>
+          <span className="text-sm font-display font-semibold text-white leading-none flex-1">Signal Sweep</span>
           <RewardIcons crystal={3} boost={{ type: "speed", percentBonus: 10 }} />
           {done("pnl_report") ? (
-            <CheckCircle2 className="h-3.5 w-3.5 text-neon-green shrink-0" />
+            <CheckCircle2 className="h-4 w-4 text-neon-green shrink-0" />
           ) : (
             <button
               onClick={() => run("priceWatch", async () => { await completePriceWatch(); })}
               disabled={busy === "priceWatch"}
-              className="px-2 py-0.5 bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.08] rounded text-[10px] font-mono text-white/80 font-semibold transition-colors shrink-0"
+              className="px-2 py-0.5 bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.08] rounded text-sm font-mono text-white/90 font-semibold transition-colors shrink-0"
             >
-              {busy === "priceWatch" ? <Loader2 className="h-3 w-3 animate-spin" /> : "Go"}
+              {busy === "priceWatch" ? <Loader2 className="h-4 w-4 animate-spin" /> : "Go"}
             </button>
           )}
         </div>
@@ -492,36 +492,36 @@ export function QuestPanel() {
 
       {/* Weekly divider */}
       <div className="flex items-center justify-between mt-0.5">
-        <span className="text-[10px] font-display font-semibold text-white/70 uppercase tracking-wider">Weekly Op</span>
+        <span className="text-sm font-display font-semibold text-white/70 uppercase tracking-wider">Weekly Op</span>
         <div className="flex items-center gap-1">
           <div className={`w-1.5 h-1.5 rounded-full ${done("micro_swap") ? "bg-neon-green" : "bg-white/10"}`} />
-          <span className="text-[9px] font-mono text-muted-foreground ml-0.5">{done("micro_swap") ? 1 : 0}/1</span>
+          <span className="text-xs font-mono text-muted-foreground ml-0.5">{done("micro_swap") ? 1 : 0}/1</span>
         </div>
       </div>
 
       {/* ── Supply Run (Micro Swap) ── */}
-      <div className="rounded-lg border border-white/[0.06] bg-[#0d1525] px-2.5 py-2">
+      <div className="rounded-lg border border-white/[0.06] bg-[#0d1525] px-3 py-2.5">
         <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-md flex items-center justify-center shrink-0 bg-neon-purple/10 border border-neon-purple/20">
-            <ArrowRightLeft className="h-3 w-3 text-neon-purple" />
+          <div className="w-8 h-8 rounded-md flex items-center justify-center shrink-0 bg-neon-purple/10 border border-neon-purple/20">
+            <ArrowRightLeft className="h-4 w-4 text-neon-purple" />
           </div>
-          <span className="text-[12px] font-display font-semibold text-white leading-none flex-1">Supply Run</span>
+          <span className="text-sm font-display font-semibold text-white leading-none flex-1">Supply Run</span>
           <RewardIcons scrap={50} crystal={10} artifact={1} />
           {done("micro_swap") ? (
-            <CheckCircle2 className="h-3.5 w-3.5 text-neon-green shrink-0" />
+            <CheckCircle2 className="h-4 w-4 text-neon-green shrink-0" />
           ) : (
             <button
               onClick={() => run("swap", handleMicroSwap)}
               disabled={busy === "swap" || !signTransaction}
-              className="px-2 py-0.5 bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.08] rounded text-[10px] font-mono text-white/80 font-semibold transition-colors shrink-0"
+              className="px-2 py-0.5 bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.08] rounded text-sm font-mono text-white/90 font-semibold transition-colors shrink-0"
             >
-              {busy === "swap" ? <Loader2 className="h-3 w-3 animate-spin" /> : "0.001 SOL"}
+              {busy === "swap" ? <Loader2 className="h-4 w-4 animate-spin" /> : "0.001 SOL"}
             </button>
           )}
         </div>
         {(done("micro_swap") || swapSig) && (
-          <div className="mt-1.5 flex items-center gap-1.5 px-2 py-1 rounded bg-white/[0.03] text-[10px] font-mono">
-            <CheckCircle2 className="h-3 w-3 text-neon-green shrink-0" />
+          <div className="mt-1.5 flex items-center gap-1.5 px-2 py-1 rounded bg-white/[0.03] text-sm font-mono">
+            <CheckCircle2 className="h-4 w-4 text-neon-green shrink-0" />
             <span className="text-neon-green">0.001 SOL → USDC</span>
             {swapSig && (
               <span className="text-white/20 truncate">{swapSig.slice(0, 8)}…</span>
@@ -532,7 +532,7 @@ export function QuestPanel() {
 
       {/* Jupiter branding */}
       <div className="rounded-lg bg-[#0a1120] border border-white/[0.05] flex items-center justify-center py-1.5 mt-0.5">
-        <img src={jupiterLogo} alt="Powered by Jupiter" className="h-3.5 opacity-80" />
+        <img src={jupiterLogo} alt="Powered by Jupiter" className="h-5" />
       </div>
     </div>
   );
