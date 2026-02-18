@@ -286,10 +286,11 @@ export function calculatePassiveDamage(
 }
 
 /** Use the OVERLOAD ability — burns all resources for crit damage. Once per fight. */
-export function useOverload(
+export async function useOverload(
   walletAddress: string,
-  bossId: string
-): { success: boolean; damage?: number; error?: string } {
+  bossId: string,
+  playerSignature?: string
+): Promise<{ success: boolean; damage?: number; error?: string }> {
   const participant = db
     .prepare(
       "SELECT * FROM boss_participants WHERE boss_id = ? AND wallet_address = ?"
@@ -369,12 +370,19 @@ export function useOverload(
   });
   overloadTx();
 
-  // Push overload damage to ER
+  // Store player signature as proof of OVERLOAD authorization
+  if (playerSignature) {
+    db.prepare(
+      "UPDATE boss_participants SET overload_signature = ? WHERE boss_id = ? AND wallet_address = ?"
+    ).run(playerSignature, bossId, walletAddress);
+  }
+
+  // Push overload damage to ER (server-side, fire-and-forget)
   const weekStartOverload = getWeekStart();
   const weekStartTsOverload = Math.floor(new Date(weekStartOverload).getTime() / 1000);
   const overloadStatus = getBossStatus(bossId);
-  if (overloadStatus) {
-    applyDamageOnER(weekStartTsOverload, overloadStatus.totalDamage, overloadStatus.participantCount).catch(() => {});
+  if (overloadStatus?.boss) {
+    applyDamageOnER(weekStartTsOverload, overloadStatus.totalDamage, overloadStatus.participantCount, overloadStatus.boss.maxHp).catch(() => {});
   }
 
   // If boss was killed, finalize on-chain
@@ -428,7 +436,7 @@ export function updateAllPassiveDamage(bossId: string): void {
   // Push damage to ER
   const weekStartPassive = getWeekStart();
   const weekStartTsPassive = Math.floor(new Date(weekStartPassive).getTime() / 1000);
-  applyDamageOnER(weekStartTsPassive, totalDamage, participants.length).catch(() => {});
+  applyDamageOnER(weekStartTsPassive, totalDamage, participants.length, boss.max_hp).catch(() => {});
 
   // If boss was killed, finalize on-chain
   if (newHp <= 0) {

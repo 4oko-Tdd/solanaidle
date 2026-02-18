@@ -230,7 +230,7 @@ function buildApplyDamageIx(
   data.writeUInt32LE(participantCount, 16);
 
   const keys = [
-    { pubkey: authorityPubkey, isSigner: true, isWritable: true },
+    { pubkey: authorityPubkey, isSigner: true, isWritable: false },
     { pubkey: bossPda, isSigner: false, isWritable: true },
   ];
 
@@ -281,6 +281,15 @@ export async function initializeBossOnChain(
     const existingAccount = await solanaConnection.getAccountInfo(bossPda);
 
     if (existingAccount) {
+      // Check stored authority (discriminator=8, then authority=32 bytes)
+      const storedAuthority = new PublicKey(existingAccount.data.slice(8, 40));
+      if (!storedAuthority.equals(serverKeypair.publicKey)) {
+        console.warn(
+          `[BossER] Boss PDA authority mismatch — stored=${storedAuthority.toBase58()} server=${serverKeypair.publicKey.toBase58()}. Skipping ER for this boss (game continues via SQLite).`
+        );
+        return;
+      }
+
       if (existingAccount.owner.equals(DELEGATION_PROGRAM_ID)) {
         // Already delegated — just mark as ready and skip
         delegatedBossPdas.add(bossPda.toBase58());
@@ -367,7 +376,8 @@ export async function initializeBossOnChain(
 export async function applyDamageOnER(
   weekStart: number,
   totalDamageSoFar: number,
-  participantCount: number
+  participantCount: number,
+  bossMaxHp: number
 ): Promise<void> {
   try {
     const key = weekStart.toString();
@@ -381,7 +391,7 @@ export async function applyDamageOnER(
     // Auto-init+delegate if not yet done this session
     if (!delegatedBossPdas.has(bossPda.toBase58())) {
       console.log("[BossER] PDA not yet delegated, initializing first...");
-      await initializeBossOnChain(weekStart, totalDamageSoFar + 1000000);
+      await initializeBossOnChain(weekStart, bossMaxHp);
       if (!delegatedBossPdas.has(bossPda.toBase58())) {
         console.warn("[BossER] Init+delegate failed, skipping ER update");
         return;
@@ -436,6 +446,69 @@ export async function applyDamageOnER(
     }
   } catch (err) {
     console.warn("[BossER] Failed to apply damage on ER:", err);
+  }
+}
+
+/**
+ * Build a partially-signed apply_damage transaction for the player to countersign.
+ * Server partial-signs as authority; player must sign as feePayer before sending to ER.
+ * Returns null if ER is unavailable (game continues via SQLite).
+ */
+export async function buildPartiallySignedApplyDamageTx(
+  playerWallet: string,
+  weekStart: number,
+  totalDamageSoFar: number,
+  participantCount: number,
+  bossMaxHp: number
+): Promise<{ tx: string; erValidatorUrl: string } | null> {
+  try {
+    const key = weekStart.toString();
+    const lastDamage = lastOnChainDamage.get(key) ?? 0;
+    const delta = totalDamageSoFar - lastDamage;
+
+    if (delta <= 0) return null; // No new damage to push
+
+    const [bossPda] = deriveBossPda(weekStart);
+
+    // Auto-init+delegate if not yet done this session
+    if (!delegatedBossPdas.has(bossPda.toBase58())) {
+      console.log("[BossER] PDA not yet delegated, initializing first...");
+      await initializeBossOnChain(weekStart, bossMaxHp);
+      if (!delegatedBossPdas.has(bossPda.toBase58())) {
+        console.warn("[BossER] Init+delegate failed, cannot build partial tx");
+        return null;
+      }
+    }
+
+    // Resolve correct ER endpoint
+    const targetEr = await resolveErConnection(bossPda);
+
+    const ix = buildApplyDamageIx(
+      serverKeypair.publicKey,
+      bossPda,
+      delta,
+      participantCount
+    );
+
+    const tx = new Transaction().add(ix);
+    tx.feePayer = new PublicKey(playerWallet);
+    const { blockhash } = await targetEr.getLatestBlockhash();
+    tx.recentBlockhash = blockhash;
+
+    // Server partial-signs as authority
+    tx.partialSign(serverKeypair);
+
+    // Update lastOnChainDamage now so passive ticks don't re-send the same delta
+    lastOnChainDamage.set(key, totalDamageSoFar);
+
+    const serialized = tx.serialize({ requireAllSignatures: false });
+    return {
+      tx: serialized.toString("base64"),
+      erValidatorUrl: targetEr.rpcEndpoint,
+    };
+  } catch (err) {
+    console.warn("[BossER] Failed to build partially-signed apply damage tx:", err);
+    return null;
   }
 }
 

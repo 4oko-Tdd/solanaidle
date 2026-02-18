@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useWallet } from "@solana/wallet-adapter-react";
 import { api } from "@/lib/api";
+import { signOverload } from "@/lib/er";
 import { useBossER } from "./useBossER";
 import type { WorldBoss } from "@solanaidle/shared";
 
@@ -27,6 +29,7 @@ const POLL_INTERVAL_DEFAULT = 30000;
 const POLL_INTERVAL_WITH_WS = 120000;
 
 export function useBoss() {
+  const { signMessage, publicKey } = useWallet();
   const [state, setState] = useState<BossState>({
     boss: null,
     participantCount: 0,
@@ -81,16 +84,28 @@ export function useBoss() {
   }, [refresh]);
 
   const overload = useCallback(async () => {
-    await api("/boss/overload", { method: "POST" });
+    const playerSignature = signMessage && publicKey
+      ? await signOverload(signMessage, publicKey.toBase58())
+      : null;
+    await api("/boss/overload", {
+      method: "POST",
+      body: JSON.stringify({ playerSignature }),
+    });
     await refresh();
-  }, [refresh]);
+  }, [refresh, signMessage, publicKey]);
 
-  // Merge on-chain state with HTTP state when websocket is connected
+  // Merge on-chain state with HTTP state when websocket is connected.
+  // Only trust on-chain HP if it's a valid value (≤ maxHp). If the ER PDA
+  // was mis-initialised its HP will be > maxHp — fall back to SQLite in that case.
+  const onChainHpValid =
+    er.connected &&
+    er.onChainHp !== null &&
+    er.onChainHp <= (state.boss?.maxHp ?? 0);
   const mergedBoss: WorldBoss | null = state.boss
-    ? er.connected && er.onChainHp !== null
+    ? onChainHpValid
       ? {
           ...state.boss,
-          currentHp: er.onChainHp,
+          currentHp: er.onChainHp!,
           killed: er.onChainKilled ?? state.boss.killed,
         }
       : state.boss
@@ -99,10 +114,10 @@ export function useBoss() {
   return {
     ...state,
     boss: mergedBoss,
-    participantCount: er.connected && er.onChainParticipants !== null
+    participantCount: onChainHpValid && er.onChainParticipants !== null
       ? er.onChainParticipants
       : state.participantCount,
-    totalDamage: er.connected && er.onChainTotalDamage !== null
+    totalDamage: onChainHpValid && er.onChainTotalDamage !== null
       ? er.onChainTotalDamage
       : state.totalDamage,
     wsConnected: er.connected,

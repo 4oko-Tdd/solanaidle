@@ -5,7 +5,7 @@ import { getRunEvents } from "../services/event-service.js";
 import { CLASSES } from "../services/game-config.js";
 import { computeEpochBonus } from "../services/vrf-service.js";
 import { getCharacter } from "../services/character-service.js";
-import { getProgressPdaAddress, ER_CONSTANTS, initializeProgressOnChain } from "../services/er-service.js";
+import { getProgressPdaAddress, ER_CONSTANTS, initializeProgressOnChain, updateProgressOnER } from "../services/er-service.js";
 import type { ClassId, EpochFinalizeResponse } from "@solanaidle/shared";
 
 type Env = { Variables: { wallet: string } };
@@ -34,12 +34,14 @@ runs.post("/start", async (c) => {
       storeStartSignature(run.id, body.signature);
     }
 
-    // Initialize progress PDA on base layer and delegate to ER (non-blocking)
+    // Initialize progress PDA and reset to zero (handles same-week re-runs in dev)
     const { weekStart } = getWeekBounds();
     const weekStartTs = Math.floor(new Date(weekStart).getTime() / 1000);
-    initializeProgressOnChain(wallet, weekStartTs, body.classId).catch((err) => {
-      console.warn("[ER] Background progress init failed:", err);
-    });
+    initializeProgressOnChain(wallet, weekStartTs, body.classId)
+      .then(() => updateProgressOnER(wallet, weekStartTs, 0, 0, 0, false))
+      .catch((err) => {
+        console.warn("[ER] Background progress init failed:", err);
+      });
 
     return c.json(run, 201);
   } catch (e: any) {

@@ -31,6 +31,7 @@ interface MissionRow {
   ends_at: string;
   reroll_stacks: number;
   insured: number;
+  run_id: string | null;
 }
 
 interface CharacterRow {
@@ -138,8 +139,8 @@ export function startMission(
 
   const id = randomUUID();
   db.prepare(
-    "INSERT INTO active_missions (id, character_id, mission_id, started_at, ends_at, reroll_stacks, insured) VALUES (?, ?, ?, ?, ?, ?, ?)"
-  ).run(id, characterId, missionId, now.toISOString(), endsAt.toISOString(), stacks, useInsurance);
+    "INSERT INTO active_missions (id, character_id, mission_id, started_at, ends_at, reroll_stacks, insured, run_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+  ).run(id, characterId, missionId, now.toISOString(), endsAt.toISOString(), stacks, useInsurance, runId ?? null);
 
   db.prepare("UPDATE characters SET state = 'on_mission' WHERE id = ?").run(
     characterId
@@ -152,12 +153,13 @@ export function startMission(
   };
 }
 
-export function claimMission(
+export async function claimMission(
   characterId: string,
   classId?: string,
   runId?: string,
-  walletAddress?: string
-): MissionClaimResponse {
+  walletAddress?: string,
+  playerSignature?: string
+): Promise<MissionClaimResponse> {
   const missionRow = db
     .prepare("SELECT * FROM active_missions WHERE character_id = ?")
     .get(characterId) as MissionRow | undefined;
@@ -165,6 +167,18 @@ export function claimMission(
 
   const endsAt = new Date(missionRow.ends_at).getTime();
   if (Date.now() < endsAt) throw new Error("Mission not complete");
+
+  // If the caller didn't supply a runId (e.g. epoch rolled over before claim),
+  // fall back to the run that was active when the mission started.
+  if (!runId && missionRow.run_id) {
+    const storedRun = db
+      .prepare("SELECT id, class_id FROM weekly_runs WHERE id = ?")
+      .get(missionRow.run_id) as { id: string; class_id: string } | undefined;
+    if (storedRun) {
+      runId = storedRun.id;
+      classId = storedRun.class_id;
+    }
+  }
 
   const mission = getMission(missionRow.mission_id)!;
 
@@ -335,6 +349,7 @@ export function claimMission(
       scrap: rewards.scrap,
       crystal: rewards.crystal ?? 0,
       artifact: rewards.artifact ?? 0,
+      playerSignature: playerSignature ?? null,
     });
 
     // Achievement: Streak Legend + Deep Explorer
@@ -345,7 +360,7 @@ export function claimMission(
     }
   }
 
-  // Update on-chain progress via Ephemeral Rollup (fire-and-forget)
+  // Update on-chain progress via ER (server-side, fire-and-forget)
   if (runId) {
     const runRow = db.prepare(
       "SELECT wallet_address, week_start, score, missions_completed, boss_defeated FROM weekly_runs WHERE id = ?"
@@ -362,7 +377,7 @@ export function claimMission(
         runRow.missions_completed,
         deathCount?.cnt ?? 0,
         runRow.boss_defeated === 1
-      ).catch(() => {}); // fire-and-forget
+      ).catch(() => {});
     }
   }
 

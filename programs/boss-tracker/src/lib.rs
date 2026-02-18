@@ -139,7 +139,6 @@ pub struct DelegateBoss<'info> {
 
 #[derive(Accounts)]
 pub struct ApplyDamage<'info> {
-    #[account(mut)]
     pub authority: Signer<'info>,
 
     #[account(mut, has_one = authority)]

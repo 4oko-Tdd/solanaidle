@@ -46,6 +46,8 @@ export interface MissionClaimResponse {
   rewards: MissionRewards | null;
   character: Character;
   streak: number; // current streak after this mission
+  erTx?: string;           // base64 partially-signed Transaction (player must sign + send)
+  erValidatorUrl?: string; // ER endpoint for submission
 }
 
 export interface MissionRewards {
@@ -461,6 +463,13 @@ export interface BossParticipant {
 }
 
 export type BossDropType = "weekly_buff" | "permanent_loot" | "data_core" | "nft_artifact";
+
+export interface OverloadResponse {
+  success: boolean;
+  damage?: number;
+  erTx?: string;           // base64 partially-signed Transaction (player must sign + send)
+  erValidatorUrl?: string; // ER endpoint for submission
+}
 
 // ── On-Chain Boss State (Ephemeral Rollups) ──
 

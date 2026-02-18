@@ -146,7 +146,6 @@ pub struct DelegateProgress<'info> {
 
 #[derive(Accounts)]
 pub struct UpdateProgress<'info> {
-    #[account(mut)]
     pub authority: Signer<'info>,
 
     #[account(mut)]

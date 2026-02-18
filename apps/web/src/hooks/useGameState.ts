@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
+import { useWallet } from "@solana/wallet-adapter-react";
 import { api } from "@/lib/api";
+import { signClaim } from "@/lib/er";
 import type {
   Character,
   ActiveMission,
@@ -29,6 +31,7 @@ interface GameState {
 }
 
 export function useGameState(isAuthenticated: boolean) {
+  const { signMessage, publicKey } = useWallet();
   const [state, setState] = useState<GameState>({
     character: null,
     missions: [],
@@ -132,13 +135,17 @@ export function useGameState(isAuthenticated: boolean) {
   );
 
   const claimMission = useCallback(async () => {
+    const playerSignature = signMessage && publicKey
+      ? await signClaim(signMessage, publicKey.toBase58())
+      : null;
     const result = await api<MissionClaimResponse>("/missions/claim", {
       method: "POST",
+      body: JSON.stringify({ playerSignature }),
     });
     setState((s) => ({ ...s, lastClaimResult: result }));
     await refresh();
     return result;
-  }, [refresh]);
+  }, [refresh, signMessage, publicKey]);
 
   const upgradeTrack = useCallback(async (track: GearTrack) => {
     await api(`/upgrades/${track}`, { method: "POST" });

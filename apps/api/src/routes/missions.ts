@@ -78,7 +78,7 @@ missions.post("/start", async (c) => {
   }
 });
 
-missions.post("/claim", (c) => {
+missions.post("/claim", async (c) => {
   const wallet = c.get("wallet");
   const char = getCharacter(wallet);
   if (!char) {
@@ -102,8 +102,9 @@ missions.post("/claim", (c) => {
     );
   }
 
+  const { playerSignature } = await c.req.json<{ playerSignature?: string }>().catch(() => ({} as { playerSignature?: string }));
   const run = getActiveRun(wallet);
-  const result = claimMission(char.id, run?.classId, run?.id, wallet);
+  const result = await claimMission(char.id, run?.classId, run?.id, wallet, playerSignature);
   return c.json(result);
 });
 

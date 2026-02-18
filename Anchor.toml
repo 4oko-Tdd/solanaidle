@@ -14,7 +14,7 @@ url = "https://api.apr.dev"
 
 [provider]
 cluster = "devnet"
-wallet = "~/.config/solana/solana-idle.json"
+wallet = "./keys/dev.json"
 
 [workspace]
 members = ["programs/*"]

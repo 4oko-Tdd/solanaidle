@@ -6,7 +6,6 @@ import {
   publicKey,
   type Umi,
 } from "@metaplex-foundation/umi";
-import bs58 from "bs58";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -14,7 +13,7 @@ import { fileURLToPath } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = path.resolve(__dirname, "../../data");
 const COLLECTIONS_FILE = path.join(DATA_DIR, "collections.json");
-const KEYPAIR_FILE = path.join(DATA_DIR, "mint-keypair.json");
+const DEV_KEYPAIR_FILE = path.resolve(__dirname, "../../../../keys/dev.json");
 
 const RPC_URL = process.env.SOLANA_RPC_URL || "https://api.devnet.solana.com";
 const API_BASE = process.env.API_BASE_URL || "http://localhost:3000/api";
@@ -27,22 +26,8 @@ function getUmi(): Umi {
 
   _umi = createUmi(RPC_URL).use(mplCore());
 
-  let secretKeyBytes: Uint8Array;
-
-  if (process.env.MINT_KEYPAIR) {
-    secretKeyBytes = bs58.decode(process.env.MINT_KEYPAIR);
-  } else if (fs.existsSync(KEYPAIR_FILE)) {
-    const raw = JSON.parse(fs.readFileSync(KEYPAIR_FILE, "utf-8"));
-    secretKeyBytes = new Uint8Array(raw);
-  } else {
-    // Auto-generate for dev
-    const kp = _umi.eddsa.generateKeypair();
-    fs.mkdirSync(DATA_DIR, { recursive: true });
-    fs.writeFileSync(KEYPAIR_FILE, JSON.stringify(Array.from(kp.secretKey)));
-    secretKeyBytes = kp.secretKey;
-    console.log(`Generated mint keypair: ${kp.publicKey}`);
-    console.log("Fund on devnet: solana airdrop 2 " + kp.publicKey + " --url devnet");
-  }
+  const raw = JSON.parse(fs.readFileSync(DEV_KEYPAIR_FILE, "utf-8"));
+  const secretKeyBytes = new Uint8Array(raw);
 
   const keypair = _umi.eddsa.createKeypairFromSecretKey(secretKeyBytes);
   _umi.use(keypairIdentity(keypair));

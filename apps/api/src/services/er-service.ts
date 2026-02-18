@@ -272,7 +272,7 @@ function buildUpdateProgressIx(
   data.writeUInt8(bossDefeated ? 1 : 0, 24);
 
   const keys = [
-    { pubkey: authorityPubkey, isSigner: true, isWritable: true },
+    { pubkey: authorityPubkey, isSigner: true, isWritable: false },
     { pubkey: progressPda, isSigner: false, isWritable: true },
   ];
 
@@ -491,6 +491,64 @@ export async function updateProgressOnER(
   } catch (err) {
     // Non-fatal: game continues without on-chain mirror
     console.warn("[ER] Failed to update progress on ER:", err);
+  }
+}
+
+/**
+ * Build a partially-signed update_progress transaction for the player to countersign.
+ * Server partial-signs as authority; player must sign as feePayer before sending to ER.
+ * Returns null if ER is unavailable (game continues via SQLite).
+ */
+export async function buildPartiallySignedUpdateProgressTx(
+  playerWallet: string,
+  weekStart: number,
+  score: number,
+  missionsCompleted: number,
+  deaths: number,
+  bossDefeated: boolean
+): Promise<{ tx: string; erValidatorUrl: string } | null> {
+  try {
+    const playerPubkey = new PublicKey(playerWallet);
+    const [progressPda] = deriveProgressPda(playerPubkey, weekStart);
+
+    // Auto-init+delegate if not yet done this session
+    if (!delegatedPdas.has(progressPda.toBase58())) {
+      console.log("[ER] PDA not yet delegated, initializing first...");
+      await initializeProgressOnChain(playerWallet, weekStart, "scout");
+      if (!delegatedPdas.has(progressPda.toBase58())) {
+        console.warn("[ER] Init+delegate failed, cannot build partial tx");
+        return null;
+      }
+    }
+
+    // Resolve correct ER endpoint
+    const targetEr = await resolveErConnection(progressPda);
+
+    const ix = buildUpdateProgressIx(
+      serverKeypair.publicKey,
+      progressPda,
+      score,
+      missionsCompleted,
+      deaths,
+      bossDefeated
+    );
+
+    const tx = new Transaction().add(ix);
+    tx.feePayer = new PublicKey(playerWallet);
+    const { blockhash } = await targetEr.getLatestBlockhash();
+    tx.recentBlockhash = blockhash;
+
+    // Server partial-signs as authority
+    tx.partialSign(serverKeypair);
+
+    const serialized = tx.serialize({ requireAllSignatures: false });
+    return {
+      tx: serialized.toString("base64"),
+      erValidatorUrl: targetEr.rpcEndpoint,
+    };
+  } catch (err) {
+    console.warn("[ER] Failed to build partially-signed update progress tx:", err);
+    return null;
   }
 }
 

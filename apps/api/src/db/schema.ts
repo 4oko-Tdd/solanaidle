@@ -228,6 +228,15 @@ export function initSchema() {
   if (!missionColNames.includes("insured")) {
     db.exec("ALTER TABLE active_missions ADD COLUMN insured INTEGER NOT NULL DEFAULT 0");
   }
+  if (!missionColNames.includes("run_id")) {
+    db.exec("ALTER TABLE active_missions ADD COLUMN run_id TEXT");
+  }
+
+  // Migrations — boss_participants: overload_signature column
+  const bossPartCols = db.prepare("PRAGMA table_info(boss_participants)").all() as { name: string }[];
+  if (!bossPartCols.map(c => c.name).includes("overload_signature")) {
+    db.exec("ALTER TABLE boss_participants ADD COLUMN overload_signature TEXT");
+  }
 
   // Migrations — nft_claims: mint_address column
   const claimCols = db.prepare("PRAGMA table_info(nft_claims)").all() as { name: string }[];

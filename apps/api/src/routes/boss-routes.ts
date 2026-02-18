@@ -70,13 +70,14 @@ app.post("/join", (c) => {
 });
 
 // POST /boss/overload
-app.post("/overload", (c) => {
+app.post("/overload", async (c) => {
   const wallet = c.get("wallet");
   const boss = getCurrentBoss();
   if (!boss) {
     return c.json({ error: "BOSS_NOT_ACTIVE" }, 400);
   }
-  const result = useOverload(wallet, boss.id);
+  const { playerSignature } = await c.req.json<{ playerSignature?: string }>().catch(() => ({} as { playerSignature?: string }));
+  const result = await useOverload(wallet, boss.id, playerSignature);
   if (!result.success) {
     return c.json({ error: result.error }, 400);
   }

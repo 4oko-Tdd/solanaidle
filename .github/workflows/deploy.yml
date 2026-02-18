@@ -1,0 +1,55 @@
+name: Deploy Anchor Programs
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "programs/**"
+      - "Anchor.toml"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Solana CLI
+        run: |
+          sh -c "$(curl -sSfL https://release.anza.xyz/stable/install)"
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+
+      - name: Install Anchor CLI
+        run: cargo install --git https://github.com/coral-xyz/anchor avm --locked && avm install latest && avm use latest
+
+      - name: Restore Solana keypair
+        run: |
+          mkdir -p keys
+          echo '${{ secrets.SOLANA_KEYPAIR_JSON }}' > keys/dev.json
+          chmod 600 keys/dev.json
+
+      - name: Set Solana config
+        run: |
+          solana config set --keypair keys/dev.json
+          solana config set --url https://api.devnet.solana.com
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Deploy
+        run: anchor deploy
