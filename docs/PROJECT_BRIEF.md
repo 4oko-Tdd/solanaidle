@@ -1,14 +1,10 @@
 # Solana Idle -- Project Brief
 
-**Solana Mobile Seeker Hackathon Submission**
-
----
-
 ## What Is Solana Idle?
 
 Solana Idle is a wallet-native roguelike idle game built for Solana Mobile. You are a **node operator** in a decentralized cyberpunk world -- running missions, building power through the week, and rallying with other players to take down a **Protocol Leviathan** world boss every weekend. The only things that survive the weekly reset are rare boss drops and achievement badges.
 
-This is not DeFi. Not P2E. Not a casino. It is a game designed to create daily habits around Solana Mobile usage, with deep integrations across four hackathon tracks: **Solana Mobile, MagicBlock, Metaplex Core, and Jupiter**.
+This is not DeFi. Not P2E. Not a casino. It is a game designed to create daily habits around Solana Mobile usage, with deep integrations across **Solana Mobile, MagicBlock, Metaplex Core, and Jupiter**.
 
 ---
 
@@ -98,9 +94,9 @@ No infinite farming. Time is the core limiter. Lives are finite. Decisions have 
 
 ---
 
-## Solana Integrations (4 Hackathon Tracks)
+## Solana Integrations
 
-### 1. Solana Mobile
+### Solana Mobile
 
 The game is built mobile-first as a **PWA packaged via Bubblewrap into an APK** for the Solana dApp Store. Wallet authentication uses **Mobile Wallet Adapter v2**. Browser wallets (Phantom, etc.) self-register via Wallet Standard.
 
@@ -109,7 +105,7 @@ Wallet serves three roles:
 - **Ownership** -- permanent boss loot and achievement NFTs live in your wallet
 - **Ritual** -- confirm meaningful on-chain actions (epoch start, VRF roll)
 
-### 2. MagicBlock
+### MagicBlock
 
 Three MagicBlock integrations bring game mechanics on-chain without sacrificing mobile UX:
 
@@ -117,7 +113,7 @@ Three MagicBlock integrations bring game mechanics on-chain without sacrificing 
 - **Ephemeral Rollups (Progress)** -- Zero-fee on-chain progress tracking. Game state is checkpointed to Solana without transaction fees or extra signatures.
 - **Ephemeral Rollups (Boss HP)** -- Real-time boss HP broadcast to all clients via websocket. One global BossState PDA per week, server-signed damage updates, instant visibility across all players. Falls back to HTTP polling when unavailable.
 
-### 3. Metaplex Core
+### Metaplex Core
 
 Permanent boss drops and achievements are minted as **Metaplex Core assets** with the Attributes plugin, directly to the player's wallet (zero player signatures -- server-minted).
 
@@ -125,7 +121,7 @@ Two collections:
 - **Solana Idle: Relics** -- Permanent rare boss loot (Protocol Core, Genesis Shard, etc.) and hand-crafted NFT artifacts
 - **Solana Idle: Achievements** -- Badge NFTs for milestones (Boss Slayer, Streak Legend, Deep Explorer, Raid Victor, Epoch Champion)
 
-### 4. Jupiter
+### Jupiter
 
 The in-game **Intel tab** integrates Jupiter to bridge idle gameplay with real Solana DeFi:
 
@@ -167,16 +163,15 @@ All game state is **server-authoritative**:
 
 Solana Mobile needs apps that people open **every day**, not once. Solana Idle creates a weekly roguelike loop where the boss fight is the social event, the rare drop is the chase, and the wallet is not just a login button -- it is your loot vault and proof of legend.
 
-Four hackathon tracks. One cohesive game. No bolted-on integrations -- each piece (Mobile Wallet Adapter, MagicBlock VRF, Metaplex Core NFTs, Jupiter quests) serves a real gameplay purpose.
+Each integration (Mobile Wallet Adapter, MagicBlock VRF, Metaplex Core NFTs, Jupiter quests) serves a real gameplay purpose -- nothing is bolted on.
 
 > "A cyberpunk roguelike idle game where your Solana wallet is your operator badge, your loot vault, and your proof of legend."
 
 ---
 
-## Post-Hackathon Vision
+## Future Vision
 
 - Publish to the Solana dApp Store
 - Seasonal Leviathans with themed drop tables and evolving lore
 - Expanded NFT economy (tradable relics, guild banners, limited-edition artifacts)
 - Guild leaderboards and coordinated boss strategies
-- Example of what a non-DeFi, game-first Solana Mobile app looks like

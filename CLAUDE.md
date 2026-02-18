@@ -56,7 +56,7 @@ pnpm build            # Build all packages
 - MVP: off-chain progression, optional on-chain NFT claims for rare events
 - Server authoritative: all timers, RNG, and state validation happen server-side
 
-## MVP Scope (Hackathon)
+## MVP Scope
 
 **In scope:** wallet sign-in, 1 character, 3 mission types, server timers, success/fail + rewards, resource inventory, 1 upgrade type, claim flow, basic UI
 **Out of scope:** marketplace, PVP, trading, tokenomics, fully on-chain gameplay

@@ -35,6 +35,19 @@ const SOLANA_RPC_URL =
 
 const BOSS_SEED = Buffer.from("boss");
 
+// ER validator pubkey — must match ER_VALIDATOR_URL
+const ER_VALIDATOR_MAP: Record<string, string> = {
+  "https://devnet-us.magicblock.app": "MUS3hc9TCw4cGC12vHNoYcCGzJG1txjgQLZWVoeNHNd",
+  "https://devnet-eu.magicblock.app": "MEUGGrYPxKk17hCr7wpT6s8dtNokZj5U2L57vjYMS8e",
+  "https://devnet-as.magicblock.app": "MAS1Dt9qreoRMQ14YQuhg8UTZMMzDdKhmkZMECCzk57",
+  "https://us.magicblock.app": "MUS3hc9TCw4cGC12vHNoYcCGzJG1txjgQLZWVoeNHNd",
+  "https://eu.magicblock.app": "MEUGGrYPxKk17hCr7wpT6s8dtNokZj5U2L57vjYMS8e",
+  "https://as.magicblock.app": "MAS1Dt9qreoRMQ14YQuhg8UTZMMzDdKhmkZMECCzk57",
+};
+const ER_VALIDATOR_PUBKEY = new PublicKey(
+  ER_VALIDATOR_MAP[ER_VALIDATOR_URL] || "MUS3hc9TCw4cGC12vHNoYcCGzJG1txjgQLZWVoeNHNd"
+);
+
 // ── Server Keypair ──
 // Reuse the same server keypair as er-service.ts
 let serverKeypair: Keypair;
@@ -58,10 +71,42 @@ try {
   console.warn("[BossER] Failed to parse SERVER_KEYPAIR, using ephemeral key");
 }
 
+const ER_ROUTER_URL =
+  process.env.ER_ROUTER_URL || "https://devnet-router.magicblock.app";
+
 // ── Connections ──
 
 const solanaConnection = new Connection(SOLANA_RPC_URL, "confirmed");
 const erConnection = new Connection(ER_VALIDATOR_URL, "confirmed");
+
+/**
+ * Resolve the ER endpoint for a delegated account via the router.
+ */
+async function resolveErConnection(accountPda: PublicKey): Promise<Connection> {
+  try {
+    const resp = await fetch(ER_ROUTER_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        id: 1,
+        method: "getDelegationStatus",
+        params: [accountPda.toBase58()],
+      }),
+    });
+    const json = await resp.json() as { result?: { isDelegated: boolean; fqdn?: string } };
+    if (json.result?.isDelegated && json.result.fqdn) {
+      const url = json.result.fqdn.replace(/\/$/, "");
+      return new Connection(url, "confirmed");
+    }
+  } catch (err) {
+    console.warn("[BossER] Failed to resolve delegation endpoint:", err);
+  }
+  return erConnection;
+}
+
+// ── Delegation Tracking ──
+const delegatedBossPdas = new Set<string>();
 
 // ── Track last on-chain damage to compute deltas ──
 
@@ -79,20 +124,36 @@ export function deriveBossPda(weekStart: number): [PublicKey, number] {
   );
 }
 
-// ── Instruction Builders ──
+// ── Delegation PDA Helpers ──
 
-function buildInitializeAndDelegateIx(
+function deriveBossDelegationPdas(bossPda: PublicKey) {
+  const [bufferPda] = PublicKey.findProgramAddressSync(
+    [Buffer.from("buffer"), bossPda.toBuffer()],
+    BOSS_PROGRAM_ID
+  );
+  const [delegationRecordPda] = PublicKey.findProgramAddressSync(
+    [Buffer.from("delegation"), bossPda.toBuffer()],
+    DELEGATION_PROGRAM_ID
+  );
+  const [delegationMetadataPda] = PublicKey.findProgramAddressSync(
+    [Buffer.from("delegation-metadata"), bossPda.toBuffer()],
+    DELEGATION_PROGRAM_ID
+  );
+  return { bufferPda, delegationRecordPda, delegationMetadataPda };
+}
+
+// ── Instruction Builders ──
+// Discriminators sourced from target/idl/boss_tracker.json
+
+function buildInitializeBossIx(
   payerPubkey: PublicKey,
   weekStart: number,
   maxHp: number
 ): { instruction: TransactionInstruction; bossPda: PublicKey } {
   const [bossPda] = deriveBossPda(weekStart);
 
-  // Anchor discriminator for "initialize_and_delegate"
-  // sha256("global:initialize_and_delegate")[0..8]
-  const discriminator = Buffer.from([
-    0x5f, 0x9b, 0x3a, 0x7e, 0x12, 0xc4, 0xd8, 0x01,
-  ]);
+  // Anchor discriminator from IDL: [0x3c, 0x66, 0x9f, 0x40, 0x72, 0x33, 0xd9, 0x97]
+  const discriminator = Buffer.from([0x3c, 0x66, 0x9f, 0x40, 0x72, 0x33, 0xd9, 0x97]);
 
   const weekBytes = Buffer.alloc(8);
   weekBytes.writeBigInt64LE(BigInt(weekStart));
@@ -118,16 +179,50 @@ function buildInitializeAndDelegateIx(
   };
 }
 
+function buildDelegateBossIx(
+  payerPubkey: PublicKey,
+  bossPda: PublicKey,
+  weekStart: number
+): TransactionInstruction {
+  const { bufferPda, delegationRecordPda, delegationMetadataPda } =
+    deriveBossDelegationPdas(bossPda);
+
+  // Anchor discriminator from IDL: [0xb4, 0x0c, 0x61, 0x2e, 0x17, 0xee, 0x34, 0xdf]
+  const discriminator = Buffer.from([0xb4, 0x0c, 0x61, 0x2e, 0x17, 0xee, 0x34, 0xdf]);
+
+  const weekBytes = Buffer.alloc(8);
+  weekBytes.writeBigInt64LE(BigInt(weekStart));
+
+  const data = Buffer.concat([discriminator, weekBytes]);
+
+  const keys = [
+    { pubkey: payerPubkey, isSigner: true, isWritable: true },
+    { pubkey: bufferPda, isSigner: false, isWritable: true },
+    { pubkey: delegationRecordPda, isSigner: false, isWritable: true },
+    { pubkey: delegationMetadataPda, isSigner: false, isWritable: true },
+    { pubkey: bossPda, isSigner: false, isWritable: true }, // pda
+    { pubkey: BOSS_PROGRAM_ID, isSigner: false, isWritable: false }, // owner_program
+    { pubkey: DELEGATION_PROGRAM_ID, isSigner: false, isWritable: false }, // delegation_program
+    { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+    // remaining_accounts[0] = validator pubkey (routes delegation to specific ER)
+    { pubkey: ER_VALIDATOR_PUBKEY, isSigner: false, isWritable: false },
+  ];
+
+  return new TransactionInstruction({
+    programId: BOSS_PROGRAM_ID,
+    keys,
+    data,
+  });
+}
+
 function buildApplyDamageIx(
   authorityPubkey: PublicKey,
   bossPda: PublicKey,
   damageDelta: number,
   participantCount: number
 ): TransactionInstruction {
-  // Anchor discriminator for "apply_damage"
-  const discriminator = Buffer.from([
-    0xc2, 0x4a, 0x15, 0x8d, 0x37, 0xb6, 0xe9, 0x04,
-  ]);
+  // Anchor discriminator from IDL: [229, 25, 73, 188, 250, 95, 187, 141]
+  const discriminator = Buffer.from([0xe5, 0x19, 0x49, 0xbc, 0xfa, 0x5f, 0xbb, 0x8d]);
 
   const data = Buffer.alloc(8 + 8 + 4);
   discriminator.copy(data, 0);
@@ -152,16 +247,14 @@ function buildFinalizeAndCommitIx(
   magicContext: PublicKey,
   magicProgram: PublicKey
 ): TransactionInstruction {
-  // Anchor discriminator for "finalize_and_commit"
-  const discriminator = Buffer.from([
-    0xb7, 0x53, 0x6d, 0x91, 0x28, 0xe0, 0xaa, 0x03,
-  ]);
+  // Anchor discriminator from IDL: [212, 90, 133, 149, 118, 246, 105, 213]
+  const discriminator = Buffer.from([0xd4, 0x5a, 0x85, 0x95, 0x76, 0xf6, 0x69, 0xd5]);
 
   const keys = [
     { pubkey: payerPubkey, isSigner: true, isWritable: true },
     { pubkey: bossPda, isSigner: false, isWritable: true },
-    { pubkey: magicContext, isSigner: false, isWritable: false },
     { pubkey: magicProgram, isSigner: false, isWritable: false },
+    { pubkey: magicContext, isSigner: false, isWritable: true },
   ];
 
   return new TransactionInstruction({
@@ -182,25 +275,81 @@ export async function initializeBossOnChain(
   maxHp: number
 ): Promise<void> {
   try {
-    const { instruction, bossPda } = buildInitializeAndDelegateIx(
+    const [bossPda] = deriveBossPda(weekStart);
+
+    // Check if PDA already exists on base layer
+    const existingAccount = await solanaConnection.getAccountInfo(bossPda);
+
+    if (existingAccount) {
+      if (existingAccount.owner.equals(DELEGATION_PROGRAM_ID)) {
+        // Already delegated — just mark as ready and skip
+        delegatedBossPdas.add(bossPda.toBase58());
+        lastOnChainDamage.set(weekStart.toString(), 0);
+        console.log(
+          `[BossER] Boss PDA already delegated, skipping init (pda=${bossPda.toBase58()})`
+        );
+        return;
+      }
+      if (existingAccount.owner.equals(BOSS_PROGRAM_ID)) {
+        // Exists but not delegated — just delegate
+        const delegateIx = buildDelegateBossIx(
+          serverKeypair.publicKey,
+          bossPda,
+          weekStart
+        );
+
+        const tx = new Transaction().add(delegateIx);
+        tx.feePayer = serverKeypair.publicKey;
+        tx.recentBlockhash = (
+          await solanaConnection.getLatestBlockhash()
+        ).blockhash;
+        tx.sign(serverKeypair);
+
+        const txHash = await solanaConnection.sendRawTransaction(tx.serialize());
+        const confirmation = await solanaConnection.confirmTransaction(txHash, "confirmed");
+        if (confirmation.value.err) {
+          console.warn(`[BossER] Delegate tx failed: ${txHash}`, confirmation.value.err);
+          return;
+        }
+
+        delegatedBossPdas.add(bossPda.toBase58());
+        lastOnChainDamage.set(weekStart.toString(), 0);
+        console.log(
+          `[BossER] Boss PDA delegated (already existed): ${txHash} (pda=${bossPda.toBase58()})`
+        );
+        return;
+      }
+    }
+
+    // PDA doesn't exist — init + delegate in one tx
+    const { instruction: initIx } = buildInitializeBossIx(
       serverKeypair.publicKey,
       weekStart,
       maxHp
     );
 
-    const tx = new Transaction().add(instruction);
+    const delegateIx = buildDelegateBossIx(
+      serverKeypair.publicKey,
+      bossPda,
+      weekStart
+    );
+
+    const tx = new Transaction().add(initIx).add(delegateIx);
     tx.feePayer = serverKeypair.publicKey;
     tx.recentBlockhash = (
       await solanaConnection.getLatestBlockhash()
     ).blockhash;
     tx.sign(serverKeypair);
 
-    const txHash = await solanaConnection.sendRawTransaction(
-      tx.serialize(),
-      { skipPreflight: true }
-    );
+    const txHash = await solanaConnection.sendRawTransaction(tx.serialize());
 
-    // Reset damage tracker for this week
+    const confirmation = await solanaConnection.confirmTransaction(txHash, "confirmed");
+    if (confirmation.value.err) {
+      console.warn(`[BossER] Init+delegate tx failed on-chain: ${txHash}`, confirmation.value.err);
+      return;
+    }
+
+    delegatedBossPdas.add(bossPda.toBase58());
     lastOnChainDamage.set(weekStart.toString(), 0);
 
     console.log(
@@ -229,6 +378,19 @@ export async function applyDamageOnER(
 
     const [bossPda] = deriveBossPda(weekStart);
 
+    // Auto-init+delegate if not yet done this session
+    if (!delegatedBossPdas.has(bossPda.toBase58())) {
+      console.log("[BossER] PDA not yet delegated, initializing first...");
+      await initializeBossOnChain(weekStart, totalDamageSoFar + 1000000);
+      if (!delegatedBossPdas.has(bossPda.toBase58())) {
+        console.warn("[BossER] Init+delegate failed, skipping ER update");
+        return;
+      }
+    }
+
+    // Resolve correct ER endpoint (PDA may be delegated to a different validator)
+    const targetEr = await resolveErConnection(bossPda);
+
     const ix = buildApplyDamageIx(
       serverKeypair.publicKey,
       bossPda,
@@ -238,21 +400,40 @@ export async function applyDamageOnER(
 
     const tx = new Transaction().add(ix);
     tx.feePayer = serverKeypair.publicKey;
-    tx.recentBlockhash = (
-      await erConnection.getLatestBlockhash()
-    ).blockhash;
+    const { blockhash, lastValidBlockHeight } =
+      await targetEr.getLatestBlockhash();
+    tx.recentBlockhash = blockhash;
     tx.sign(serverKeypair);
 
-    const txHash = await erConnection.sendRawTransaction(
+    // Simulate first to catch errors before sending
+    const sim = await targetEr.simulateTransaction(tx);
+    if (sim.value.err) {
+      console.warn("[BossER] Simulation failed:", JSON.stringify(sim.value.err));
+      if (sim.value.logs) {
+        console.warn("[BossER] Logs:", sim.value.logs.join("\n"));
+      }
+      return;
+    }
+
+    const txHash = await targetEr.sendRawTransaction(
       tx.serialize(),
       { skipPreflight: true }
     );
 
-    lastOnChainDamage.set(key, totalDamageSoFar);
-
-    console.log(
-      `[BossER] Damage applied on ER: ${txHash} (delta=${delta}, total=${totalDamageSoFar}, participants=${participantCount})`
+    // Confirm the transaction actually landed
+    const confirmation = await targetEr.confirmTransaction(
+      { signature: txHash, blockhash, lastValidBlockHeight },
+      "confirmed"
     );
+
+    if (confirmation.value.err) {
+      console.warn(`[BossER] Tx failed on-chain: ${txHash}`, confirmation.value.err);
+    } else {
+      lastOnChainDamage.set(key, totalDamageSoFar);
+      console.log(
+        `[BossER] Damage confirmed on ER: ${txHash} (delta=${delta}, total=${totalDamageSoFar}, participants=${participantCount})`
+      );
+    }
   } catch (err) {
     console.warn("[BossER] Failed to apply damage on ER:", err);
   }
@@ -271,8 +452,11 @@ export async function finalizeBossOnChain(weekStart: number): Promise<void> {
       "MagicContext1111111111111111111111111111111"
     );
     const magicProgram = new PublicKey(
-      "MagicProgram111111111111111111111111111111"
+      "Magic11111111111111111111111111111111111111"
     );
+
+    // Resolve correct ER endpoint
+    const targetEr = await resolveErConnection(bossPda);
 
     const ix = buildFinalizeAndCommitIx(
       serverKeypair.publicKey,
@@ -283,22 +467,31 @@ export async function finalizeBossOnChain(weekStart: number): Promise<void> {
 
     const tx = new Transaction().add(ix);
     tx.feePayer = serverKeypair.publicKey;
-    tx.recentBlockhash = (
-      await erConnection.getLatestBlockhash()
-    ).blockhash;
+    const { blockhash, lastValidBlockHeight } =
+      await targetEr.getLatestBlockhash();
+    tx.recentBlockhash = blockhash;
     tx.sign(serverKeypair);
 
-    const txHash = await erConnection.sendRawTransaction(
+    const txHash = await targetEr.sendRawTransaction(
       tx.serialize(),
       { skipPreflight: true }
     );
 
-    // Clean up damage tracker
-    lastOnChainDamage.delete(weekStart.toString());
-
-    console.log(
-      `[BossER] Boss PDA finalized and committed: ${txHash}`
+    const confirmation = await targetEr.confirmTransaction(
+      { signature: txHash, blockhash, lastValidBlockHeight },
+      "confirmed"
     );
+
+    if (confirmation.value.err) {
+      console.warn(`[BossER] Finalize tx failed: ${txHash}`, confirmation.value.err);
+    } else {
+      // Clean up trackers
+      lastOnChainDamage.delete(weekStart.toString());
+      delegatedBossPdas.delete(bossPda.toBase58());
+      console.log(
+        `[BossER] Boss PDA finalized and committed: ${txHash}`
+      );
+    }
   } catch (err) {
     console.warn("[BossER] Failed to finalize boss on-chain:", err);
   }

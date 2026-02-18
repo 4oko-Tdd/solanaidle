@@ -12,15 +12,15 @@ pub const PROGRESS_SEED: &[u8] = b"progress";
 pub mod progress_tracker {
     use super::*;
 
-    /// Initialize a new PlayerProgress PDA and delegate it to the ER.
-    /// Called at epoch start — bundled into the same tx as class pick.
-    pub fn initialize_and_delegate(
-        ctx: Context<InitializeAndDelegate>,
+    /// Initialize a new PlayerProgress PDA (base layer only, no delegation).
+    /// Called as the first instruction in a tx, followed by delegate_progress.
+    pub fn initialize_progress(
+        ctx: Context<InitializeProgress>,
         week_start: i64,
         class_id: u8,
     ) -> Result<()> {
         let progress = &mut ctx.accounts.progress;
-        progress.player = ctx.accounts.payer.key();
+        progress.player = ctx.accounts.player.key();
         progress.week_start = week_start;
         progress.class_id = class_id;
         progress.score = 0;
@@ -32,20 +32,26 @@ pub mod progress_tracker {
 
         msg!(
             "Progress PDA initialized for player: {}, epoch: {}",
-            ctx.accounts.payer.key(),
+            ctx.accounts.player.key(),
             week_start
         );
+        Ok(())
+    }
 
-        // Delegate the PDA to the Ephemeral Rollup
+    /// Delegate the PDA to the Ephemeral Rollup.
+    /// Called as the second instruction in a tx, after initialize_progress.
+    pub fn delegate_progress(
+        ctx: Context<DelegateProgress>,
+        week_start: i64,
+    ) -> Result<()> {
         ctx.accounts.delegate_pda(
             &ctx.accounts.payer,
             &[
                 PROGRESS_SEED,
-                ctx.accounts.payer.key().as_ref(),
+                ctx.accounts.player.key().as_ref(),
                 &week_start.to_le_bytes(),
             ],
             DelegateConfig {
-                // None = auto-select closest ER validator
                 validator: ctx.remaining_accounts.first().map(|a| a.key()),
                 ..Default::default()
             },
@@ -103,23 +109,37 @@ pub mod progress_tracker {
 
 // ── Accounts ──
 
-#[delegate]
 #[derive(Accounts)]
 #[instruction(week_start: i64)]
-pub struct InitializeAndDelegate<'info> {
+pub struct InitializeProgress<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
+
+    /// CHECK: player wallet (not a signer, just used for PDA seed)
+    pub player: AccountInfo<'info>,
 
     #[account(
         init_if_needed,
         payer = payer,
         space = 8 + PlayerProgress::INIT_SPACE,
-        seeds = [PROGRESS_SEED, payer.key().as_ref(), &week_start.to_le_bytes()],
+        seeds = [PROGRESS_SEED, player.key().as_ref(), &week_start.to_le_bytes()],
         bump
     )]
     pub progress: Account<'info, PlayerProgress>,
 
-    /// CHECK: delegation PDA
+    pub system_program: Program<'info, System>,
+}
+
+#[delegate]
+#[derive(Accounts)]
+pub struct DelegateProgress<'info> {
+    #[account(mut)]
+    pub payer: Signer<'info>,
+
+    /// CHECK: player wallet (used to reconstruct PDA seeds for delegation)
+    pub player: AccountInfo<'info>,
+
+    /// CHECK: the progress PDA to delegate
     #[account(mut, del)]
     pub pda: AccountInfo<'info>,
 }
@@ -133,6 +153,7 @@ pub struct UpdateProgress<'info> {
     pub progress: Account<'info, PlayerProgress>,
 }
 
+#[commit]
 #[derive(Accounts)]
 pub struct FinalizeAndCommit<'info> {
     #[account(mut)]

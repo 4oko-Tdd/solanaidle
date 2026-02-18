@@ -12,10 +12,10 @@ pub const BOSS_SEED: &[u8] = b"boss";
 pub mod boss_tracker {
     use super::*;
 
-    /// Initialize a new BossState PDA and delegate it to the ER.
-    /// Called at boss spawn (Saturday 00:00 UTC).
-    pub fn initialize_and_delegate(
-        ctx: Context<InitializeAndDelegate>,
+    /// Initialize a new BossState PDA (base layer only, no delegation).
+    /// Called as the first instruction in a tx, followed by delegate_boss.
+    pub fn initialize_boss(
+        ctx: Context<InitializeBoss>,
         week_start: i64,
         max_hp: u64,
     ) -> Result<()> {
@@ -35,8 +35,15 @@ pub mod boss_tracker {
             week_start,
             max_hp
         );
+        Ok(())
+    }
 
-        // Delegate the PDA to the Ephemeral Rollup
+    /// Delegate the boss PDA to the Ephemeral Rollup.
+    /// Called as the second instruction in a tx, after initialize_boss.
+    pub fn delegate_boss(
+        ctx: Context<DelegateBoss>,
+        week_start: i64,
+    ) -> Result<()> {
         ctx.accounts.delegate_pda(
             &ctx.accounts.payer,
             &[BOSS_SEED, &week_start.to_le_bytes()],
@@ -101,10 +108,9 @@ pub mod boss_tracker {
 
 // ── Accounts ──
 
-#[delegate]
 #[derive(Accounts)]
 #[instruction(week_start: i64)]
-pub struct InitializeAndDelegate<'info> {
+pub struct InitializeBoss<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
 
@@ -117,7 +123,16 @@ pub struct InitializeAndDelegate<'info> {
     )]
     pub boss_state: Account<'info, BossState>,
 
-    /// CHECK: delegation PDA
+    pub system_program: Program<'info, System>,
+}
+
+#[delegate]
+#[derive(Accounts)]
+pub struct DelegateBoss<'info> {
+    #[account(mut)]
+    pub payer: Signer<'info>,
+
+    /// CHECK: the boss PDA to delegate
     #[account(mut, del)]
     pub pda: AccountInfo<'info>,
 }
