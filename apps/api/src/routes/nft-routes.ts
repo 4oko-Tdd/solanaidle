@@ -62,18 +62,18 @@ nfts.get("/metadata/:type/:id", (c) => {
   if (type === "collection") {
     if (id === "relics") {
       return c.json({
-        name: "Solana Idle: Relics",
+        name: "Seeker Node: Relics",
         description:
-          "Rare relic NFTs dropped from missions in Solana Idle. Each relic represents a unique find from the game world.",
+          "Rare relic NFTs dropped from missions in Seeker Node. Each relic represents a unique find from the game world.",
         image: "",
         external_url: "https://solanaidle.com",
       });
     }
     if (id === "achievements") {
       return c.json({
-        name: "Solana Idle: Achievements",
+        name: "Seeker Node: Achievements",
         description:
-          "Achievement badge NFTs earned through gameplay milestones in Solana Idle. Permanent on-chain proof of accomplishment.",
+          "Achievement badge NFTs earned through gameplay milestones in Seeker Node. Permanent on-chain proof of accomplishment.",
         image: "",
         external_url: "https://solanaidle.com",
       });
@@ -93,8 +93,8 @@ nfts.get("/metadata/:type/:id", (c) => {
 
     if (!row) {
       return c.json({
-        name: "Solana Idle Relic",
-        description: "A relic from Solana Idle.",
+        name: "Seeker Node Relic",
+        description: "A relic from Seeker Node.",
         image: "",
         attributes: [],
       });
@@ -102,7 +102,7 @@ nfts.get("/metadata/:type/:id", (c) => {
 
     return c.json({
       name: row.nft_name,
-      description: `A rare relic dropped from the ${row.mission_id} mission in Solana Idle.`,
+      description: `A rare relic dropped from the ${row.mission_id} mission in Seeker Node.`,
       image: "",
       external_url: "https://solanaidle.com",
       attributes: [
@@ -125,8 +125,8 @@ nfts.get("/metadata/:type/:id", (c) => {
 
     if (!row) {
       return c.json({
-        name: "Solana Idle Achievement",
-        description: "An achievement badge from Solana Idle.",
+        name: "Seeker Node Achievement",
+        description: "An achievement badge from Seeker Node.",
         image: "",
         attributes: [],
       });
@@ -135,7 +135,7 @@ nfts.get("/metadata/:type/:id", (c) => {
     const name = getAchievementName(row.achievement_id);
     return c.json({
       name,
-      description: `Achievement badge: ${name}. Earned in Solana Idle.`,
+      description: `Achievement badge: ${name}. Earned in Seeker Node.`,
       image: "",
       external_url: "https://solanaidle.com",
       attributes: [

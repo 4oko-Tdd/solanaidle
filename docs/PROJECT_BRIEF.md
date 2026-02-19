@@ -1,8 +1,8 @@
-# Solana Idle -- Project Brief
+# Seeker Node -- Project Brief
 
-## What Is Solana Idle?
+## What Is Seeker Node?
 
-Solana Idle is a wallet-native roguelike idle game built for Solana Mobile. You are a **node operator** in a decentralized cyberpunk world -- running missions, building power through the week, and rallying with other players to take down a **Protocol Leviathan** world boss every weekend. The only things that survive the weekly reset are rare boss drops and achievement badges.
+Seeker Node is a wallet-native roguelike idle game built for Solana Mobile. You are a **node operator** in a decentralized cyberpunk world -- running missions, building power through the week, and rallying with other players to take down a **Protocol Leviathan** world boss every weekend. The only things that survive the weekly reset are rare boss drops and achievement badges.
 
 This is not DeFi. Not P2E. Not a casino. It is a game designed to create daily habits around Solana Mobile usage, with deep integrations across **Solana Mobile, MagicBlock, Metaplex Core, and Jupiter**.
 
@@ -118,8 +118,8 @@ Three MagicBlock integrations bring game mechanics on-chain without sacrificing 
 Permanent boss drops and achievements are minted as **Metaplex Core assets** with the Attributes plugin, directly to the player's wallet (zero player signatures -- server-minted).
 
 Two collections:
-- **Solana Idle: Relics** -- Permanent rare boss loot (Protocol Core, Genesis Shard, etc.) and hand-crafted NFT artifacts
-- **Solana Idle: Achievements** -- Badge NFTs for milestones (Boss Slayer, Streak Legend, Deep Explorer, Raid Victor, Epoch Champion)
+- **Seeker Node: Relics** -- Permanent rare boss loot (Protocol Core, Genesis Shard, etc.) and hand-crafted NFT artifacts
+- **Seeker Node: Achievements** -- Badge NFTs for milestones (Boss Slayer, Streak Legend, Deep Explorer, Raid Victor, Epoch Champion)
 
 ### Jupiter
 
@@ -161,7 +161,7 @@ All game state is **server-authoritative**:
 
 ## Why This Matters
 
-Solana Mobile needs apps that people open **every day**, not once. Solana Idle creates a weekly roguelike loop where the boss fight is the social event, the rare drop is the chase, and the wallet is not just a login button -- it is your loot vault and proof of legend.
+Solana Mobile needs apps that people open **every day**, not once. Seeker Node creates a weekly roguelike loop where the boss fight is the social event, the rare drop is the chase, and the wallet is not just a login button -- it is your loot vault and proof of legend.
 
 Each integration (Mobile Wallet Adapter, MagicBlock VRF, Metaplex Core NFTs, Jupiter quests) serves a real gameplay purpose -- nothing is bolted on.
 

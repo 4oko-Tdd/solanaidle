@@ -1,4 +1,4 @@
-# API Reference — Solana Idle
+# API Reference — Seeker Node
 
 Base URL: `http://localhost:3000/api` (local development — run `pnpm dev` to start both frontend and API)
 

@@ -51,14 +51,14 @@ export async function ensureCollections(): Promise<void> {
     const relicCollection = generateSigner(u);
     await createCollection(u, {
       collection: relicCollection,
-      name: "Solana Idle: Relics",
+      name: "Seeker Node: Relics",
       uri: `${API_BASE}/nfts/metadata/collection/relics`,
     }).sendAndConfirm(u);
 
     const achievementCollection = generateSigner(u);
     await createCollection(u, {
       collection: achievementCollection,
-      name: "Solana Idle: Achievements",
+      name: "Seeker Node: Achievements",
       uri: `${API_BASE}/nfts/metadata/collection/achievements`,
     }).sendAndConfirm(u);
 

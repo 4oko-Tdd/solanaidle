@@ -1,4 +1,4 @@
-# Game Design — Solana Idle
+# Game Design — Seeker Node
 
 ## Setting
 
@@ -430,8 +430,8 @@ All NFTs are minted as **Metaplex Core** assets with the Attributes plugin for o
 
 ### Two Collections
 
-- **Solana Idle: Relics** — permanent boss loot drops (Protocol Core, Genesis Shard, etc.)
-- **Solana Idle: Achievements** — milestone badges
+- **Seeker Node: Relics** — permanent boss loot drops (Protocol Core, Genesis Shard, etc.)
+- **Seeker Node: Achievements** — milestone badges
 
 ### Achievement Badges
 

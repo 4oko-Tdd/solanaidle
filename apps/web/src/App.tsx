@@ -22,7 +22,7 @@ export default function App() {
       <div className="fixed inset-0 -z-10 bg-black/60" />
       <header className="shrink-0">
         <div className="flex h-14 items-center justify-between border-b border-white/[0.06] bg-black/40 backdrop-blur-xl px-4">
-          <h1 className="text-lg font-display text-gradient">Solana Idle</h1>
+          <h1 className="text-lg font-display text-gradient">Seeker Node</h1>
           {isAuthenticated && <ConnectButton compact />}
         </div>
         {isAuthenticated && inventory && (
@@ -49,7 +49,7 @@ export default function App() {
 
             <div className="space-y-2 text-center">
               <h2 className="text-3xl text-gradient font-display tracking-tight">
-                Solana Idle
+                Seeker Node
               </h2>
               <p className="text-sm text-muted-foreground max-w-xs leading-relaxed">
                 Run your node, stake on missions, collect rewards, upgrade your setup, and

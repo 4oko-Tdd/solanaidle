@@ -1,6 +1,6 @@
 # Setup Guide
 
-How to get Solana Idle running locally, configure the server keypair, and deploy on-chain programs.
+How to get Seeker Node running locally, configure the server keypair, and deploy on-chain programs.
 
 ## Prerequisites
 

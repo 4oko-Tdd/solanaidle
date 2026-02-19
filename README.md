@@ -1,4 +1,4 @@
-# Solana Idle
+# Seeker Node
 
 > A cyberpunk roguelike idle game where your Solana wallet is your operator badge, your loot vault, and your proof of legend.
 

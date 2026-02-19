@@ -22,7 +22,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
       new SolanaMobileWalletAdapter({
         addressSelector: createDefaultAddressSelector(),
         appIdentity: {
-          name: "Solana Idle",
+          name: "Seeker Node",
           uri: window.location.origin,
           icon: "favicon.ico",
         },

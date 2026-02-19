@@ -1,7 +1,7 @@
 {
-  "name": "Solana Idle",
-  "short_name": "SolIdle",
-  "description": "Wallet-native idle game for Solana Mobile",
+  "name": "Seeker Node",
+  "short_name": "SeekerNode",
+  "description": "Wallet-native roguelike idle game for Solana Mobile",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0a0a0a",
