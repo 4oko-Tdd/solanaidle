@@ -224,7 +224,7 @@ function mapRun(row: any): WeeklyRun {
     armorLevel: row.armor_level ?? 0,
     engineLevel: row.engine_level ?? 0,
     scannerLevel: row.scanner_level ?? 0,
-    perks: [], // TODO: load from character_perks table
+    perks: [],
     startSignature: row.start_signature ?? null,
     endSignature: row.end_signature ?? null,
   };

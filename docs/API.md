@@ -1,6 +1,6 @@
 # API Reference — Solana Idle
 
-Base URL: `http://localhost:3000/api`
+Base URL: `http://localhost:3000/api` (local development — run `pnpm dev` to start both frontend and API)
 
 ## Authentication
 
