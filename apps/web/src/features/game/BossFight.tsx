@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/components/ToastProvider";
-import { Skull, Swords, Users, Zap, Loader2 } from "lucide-react";
+import { Swords, Users, Zap, Loader2 } from "lucide-react";
 import type { WorldBoss } from "@solanaidle/shared";
 
 interface Props {
@@ -26,7 +26,7 @@ export function BossFight({ boss, participantCount, totalDamage, playerContribut
   const hpPercent = boss.maxHp > 0 ? Math.max(0, (boss.currentHp / boss.maxHp) * 100) : 0;
   const isDefeated = boss.killed;
   // hasJoined comes from props (server-tracked)
-  const contributionPercent = totalDamage > 0 ? ((playerContribution / totalDamage) * 100).toFixed(1) : "0.0";
+  const contributionPercent = totalDamage > 0 ? (playerContribution * 100).toFixed(1) : "0.0";
 
   const handleJoin = async () => {
     setJoining(true);
