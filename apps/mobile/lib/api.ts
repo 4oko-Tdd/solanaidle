@@ -10,7 +10,7 @@ export function setAuthToken(token: string) {
 
 export function clearAuthToken() {
   authToken = null;
-  SecureStore.deleteItemAsync("auth_token");
+  SecureStore.deleteItem("auth_token");
 }
 
 export function getAuthToken() {

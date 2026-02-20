@@ -14,6 +14,7 @@
     "@solana-mobile/mobile-wallet-adapter-protocol-web3js": "^2.0.0",
     "@solana/kit": "^2.0.0",
     "@solanaidle/shared": "workspace:*",
+    "buffer": "^6.0.3",
     "clsx": "^2.1.0",
     "expo": "~53.0.0",
     "expo-blur": "~14.0.0",
