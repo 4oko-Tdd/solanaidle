@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback } from "react";
+import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from "react";
 import { View, Text } from "react-native";
 import type { ReactNode } from "react";
 
@@ -16,12 +16,22 @@ const ToastContext = createContext<ToastContextValue>({ toast: () => {} });
 
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const timeoutIds = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  useEffect(() => {
+    return () => { timeoutIds.current.forEach(clearTimeout); };
+  }, []);
 
   const toast = useCallback((message: string, type: "success" | "error" | "info" = "info") => {
+    if (toasts.length >= 5) return;
     const id = Math.random().toString(36).slice(2);
     setToasts((t) => [...t, { id, message, type }]);
-    setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 3000);
-  }, []);
+    const tid = setTimeout(() => {
+      setToasts((t) => t.filter((x) => x.id !== id));
+      timeoutIds.current = timeoutIds.current.filter((t) => t !== tid);
+    }, 3000);
+    timeoutIds.current.push(tid);
+  }, [toasts.length]);
 
   const typeColors = { success: "#00ff87", error: "#ff4444", info: "#00d4ff" };
 

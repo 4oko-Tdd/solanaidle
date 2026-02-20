@@ -1,9 +1,8 @@
 import { View, Text } from "react-native";
 import { cn } from "@/lib/utils";
-import type { ReactNode } from "react";
 
 interface BadgeProps {
-  children: ReactNode;
+  children: string | number;
   variant?: "default" | "green" | "amber" | "cyan" | "purple" | "red";
   className?: string;
 }

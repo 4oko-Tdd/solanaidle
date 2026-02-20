@@ -1,4 +1,4 @@
-import { Pressable, Text, type PressableProps } from "react-native";
+import { Pressable, Text, type PressableProps, type GestureResponderEvent } from "react-native";
 import * as Haptics from "expo-haptics";
 import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
@@ -45,9 +45,9 @@ export function Button({
   disabled,
   ...props
 }: ButtonProps) {
-  const handlePress = async (e: any) => {
+  const handlePress = (e: GestureResponderEvent) => {
     if (disabled) return;
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     onPress?.(e);
   };
 
