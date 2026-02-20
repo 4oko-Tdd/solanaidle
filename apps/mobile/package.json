@@ -30,7 +30,8 @@
     "@solana-mobile/mobile-wallet-adapter-protocol": "^2.0.0",
     "lucide-react-native": "^0.475.0",
     "clsx": "^2.1.0",
-    "@solanaidle/shared": "workspace:*"
+    "@solanaidle/shared": "workspace:*",
+    "react-native-svg": "^15.15.0"
   },
   "devDependencies": {
     "@babel/core": "^7.24.0",
