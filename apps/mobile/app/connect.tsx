@@ -9,7 +9,7 @@ export default function ConnectScreen() {
 
   useEffect(() => {
     if (isAuthenticated) router.replace("/(tabs)/game");
-  }, [isAuthenticated]);
+  }, [isAuthenticated, router]);
 
   return (
     <View className="flex-1 bg-terminal items-center justify-center px-8 gap-8">
@@ -28,8 +28,7 @@ export default function ConnectScreen() {
       <Pressable
         onPress={authenticate}
         disabled={authLoading}
-        className="w-full border border-neon-green/60 bg-neon-green/10 py-4 items-center"
-        style={{ borderRadius: 4 }}
+        className="w-full rounded border border-neon-green/60 bg-neon-green/10 py-4 items-center"
       >
         <Text className="text-neon-green font-mono text-base tracking-widest">
           {authLoading ? "CONNECTING..." : "CONNECT WALLET"}
