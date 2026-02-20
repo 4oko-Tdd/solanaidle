@@ -22,7 +22,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
   const [authLoading, setAuthLoading] = useState(false);
 
-  // signMessage wraps transact() — caller gets a consistent interface
+  // signMessage wraps transact() — opens wallet, signs, closes wallet session
   const signMessage = useCallback(
     async (msg: Uint8Array): Promise<Uint8Array> => {
       return transact(async (wallet) => {
@@ -34,12 +34,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             icon: "favicon.ico",
           },
         });
-
-        const result = await wallet.signMessages({
+        // web3js wrapper returns Uint8Array[] directly (not { signedPayloads })
+        const signed = await wallet.signMessages({
           addresses: [auth.accounts[0].address],
           payloads: [msg],
         });
-        return new Uint8Array(result.signedPayloads[0]);
+        return signed[0];
       });
     },
     []
@@ -51,7 +51,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const { nonce } = await api<AuthNonceResponse>("/auth/nonce");
 
-      const { token, address } = await transact(async (wallet) => {
+      // Step 1: Open wallet, authorize, sign nonce — then close wallet session
+      const { address, signatureBase64 } = await transact(async (wallet) => {
         const auth = await wallet.authorize({
           chain: "solana:mainnet",
           identity: {
@@ -60,26 +61,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             icon: "favicon.ico",
           },
         });
-
         const walletAddr = auth.accounts[0].address;
+        // web3js wrapper returns Uint8Array[] directly
         const signed = await wallet.signMessages({
           addresses: [walletAddr],
           payloads: [new TextEncoder().encode(nonce)],
         });
-
-        const res = await api<AuthVerifyResponse>("/auth/verify", {
-          method: "POST",
-          body: JSON.stringify({
-            publicKey: walletAddr,
-            signature: Buffer.from(signed.signedPayloads[0]).toString("base64"),
-            nonce,
-          }),
-        });
-
-        return { token: res.token, address: walletAddr };
+        return {
+          address: walletAddr,
+          signatureBase64: Buffer.from(signed[0]).toString("base64"),
+        };
       });
 
-      setAuthToken(token);
+      // Step 2: Verify with backend AFTER wallet session closes
+      const res = await api<AuthVerifyResponse>("/auth/verify", {
+        method: "POST",
+        body: JSON.stringify({
+          publicKey: address,
+          signature: signatureBase64,
+          nonce,
+        }),
+      });
+
+      setAuthToken(res.token);
       await SecureStore.setItemAsync("wallet_address", address);
       setWalletAddress(address);
       setIsAuthenticated(true);
