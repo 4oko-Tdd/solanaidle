@@ -4,6 +4,9 @@ module.exports = {
     "./app/**/*.{js,jsx,ts,tsx}",
     "./components/**/*.{js,jsx,ts,tsx}",
     "./features/**/*.{js,jsx,ts,tsx}",
+    "./hooks/**/*.{js,jsx,ts,tsx}",
+    "./lib/**/*.{js,jsx,ts,tsx}",
+    "./providers/**/*.{js,jsx,ts,tsx}",
   ],
   presets: [require("nativewind/preset")],
   theme: {
@@ -16,6 +19,9 @@ module.exports = {
         "neon-red": "#ff4444",
         terminal: "#0a0a0a",
         surface: "#111111",
+      },
+      fontFamily: {
+        mono: ["SpaceMono-Regular"],
       },
     },
   },
