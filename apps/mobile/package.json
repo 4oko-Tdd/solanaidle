@@ -13,6 +13,7 @@
     "@solana-mobile/mobile-wallet-adapter-protocol": "^2.0.0",
     "@solana-mobile/mobile-wallet-adapter-protocol-web3js": "^2.0.0",
     "@solana/kit": "^2.0.0",
+    "@solana/web3.js": "^1.95.0",
     "@solanaidle/shared": "workspace:*",
     "@wallet-ui/react-native-kit": "^3.2.0",
     "buffer": "^6.0.3",

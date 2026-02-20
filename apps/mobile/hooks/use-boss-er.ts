@@ -101,7 +101,10 @@ export function useBossER(bossExists: boolean): OnChainBossState {
         const bossPda = new PublicKey(pda);
         const connection = new Connection(erValidatorUrl, {
           commitment: "confirmed",
-          wsEndpoint: erValidatorUrl.replace("https://", "wss://"),
+          wsEndpoint: erValidatorUrl.replace(
+            /^https?:\/\//,
+            (m) => (m.startsWith("https") ? "wss://" : "ws://")
+          ),
         });
         connectionRef.current = connection;
 

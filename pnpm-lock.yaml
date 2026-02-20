@@ -71,6 +71,9 @@ importers:
       '@solana/kit':
         specifier: ^2.0.0
         version: 2.3.0(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.3.3)(ws@8.19.0(bufferutil@4.1.0)(utf-8-validate@5.0.10))
+      '@solana/web3.js':
+        specifier: ^1.95.0
+        version: 1.98.4(bufferutil@4.1.0)(typescript@5.3.3)(utf-8-validate@5.0.10)
       '@solanaidle/shared':
         specifier: workspace:*
         version: link:../../packages/shared

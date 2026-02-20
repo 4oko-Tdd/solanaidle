@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import { transact } from "@solana-mobile/mobile-wallet-adapter-protocol-web3js";
 import {
   PublicKey,
@@ -31,9 +31,6 @@ const VRF_RESULT_SEED = new TextEncoder().encode("vrf_result");
 const STATUS_OFFSET = 8 + 32 + 32; // discriminator + player + randomness
 const STATUS_FULFILLED = 1;
 
-// Devnet RPC — matches the cluster configured in wallet-provider.tsx
-const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
-
 export type VrfStatus =
   | "idle"
   | "requesting"
@@ -62,6 +59,7 @@ export function useVrfRoll(): UseVrfRollReturn {
   const [status, setStatus] = useState<VrfStatus>("idle");
   const [error, setError] = useState<string | null>(null);
   const [vrfAccount, setVrfAccount] = useState<string | null>(null);
+  const cancelledRef = useRef(false);
 
   const reset = useCallback(() => {
     setStatus("idle");
@@ -70,9 +68,13 @@ export function useVrfRoll(): UseVrfRollReturn {
   }, []);
 
   const requestRoll = useCallback(async (): Promise<string | null> => {
+    cancelledRef.current = false;
     try {
       setStatus("requesting");
       setError(null);
+
+      // Create connection on demand — avoids a persistent WebSocket at module scope
+      const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
 
       const { blockhash } = await connection.getLatestBlockhash();
 
@@ -107,8 +109,8 @@ export function useVrfRoll(): UseVrfRollReturn {
         // Build the request_randomness instruction
         // Anchor discriminator for "request_randomness" = first 8 bytes of sha256("global:request_randomness")
         const discriminator = new Uint8Array([
-          // Pre-computed: sha256("global:request_randomness")[0..8]
-          0xd5, 0xf5, 0x7c, 0x1f, 0xf4, 0x4a, 0x92, 0xd6,
+          // sha256("global:request_randomness")[0..8]
+          0xd5, 0x05, 0xad, 0xa6, 0x25, 0xec, 0x1f, 0x12,
         ]);
 
         // client_seed: u8 = random value for seed diversity
@@ -161,12 +163,21 @@ export function useVrfRoll(): UseVrfRollReturn {
       const { sig, pdaAddress } = signature as { sig: string; pdaAddress: string };
       await connection.confirmTransaction(sig, "confirmed");
 
-      setStatus("waiting-oracle");
-      setVrfAccount(pdaAddress);
+      if (!cancelledRef.current) {
+        setStatus("waiting-oracle");
+        setVrfAccount(pdaAddress);
+      }
 
       // Poll PDA until fulfilled (max 10 seconds)
       const vrfResultPda = new PublicKey(pdaAddress);
-      const fulfilled = await pollForFulfillment(vrfResultPda, 10000);
+      const fulfilled = await pollForFulfillment(
+        vrfResultPda,
+        connection,
+        cancelledRef,
+        10000
+      );
+
+      if (cancelledRef.current) return null;
 
       if (fulfilled) {
         setStatus("fulfilled");
@@ -177,6 +188,7 @@ export function useVrfRoll(): UseVrfRollReturn {
         return null;
       }
     } catch (e) {
+      if (cancelledRef.current) return null;
       const msg = e instanceof Error ? e.message : "VRF request failed";
       setError(msg);
       setStatus("error");
@@ -184,21 +196,32 @@ export function useVrfRoll(): UseVrfRollReturn {
     }
   }, []);
 
+  // Cancel any in-flight poll when the component unmounts
+  useEffect(() => {
+    return () => {
+      cancelledRef.current = true;
+    };
+  }, []);
+
   return { requestRoll, vrfAccount, status, error, reset };
 }
 
 /**
- * Poll the VRF result PDA until status === fulfilled or timeout.
+ * Poll the VRF result PDA until status === fulfilled, timeout, or cancelled.
  */
 async function pollForFulfillment(
   pda: PublicKey,
+  connection: Connection,
+  cancelledRef: React.MutableRefObject<boolean>,
   timeoutMs: number
 ): Promise<boolean> {
   const start = Date.now();
   const interval = 1000; // 1 second
 
   while (Date.now() - start < timeoutMs) {
+    if (cancelledRef.current) return false;
     await new Promise((r) => setTimeout(r, interval));
+    if (cancelledRef.current) return false;
 
     try {
       const accountInfo = await connection.getAccountInfo(pda);
