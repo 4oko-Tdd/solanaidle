@@ -11,13 +11,15 @@ export default function TabLayout() {
           backgroundColor: Colors.surface,
           borderTopColor: "rgba(0,255,135,0.15)",
           borderTopWidth: 1,
+          paddingBottom: 4,
+          height: 56,
         },
         tabBarActiveTintColor: Colors.neonGreen,
-        tabBarInactiveTintColor: "rgba(255,255,255,0.35)",
+        tabBarInactiveTintColor: "#4a7a9b",
         tabBarLabelStyle: {
-          fontSize: 10,
+          fontSize: 12,
           letterSpacing: 1,
-          fontFamily: "SpaceMono-Regular",
+          fontFamily: "Rajdhani_600SemiBold",
         },
       }}
     >

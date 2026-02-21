@@ -17,7 +17,7 @@ export default function RanksScreen() {
       contentContainerStyle={{ paddingBottom: 32 }}
     >
       <View className="p-4 gap-4">
-        <BossFight boss={boss} run={activeRun} onOverload={applyDamage} />
+        {boss && <BossFight boss={boss} run={activeRun} onOverload={applyDamage} />}
         <LeaderboardPanel isAuthenticated={isAuthenticated} />
       </View>
     </ScrollView>

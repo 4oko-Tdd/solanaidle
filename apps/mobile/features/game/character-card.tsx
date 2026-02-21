@@ -45,7 +45,7 @@ export function CharacterCard({ character, classId, run, onPickClass }: Props) {
       <View className="flex-row items-center justify-between">
         <View className="flex-row items-center gap-2">
           {classId ? (
-            <ClassIcon classId={classId} size={32} />
+            <ClassIcon classId={classId} size={40} />
           ) : null}
           <Text className="text-sm font-bold text-white">
             {classId ? CLASS_NAMES[classId] : "Node"}
@@ -53,7 +53,7 @@ export function CharacterCard({ character, classId, run, onPickClass }: Props) {
           <View className="flex-row items-center gap-1">
             <Image
               source={require("@/assets/icons/exp.png")}
-              style={{ width: 20, height: 20 }}
+              style={{ width: 24, height: 24 }}
             />
             <Text className="text-xs font-mono font-bold text-white">Lv {character.level}</Text>
           </View>
@@ -76,7 +76,7 @@ export function CharacterCard({ character, classId, run, onPickClass }: Props) {
         <View className="flex-row items-center gap-1">
           {Array.from({ length: 3 }, (_, i) =>
             i < lives ? (
-              <Heart key={i} size={14} color="#ff4444" fill="#ff4444" />
+              <Heart key={i} size={14} color="#FF3366" fill="#FF3366" />
             ) : (
               <HeartCrack key={i} size={14} color="#1a3a5c" />
             )

@@ -61,6 +61,10 @@ export function MissionTimer({ mission, onClaim }: Props) {
           ? "border-neon-amber/40"
           : "border-[#1a3a5c]/60"
       }`}
+      style={[
+        isComplete ? { boxShadow: "0 0 20px #00ff8740" } : null,
+        isUrgent && !isComplete ? { boxShadow: "0 0 15px #ffb80030" } : null,
+      ]}
     >
       <View className="flex-row items-center justify-between">
         <Text className="text-base font-bold text-white">
@@ -94,6 +98,7 @@ export function MissionTimer({ mission, onClaim }: Props) {
           size="sm"
           disabled={!isComplete}
           onPress={onClaim}
+          style={isComplete ? { borderColor: "#00ff87", borderWidth: 1 } : undefined}
         >
           {isComplete ? "Claim Reward" : "In Progress..."}
         </Button>
