@@ -17,7 +17,6 @@ import {
   Zap,
   Clock,
   Gem,
-  Loader2,
   AlertCircle,
   Coins,
   Info,
@@ -90,15 +89,15 @@ function RewardIcons({
 }) {
   const BOOST_ICON: Record<string, { icon: React.ReactNode; cls: string }> = {
     xp: {
-      icon: <Zap size={14} className="text-neon-amber" />,
+      icon: <Zap size={14} color="#ffb800" />,
       cls: "text-neon-amber",
     },
     speed: {
-      icon: <Clock size={14} className="text-neon-cyan" />,
+      icon: <Clock size={14} color="#00d4ff" />,
       cls: "text-neon-cyan",
     },
     loot_chance: {
-      icon: <Gem size={14} className="text-neon-purple" />,
+      icon: <Gem size={14} color="#9945ff" />,
       cls: "text-neon-purple",
     },
   };
@@ -137,7 +136,7 @@ function RewardIcons({
           className={`flex-row items-center gap-0.5 ${BOOST_ICON[boost.type]?.cls ?? "text-neon-amber"}`}
         >
           {BOOST_ICON[boost.type]?.icon ?? (
-            <Zap size={14} className="text-neon-amber" />
+            <Zap size={14} color="#ffb800" />
           )}
           <Text className={`text-xs font-mono opacity-80 ${BOOST_ICON[boost.type]?.cls ?? "text-neon-amber"}`}>
             +{boost.percentBonus}%
@@ -157,17 +156,17 @@ const BOOST_LABEL: Record<
   xp: {
     label: "XP",
     cls: "text-neon-amber border-neon-amber/20 bg-neon-amber/10",
-    icon: <Zap size={14} className="text-neon-amber" />,
+    icon: <Zap size={14} color="#ffb800" />,
   },
   speed: {
     label: "Speed",
     cls: "text-neon-cyan border-neon-cyan/20 bg-neon-cyan/10",
-    icon: <Clock size={14} className="text-neon-cyan" />,
+    icon: <Clock size={14} color="#00d4ff" />,
   },
   loot_chance: {
     label: "Loot",
     cls: "text-neon-purple border-neon-purple/20 bg-neon-purple/10",
-    icon: <Gem size={14} className="text-neon-purple" />,
+    icon: <Gem size={14} color="#9945ff" />,
   },
 };
 
@@ -322,7 +321,7 @@ export function QuestPanel() {
       {/* Error */}
       {error && (
         <View className="flex-row items-center gap-2 px-2.5 py-1.5 rounded-lg bg-red-500/10 border border-red-500/20">
-          <AlertCircle size={16} className="text-red-400 shrink-0" />
+          <AlertCircle size={16} color="#f87171" />
           <Text className="text-red-400 text-xs font-mono flex-1">{error}</Text>
           <Pressable onPress={() => setError(null)}>
             <Text className="text-red-400/60">x</Text>
@@ -336,7 +335,7 @@ export function QuestPanel() {
           onPress={() => setShowInfo(!showInfo)}
           className="flex-row items-center gap-2"
         >
-          <Info size={16} className="text-neon-cyan/60 shrink-0" />
+          <Info size={16} color="rgba(0,212,255,0.6)" />
           <Text className="text-sm font-display text-white/60 flex-1">
             Field ops powered by Jupiter. Complete tasks to earn resources &
             boosts.
@@ -381,14 +380,14 @@ export function QuestPanel() {
       <View className="rounded-lg border border-white/[0.06] bg-[#0d1525] px-3 py-2.5">
         <View className="flex-row items-center gap-2">
           <View className="w-8 h-8 rounded-md items-center justify-center shrink-0 bg-neon-green/10 border border-neon-green/20">
-            <Search size={16} className="text-neon-green" />
+            <Search size={16} color="#00ff87" />
           </View>
           <Text className="text-sm font-display font-semibold text-white flex-1">
             Recon Scan
           </Text>
           <RewardIcons scrap={20} boost={{ type: "xp", percentBonus: 10 }} />
           {done("token_scan") && (
-            <CheckCircle2 size={16} className="text-neon-green shrink-0" />
+            <CheckCircle2 size={16} color="#00ff87" />
           )}
         </View>
         {!done("token_scan") && (
@@ -422,7 +421,7 @@ export function QuestPanel() {
               {busy === "token_scan" ? (
                 <ActivityIndicator size="small" color="#39ff14" />
               ) : (
-                <Search size={16} className="text-neon-green" />
+                <Search size={16} color="#00ff87" />
               )}
             </Pressable>
           </View>
@@ -454,14 +453,14 @@ export function QuestPanel() {
                       />
                     ) : (
                       <View className="w-4 h-4 rounded-full bg-white/10 items-center justify-center shrink-0">
-                        <Coins size={12} className="text-white/30" />
+                        <Coins size={12} color="rgba(255,255,255,0.3)" />
                       </View>
                     )}
                     <Text className="text-xs font-semibold text-white">
                       {t.symbol}
                     </Text>
                     {t.isVerified && (
-                      <ShieldCheck size={12} className="text-neon-green/50 shrink-0" />
+                      <ShieldCheck size={12} color="rgba(0,255,135,0.5)" />
                     )}
                     <Text className="text-xs text-white/25 flex-1" numberOfLines={1}>
                       {t.name}
@@ -486,7 +485,7 @@ export function QuestPanel() {
                     )}
                     {t.liquidity != null && t.liquidity > 0 && (
                       <View className="flex-row items-center gap-0.5">
-                        <Droplets size={10} className="text-white/50" />
+                        <Droplets size={10} color="rgba(255,255,255,0.5)" />
                         <Text className="text-xs font-mono text-white/50">
                           ${fmtCompact(t.liquidity)}
                         </Text>
@@ -494,7 +493,7 @@ export function QuestPanel() {
                     )}
                     {t.holderCount != null && t.holderCount > 0 && (
                       <View className="flex-row items-center gap-0.5">
-                        <Users size={10} className="text-white/50" />
+                        <Users size={10} color="rgba(255,255,255,0.5)" />
                         <Text className="text-xs font-mono text-white/50">
                           {fmtCompact(t.holderCount)}
                         </Text>
@@ -522,14 +521,14 @@ export function QuestPanel() {
       <View className="rounded-lg border border-white/[0.06] bg-[#0d1525] px-3 py-2.5">
         <View className="flex-row items-center gap-2">
           <View className="w-8 h-8 rounded-md items-center justify-center shrink-0 bg-neon-cyan/10 border border-neon-cyan/20">
-            <Briefcase size={16} className="text-neon-cyan" />
+            <Briefcase size={16} color="#00d4ff" />
           </View>
           <Text className="text-sm font-display font-semibold text-white flex-1">
             Vault Audit
           </Text>
           <RewardIcons scrap={15} boost={{ type: "loot_chance", percentBonus: 10 }} />
           {done("portfolio_check") ? (
-            <CheckCircle2 size={16} className="text-neon-green shrink-0" />
+            <CheckCircle2 size={16} color="#00ff87" />
           ) : (
             <Pressable
               onPress={() =>
@@ -557,14 +556,14 @@ export function QuestPanel() {
       <View className="rounded-lg border border-white/[0.06] bg-[#0d1525] px-3 py-2.5">
         <View className="flex-row items-center gap-2">
           <View className="w-8 h-8 rounded-md items-center justify-center shrink-0 bg-neon-amber/10 border border-neon-amber/20">
-            <TrendingUp size={16} className="text-neon-amber" />
+            <TrendingUp size={16} color="#ffb800" />
           </View>
           <Text className="text-sm font-display font-semibold text-white flex-1">
             Signal Sweep
           </Text>
           <RewardIcons crystal={3} boost={{ type: "speed", percentBonus: 10 }} />
           {done("pnl_report") ? (
-            <CheckCircle2 size={16} className="text-neon-green shrink-0" />
+            <CheckCircle2 size={16} color="#00ff87" />
           ) : (
             <Pressable
               onPress={() =>
@@ -607,14 +606,14 @@ export function QuestPanel() {
       <View className="rounded-lg border border-white/[0.06] bg-[#0d1525] px-3 py-2.5">
         <View className="flex-row items-center gap-2">
           <View className="w-8 h-8 rounded-md items-center justify-center shrink-0 bg-neon-purple/10 border border-neon-purple/20">
-            <ArrowRightLeft size={16} className="text-neon-purple" />
+            <ArrowRightLeft size={16} color="#9945ff" />
           </View>
           <Text className="text-sm font-display font-semibold text-white flex-1">
             Supply Run
           </Text>
           <RewardIcons scrap={50} crystal={10} artifact={1} />
           {done("micro_swap") ? (
-            <CheckCircle2 size={16} className="text-neon-green shrink-0" />
+            <CheckCircle2 size={16} color="#00ff87" />
           ) : (
             <Pressable
               onPress={() => run("swap", async () => {
@@ -637,7 +636,7 @@ export function QuestPanel() {
         </View>
         {(done("micro_swap") || swapSig) && (
           <View className="mt-1.5 flex-row items-center gap-1.5 px-2 py-1 rounded bg-white/[0.03]">
-            <CheckCircle2 size={16} className="text-neon-green shrink-0" />
+            <CheckCircle2 size={16} color="#00ff87" />
             <Text className="text-sm font-mono text-neon-green">
               0.001 SOL → USDC
             </Text>

@@ -3,6 +3,14 @@ import { Shield, Zap, Search, ArrowUp } from "lucide-react-native";
 import { Button } from "@/components/ui";
 import type { UpgradeInfo, GearTrack } from "@solanaidle/shared";
 
+const TAILWIND_TO_HEX: Record<string, string> = {
+  "text-neon-cyan": "#00d4ff",
+  "text-neon-amber": "#ffb800",
+  "text-neon-green": "#00ff87",
+  "text-neon-purple": "#9945ff",
+  "text-neon-red": "#ff4444",
+};
+
 interface Props {
   upgradeInfo: UpgradeInfo | null;
   inventory: import("@solanaidle/shared").Inventory | null;
@@ -62,7 +70,7 @@ export function UpgradePanel({ upgradeInfo, onUpgrade }: Props) {
             >
               {/* Icon */}
               <View className={`${track.bgAccent} rounded-lg p-1.5`}>
-                <Icon size={20} className={track.color} />
+                <Icon size={20} color={TAILWIND_TO_HEX[track.color] ?? "#ffffff"} />
               </View>
 
               {/* Label */}
@@ -135,7 +143,7 @@ export function UpgradePanel({ upgradeInfo, onUpgrade }: Props) {
                     className="w-full"
                   >
                     <View className="flex-row items-center gap-0.5">
-                      <ArrowUp size={12} className="text-neon-green" />
+                      <ArrowUp size={12} color="#00ff87" />
                       <Text className="text-xs font-mono text-neon-green">
                         {" "}Lv {info.next!.level}
                       </Text>

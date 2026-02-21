@@ -23,17 +23,17 @@ interface Props {
 function getEventIcon(eventType: RunEventType): React.ReactNode {
   switch (eventType) {
     case "run_start":
-      return <Swords size={14} className="text-neon-cyan" />;
+      return <Swords size={14} color="#00d4ff" />;
     case "mission_success":
-      return <Trophy size={14} className="text-neon-green" />;
+      return <Trophy size={14} color="#00ff87" />;
     case "mission_fail":
-      return <Skull size={14} className="text-neon-red" />;
+      return <Skull size={14} color="#ff4444" />;
     case "death":
-      return <Skull size={14} className="text-neon-red" />;
+      return <Skull size={14} color="#ff4444" />;
     case "revive":
-      return <Heart size={14} className="text-neon-green" />;
+      return <Heart size={14} color="#00ff87" />;
     case "level_up":
-      return <ArrowUp size={14} className="text-neon-cyan" />;
+      return <ArrowUp size={14} color="#00d4ff" />;
     case "boss_kill":
       return (
         <Image
@@ -42,13 +42,13 @@ function getEventIcon(eventType: RunEventType): React.ReactNode {
         />
       );
     case "perk_pick":
-      return <Sparkles size={14} className="text-neon-purple" />;
+      return <Sparkles size={14} color="#9945ff" />;
     case "nft_drop":
-      return <Gem size={14} className="text-neon-amber" />;
+      return <Gem size={14} color="#ffb800" />;
     case "run_end":
-      return <Swords size={14} className="text-white/40" />;
+      return <Swords size={14} color="rgba(255,255,255,0.4)" />;
     default:
-      return <Swords size={14} className="text-white/40" />;
+      return <Swords size={14} color="rgba(255,255,255,0.4)" />;
   }
 }
 
@@ -127,9 +127,9 @@ export function RunLog({ run }: Props) {
           Epoch Log
         </Text>
         {expanded ? (
-          <ChevronUp size={16} className="text-white/60" />
+          <ChevronUp size={16} color="rgba(255,255,255,0.6)" />
         ) : (
-          <ChevronDown size={16} className="text-white/60" />
+          <ChevronDown size={16} color="rgba(255,255,255,0.6)" />
         )}
       </Pressable>
 

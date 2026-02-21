@@ -4,6 +4,15 @@ import { Sparkles, Zap, Crown } from "lucide-react-native";
 import { Button } from "@/components/ui";
 import type { PerkDefinition } from "@solanaidle/shared";
 
+const TAILWIND_TO_HEX: Record<string, string> = {
+  "text-neon-cyan": "#00d4ff",
+  "text-neon-amber": "#ffb800",
+  "text-neon-green": "#00ff87",
+  "text-neon-purple": "#9945ff",
+  "text-neon-red": "#ff4444",
+  "text-white/40": "rgba(255,255,255,0.4)",
+};
+
 interface PerkPickerProps {
   perks: {
     offers: PerkDefinition[];
@@ -74,7 +83,7 @@ function PerkCard({
       <View className="flex-row items-center gap-3 p-3">
         {/* Icon */}
         <View className="shrink-0 items-center justify-center">
-          <Icon size={20} className={cfg.iconColor} />
+          <Icon size={20} color={TAILWIND_TO_HEX[cfg.iconColor] ?? "#ffffff"} />
         </View>
 
         {/* Text content */}

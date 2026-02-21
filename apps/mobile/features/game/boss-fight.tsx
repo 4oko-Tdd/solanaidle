@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { View, Text, ActivityIndicator } from "react-native";
-import { Swords, Users, Zap, Loader2 } from "lucide-react-native";
+import { Swords, Users, Zap } from "lucide-react-native";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/components/toast-provider";

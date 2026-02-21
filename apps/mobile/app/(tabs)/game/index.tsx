@@ -76,7 +76,7 @@ export default function GameScreen() {
           />
         )}
         {gameState.activeRun && (
-          <RunStatus run={gameState.activeRun} boss={boss} />
+          <RunStatus run={gameState.activeRun} boss={boss} characterState={gameState.character?.state} />
         )}
       </View>
     </ScrollView>
