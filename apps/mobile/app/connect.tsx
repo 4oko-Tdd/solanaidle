@@ -12,7 +12,7 @@ export default function ConnectScreen() {
   }, [isAuthenticated, router]);
 
   return (
-    <View className="flex-1 bg-terminal items-center justify-center px-8 gap-8">
+    <View className="flex-1 items-center justify-center px-8 gap-8">
       <View className="items-center gap-4">
         <Text className="text-neon-green font-mono text-4xl font-bold tracking-widest">
           SEEKER

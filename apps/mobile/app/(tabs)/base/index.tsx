@@ -18,7 +18,7 @@ export default function BaseScreen() {
   return (
     <ScrollView
       contentInsetAdjustmentBehavior="automatic"
-      className="flex-1 bg-terminal"
+      className="flex-1"
       contentContainerStyle={{ paddingBottom: 32 }}
     >
       <CurrencyBar inventory={inventory} />

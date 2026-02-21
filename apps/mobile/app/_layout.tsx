@@ -29,7 +29,7 @@ export default function RootLayout() {
   if (!fontsLoaded) return null;
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: "#0a0a0a" }}>
       <ImageBackground
         source={require("../assets/bgcity.png")}
         style={{ flex: 1 }}

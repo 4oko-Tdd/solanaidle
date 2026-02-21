@@ -68,7 +68,7 @@ export function ClassPicker({ classes, currentClassId, onSelect }: Props) {
   };
 
   return (
-    <View className="flex-1 bg-terminal">
+    <View className="flex-1">
       <ScrollView
         contentContainerStyle={{ padding: 16, paddingBottom: 32, gap: 16 }}
       >

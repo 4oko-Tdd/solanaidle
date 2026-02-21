@@ -1,5 +1,5 @@
 import { Tabs } from "expo-router";
-import { Shield, Search, Wrench, Users, Trophy } from "lucide-react-native";
+import { Swords, Search, Wrench, Users, Trophy } from "lucide-react-native";
 import { Colors } from "@/lib/theme";
 
 export default function TabLayout() {
@@ -8,11 +8,11 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: Colors.surface,
+          backgroundColor: "rgba(10,10,10,0.95)",
           borderTopColor: "rgba(0,255,135,0.15)",
           borderTopWidth: 1,
           paddingBottom: 4,
-          height: 56,
+          height: 60,
         },
         tabBarActiveTintColor: Colors.neonGreen,
         tabBarInactiveTintColor: "#4a7a9b",
@@ -27,7 +27,7 @@ export default function TabLayout() {
         name="game"
         options={{
           title: "NODE",
-          tabBarIcon: ({ color }) => <Shield size={20} color={color} strokeWidth={1.5} />,
+          tabBarIcon: ({ color }) => <Swords size={20} color={color} strokeWidth={1.5} />,
         }}
       />
       <Tabs.Screen

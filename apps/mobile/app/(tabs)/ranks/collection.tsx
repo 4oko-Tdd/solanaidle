@@ -5,7 +5,7 @@ export default function CollectionRoute() {
   return (
     <ScrollView
       contentInsetAdjustmentBehavior="automatic"
-      className="flex-1 bg-terminal"
+      className="flex-1"
       contentContainerStyle={{ paddingBottom: 32 }}
     >
       <View className="p-4">

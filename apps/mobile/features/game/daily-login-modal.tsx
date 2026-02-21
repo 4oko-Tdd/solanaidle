@@ -29,7 +29,7 @@ export function DailyLoginModal({ status, onClaim, onClose }: Props) {
   const reward = status.todayReward;
 
   return (
-    <View className="flex-1 bg-terminal">
+    <View className="flex-1">
       <ScrollView
         contentContainerStyle={{ padding: 16, paddingBottom: 32, gap: 16 }}
       >

@@ -50,7 +50,7 @@ export default function GameScreen() {
 
   if (gameState.loading) {
     return (
-      <View className="flex-1 bg-terminal items-center justify-center">
+      <View className="flex-1 items-center justify-center">
         <ActivityIndicator color="#00ff87" />
       </View>
     );
@@ -59,7 +59,7 @@ export default function GameScreen() {
   return (
     <ScrollView
       contentInsetAdjustmentBehavior="automatic"
-      className="flex-1 bg-terminal"
+      className="flex-1"
       contentContainerStyle={{ paddingBottom: 32 }}
     >
       <CurrencyBar inventory={gameState.inventory} />

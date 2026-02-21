@@ -158,7 +158,7 @@ export function RunEndScreen({ run, signMessage, onClose }: Props) {
 
     return (
       <ScrollView
-        className="flex-1 bg-terminal"
+        className="flex-1"
         contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
       >
         <View className="rounded-2xl border border-neon-purple/20 bg-surface overflow-hidden">
@@ -246,7 +246,7 @@ export function RunEndScreen({ run, signMessage, onClose }: Props) {
 
     return (
       <ScrollView
-        className="flex-1 bg-terminal"
+        className="flex-1"
         contentContainerStyle={{ padding: 16, paddingBottom: 32, gap: 16 }}
       >
         {/* Header card */}
@@ -332,7 +332,7 @@ export function RunEndScreen({ run, signMessage, onClose }: Props) {
   // ── Summary phase (default) ──
   return (
     <ScrollView
-      className="flex-1 bg-terminal"
+      className="flex-1"
       contentContainerStyle={{ padding: 16, paddingBottom: 32, gap: 16 }}
     >
       {/* Hero card */}
