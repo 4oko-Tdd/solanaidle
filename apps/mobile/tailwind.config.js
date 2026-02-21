@@ -12,16 +12,28 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        "neon-green": "#00ff87",
+        "neon-green": "#14F195",
         "neon-amber": "#ffb800",
         "neon-cyan": "#00d4ff",
         "neon-purple": "#9945ff",
-        "neon-red": "#ff4444",
+        "neon-red": "#FF3366",
         terminal: "#0a0a0a",
         surface: "#111111",
       },
       fontFamily: {
-        mono: ["SpaceMono-Regular"],
+        // sans = semibold by default (matches web: body font-weight 600)
+        sans:            ["Rajdhani_600SemiBold", "system-ui"],
+        "sans-regular":  ["Rajdhani_400Regular", "system-ui"],
+        "sans-semibold": ["Rajdhani_600SemiBold", "system-ui"],
+        "sans-bold":     ["Rajdhani_700Bold", "system-ui"],
+
+        // display = Orbitron bold (headings)
+        display:         ["Orbitron_700Bold", "system-ui"],
+        "display-black": ["Orbitron_900Black", "system-ui"],
+
+        // mono = Orbitron (buttons, badges, scores)
+        mono:            ["Orbitron_400Regular", "system-ui"],
+        "mono-bold":     ["Orbitron_700Bold", "system-ui"],
       },
     },
   },
