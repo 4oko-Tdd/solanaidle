@@ -5,6 +5,7 @@ import { Colors } from "@/lib/theme";
 export default function TabLayout() {
   return (
     <Tabs
+      sceneContainerStyle={{ backgroundColor: "transparent" }}
       screenOptions={{
         headerShown: false,
         tabBarStyle: {

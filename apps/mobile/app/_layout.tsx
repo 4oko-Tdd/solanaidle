@@ -33,12 +33,12 @@ export default function RootLayout() {
       <ImageBackground
         source={require("../assets/bgcity.png")}
         style={{ flex: 1 }}
-        imageStyle={{ opacity: 0.15 }}
+        imageStyle={{ opacity: 0.25 }}
         resizeMode="cover"
       >
         <WalletProvider>
           <ToastProvider>
-            <Stack screenOptions={{ headerShown: false }} />
+            <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: "transparent" } }} />
           </ToastProvider>
         </WalletProvider>
       </ImageBackground>
