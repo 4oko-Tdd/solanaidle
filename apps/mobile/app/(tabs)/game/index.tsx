@@ -1,11 +1,15 @@
+import { useEffect } from "react";
 import { ScrollView, View, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
 import { useAuth } from "@/providers/auth-context";
 import { useGameState } from "@/hooks/use-game-state";
 import { useBoss } from "@/hooks/use-boss";
+import { useDailyLogin } from "@/hooks/use-daily-login";
 import { CharacterCard } from "@/features/game/character-card";
 import { MissionPanel } from "@/features/game/mission-panel";
 import { MissionTimer } from "@/features/game/mission-timer";
+import { BossFight } from "@/features/game/boss-fight";
+import { RunLog } from "@/features/game/run-log";
 import { RunStatus } from "@/features/game/run-status";
 import { CurrencyBar } from "@/components/currency-bar";
 import { useToast } from "@/components/toast-provider";
@@ -16,7 +20,15 @@ export default function GameScreen() {
   const { isAuthenticated } = useAuth();
   const gameState = useGameState(isAuthenticated);
   const { toast } = useToast();
-  const { boss } = useBoss(isAuthenticated);
+  const { boss, applyDamage } = useBoss(isAuthenticated);
+  const { status: dailyStatus, onClaim: claimDaily } = useDailyLogin(isAuthenticated);
+
+  // Navigate to daily login modal when reward is available and not yet claimed
+  useEffect(() => {
+    if (dailyStatus && !dailyStatus.claimedToday) {
+      router.push("/(tabs)/game/daily-login");
+    }
+  }, [dailyStatus?.claimedToday]);
 
   const handleStartMission = async (missionId: MissionId, options?: { rerollStacks?: number; insured?: boolean }) => {
     try {
@@ -58,6 +70,7 @@ export default function GameScreen() {
             upgradeInfo={gameState.upgradeInfo}
             inventory={gameState.inventory}
             classId={gameState.activeRun?.classId ?? null}
+            run={gameState.activeRun ?? null}
             onPickClass={() => router.push("/(tabs)/game/class-picker")}
           />
         )}
@@ -66,6 +79,8 @@ export default function GameScreen() {
             mission={gameState.activeMission}
             onClaim={handleClaim}
           />
+        ) : boss ? (
+          <BossFight boss={boss} run={gameState.activeRun} onOverload={applyDamage} />
         ) : (
           <MissionPanel
             missions={gameState.missions}
@@ -79,6 +94,7 @@ export default function GameScreen() {
         {gameState.activeRun && (
           <RunStatus run={gameState.activeRun} boss={boss} characterState={gameState.character?.state} />
         )}
+        <RunLog run={gameState.activeRun ?? null} />
       </View>
     </ScrollView>
   );

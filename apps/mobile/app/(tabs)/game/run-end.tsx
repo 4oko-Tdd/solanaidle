@@ -6,7 +6,7 @@ import { useRouter } from "expo-router";
 
 export default function RunEndRoute() {
   const router = useRouter();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, signMessage } = useAuth();
   const { endedRun, refresh } = useGameState(isAuthenticated);
 
   if (!endedRun) {
@@ -20,6 +20,7 @@ export default function RunEndRoute() {
   return (
     <RunEndScreen
       run={endedRun}
+      signMessage={signMessage}
       onClose={() => { refresh(); router.back(); }}
     />
   );

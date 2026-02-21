@@ -14,6 +14,7 @@ import {
   Heart,
   TrendingUp,
 } from "lucide-react-native";
+import bs58 from "bs58";
 import { Button } from "@/components/ui";
 import { ClassIcon } from "@/components/class-icon";
 import { useVrfRoll } from "@/hooks/use-vrf-roll";
@@ -28,6 +29,7 @@ import type {
 
 interface Props {
   run: WeeklyRun;
+  signMessage?: ((msg: Uint8Array) => Promise<Uint8Array>) | null;
   onClose: () => void;
 }
 
@@ -69,7 +71,7 @@ function getGrade(
   return { letter: "D", color: "text-white/40" };
 }
 
-export function RunEndScreen({ run, onClose }: Props) {
+export function RunEndScreen({ run, signMessage, onClose }: Props) {
   const [phase, setPhase] = useState<"summary" | "rolling" | "bonus" | "done">("summary");
   const [events, setEvents] = useState<RunEvent[]>([]);
   const [bonus, setBonus] = useState<EpochBonusRewards | null>(null);
@@ -93,6 +95,7 @@ export function RunEndScreen({ run, onClose }: Props) {
     setPhase("rolling");
 
     try {
+      // Step 1: Request VRF randomness
       let vrfAccount: string | null = null;
       try {
         vrfAccount = await requestRoll();
@@ -100,10 +103,24 @@ export function RunEndScreen({ run, onClose }: Props) {
         console.warn("[RunEndScreen] VRF request failed, continuing without:", e);
       }
 
+      // Step 2: Sign the epoch-end message to authorize finalization
+      let signature = "unsigned";
+      if (signMessage) {
+        try {
+          const msg = `END_RUN:week${weekNum}:score:${run.score}:${Date.now()}`;
+          const msgBytes = new TextEncoder().encode(msg);
+          const sigBytes = await signMessage(msgBytes);
+          signature = bs58.encode(sigBytes);
+        } catch (e) {
+          console.warn("[RunEndScreen] signMessage failed, using fallback:", e);
+        }
+      }
+
+      // Step 3: Finalize with backend
       const result = await api<EpochFinalizeResponse>(`/runs/${run.id}/finalize`, {
         method: "POST",
         body: JSON.stringify({
-          signature: "unsigned",
+          signature,
           vrfAccount,
         }),
       });
