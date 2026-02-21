@@ -1,6 +1,7 @@
 import { Pressable, Text, type PressableProps, type GestureResponderEvent } from "react-native";
 import * as Haptics from "expo-haptics";
 import { cn } from "@/lib/utils";
+import { Shadows } from "@/theme";
 import type { ReactNode } from "react";
 
 interface ButtonProps extends PressableProps {
@@ -15,6 +16,13 @@ const variantClasses = {
   outline: "border border-white/20 bg-transparent",
   ghost: "bg-transparent",
   destructive: "bg-neon-red/20 border border-neon-red/60",
+};
+
+const variantShadow: Record<string, string | undefined> = {
+  default: Shadows.glowGreen,
+  outline: undefined,
+  ghost: undefined,
+  destructive: Shadows.glowRed,
 };
 
 const textClasses = {
@@ -55,11 +63,15 @@ export function Button({
     <Pressable
       onPress={handlePress}
       disabled={disabled}
+      style={({ pressed }) => ({
+        opacity: disabled ? 0.4 : pressed ? 0.8 : 1,
+        transform: [{ scale: pressed ? 0.97 : 1 }],
+        boxShadow: !disabled ? variantShadow[variant] : undefined,
+      })}
       className={cn(
         variantClasses[variant],
         sizeClasses[size],
-        "items-center justify-center rounded",
-        disabled && "opacity-40",
+        "items-center justify-center rounded-lg",
         className
       )}
       {...props}
@@ -67,7 +79,7 @@ export function Button({
       {typeof children === "string" ? (
         <Text
           className={cn(
-            "font-mono tracking-widest",
+            "font-mono-bold tracking-widest",
             textClasses[variant],
             textSizeClasses[size]
           )}
