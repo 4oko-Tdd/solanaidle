@@ -1,5 +1,6 @@
 import { View, Text } from "react-native";
 import { cn } from "@/lib/utils";
+import { FontSize, LetterSpacing } from "@/lib/theme";
 
 interface BadgeProps {
   children: string | number;
@@ -29,12 +30,15 @@ export function Badge({ children, variant = "default", className }: BadgeProps) 
   return (
     <View
       className={cn(
-        "border px-2 py-0.5 flex-row items-center rounded-sm",
+        "border px-2 py-0.5 flex-row items-center rounded-full",
         variantClasses[variant],
         className
       )}
     >
-      <Text className={cn("font-mono text-xs", textVariantClasses[variant])}>
+      <Text
+        className={cn("font-mono", textVariantClasses[variant])}
+        style={{ fontSize: FontSize.badge, letterSpacing: LetterSpacing.caps, textTransform: "uppercase" }}
+      >
         {children}
       </Text>
     </View>

@@ -1,9 +1,17 @@
 export const Colors = {
   terminal: "#0a0a0a",
   surface: "#111111",
-  neonGreen: "#00ff87",
+  neonGreen: "#14F195",
   neonAmber: "#ffb800",
   neonCyan: "#00d4ff",
   neonPurple: "#9945ff",
-  neonRed: "#ff4444",
+  neonRed: "#FF3366",
+} as const;
+
+export const FontSize = {
+  badge: 10,
+} as const;
+
+export const LetterSpacing = {
+  caps: 0.8,
 } as const;
