@@ -6,6 +6,7 @@ import { useGameState } from "@/hooks/use-game-state";
 import { useBoss } from "@/hooks/use-boss";
 import { useDailyLogin } from "@/hooks/use-daily-login";
 import { CharacterCard } from "@/features/game/character-card";
+import { ClassPicker } from "@/features/game/class-picker";
 import { MissionPanel } from "@/features/game/mission-panel";
 import { MissionTimer } from "@/features/game/mission-timer";
 import { BossFight } from "@/features/game/boss-fight";
@@ -55,6 +56,21 @@ export default function GameScreen() {
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator color="#00ff87" />
         </View>
+      </ScreenBg>
+    );
+  }
+
+  // No active run → show class picker first (matches web behavior)
+  if (!gameState.activeRun && gameState.classes.length > 0) {
+    return (
+      <ScreenBg>
+        <ClassPicker
+          classes={gameState.classes}
+          currentClassId={null}
+          onSelect={async (classId, sig) => {
+            await gameState.startRun(classId, sig);
+          }}
+        />
       </ScreenBg>
     );
   }

@@ -1,22 +1,18 @@
-import { Text } from "react-native";
+import { Image } from "react-native";
 import type { ClassId } from "@solanaidle/shared";
 
-const CLASS_ICONS: Record<ClassId, string> = {
-  scout: "◈",
-  guardian: "⬡",
-  mystic: "◆",
+const CLASS_ICONS: Record<ClassId, ReturnType<typeof require>> = {
+  scout: require("@/assets/icons/characters/lisiy.png"),
+  guardian: require("@/assets/icons/characters/guardian.png"),
+  mystic: require("@/assets/icons/characters/mystic.png"),
 };
 
-const CLASS_COLORS: Record<ClassId, string> = {
-  scout: "#ffb800",
-  guardian: "#00d4ff",
-  mystic: "#9945ff",
-};
-
-export function ClassIcon({ classId, size = 20 }: { classId: ClassId; size?: number }) {
+export function ClassIcon({ classId, size = 32 }: { classId: ClassId; size?: number }) {
   return (
-    <Text style={{ fontSize: size, color: CLASS_COLORS[classId] }}>
-      {CLASS_ICONS[classId]}
-    </Text>
+    <Image
+      source={CLASS_ICONS[classId]}
+      style={{ width: size, height: size }}
+      resizeMode="contain"
+    />
   );
 }
