@@ -9,6 +9,7 @@ import { MissionTimer } from "@/features/game/mission-timer";
 import { RunStatus } from "@/features/game/run-status";
 import { CurrencyBar } from "@/components/currency-bar";
 import { useToast } from "@/components/toast-provider";
+import type { MissionId } from "@solanaidle/shared";
 
 export default function GameScreen() {
   const router = useRouter();
@@ -17,7 +18,7 @@ export default function GameScreen() {
   const { toast } = useToast();
   const { boss } = useBoss(isAuthenticated);
 
-  const handleStartMission = async (missionId: any, options?: any) => {
+  const handleStartMission = async (missionId: MissionId, options?: { rerollStacks?: number; insured?: boolean }) => {
     try {
       await gameState.startMission(missionId, options);
       toast("Mission started!", "success");

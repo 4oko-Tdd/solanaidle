@@ -28,7 +28,6 @@ import type {
 
 interface Props {
   run: WeeklyRun;
-  character?: any;
   onClose: () => void;
 }
 
@@ -100,8 +99,6 @@ export function RunEndScreen({ run, onClose }: Props) {
       } catch (e) {
         console.warn("[RunEndScreen] VRF request failed, continuing without:", e);
       }
-
-      const msg = `END_RUN:week${weekNum}:score:${run.score}:${Date.now()}`;
 
       const result = await api<EpochFinalizeResponse>(`/runs/${run.id}/finalize`, {
         method: "POST",

@@ -64,31 +64,30 @@ export function MissionPanel({
   const canStart = characterState === "idle";
   const lives = Math.max(1, Math.min(3, livesRemaining));
   const [expandedMission, setExpandedMission] = useState<string | null>(null);
-  const [rerollStacks, setRerollStacks] = useState(0);
-  const [insured, setInsured] = useState(false);
+  const [missionOptions, setMissionOptions] = useState<{ rerollStacks: number; insured: boolean }>({
+    rerollStacks: 0,
+    insured: false,
+  });
 
   const scrapBalance = inventory?.scrap ?? 0;
   const crystalBalance = inventory?.crystal ?? 0;
-  const rerollCost = rerollStacks * REROLL_COST_PER_STACK;
-  const insuranceCost = insured ? INSURANCE_COST : 0;
-  const canAffordReroll = scrapBalance >= (rerollStacks + 1) * REROLL_COST_PER_STACK;
+  const rerollCost = missionOptions.rerollStacks * REROLL_COST_PER_STACK;
+  const insuranceCost = missionOptions.insured ? INSURANCE_COST : 0;
+  const canAffordReroll = scrapBalance >= (missionOptions.rerollStacks + 1) * REROLL_COST_PER_STACK;
   const canAffordInsurance = crystalBalance >= INSURANCE_COST;
 
-  const handleStartMission = (missionId: MissionId) => {
-    onStart(missionId, rerollStacks > 0 || insured ? { rerollStacks, insured } : undefined);
+  const handleStartMission = (mission: MissionType) => {
+    onStart(mission.id, missionOptions.rerollStacks > 0 || missionOptions.insured ? { rerollStacks: missionOptions.rerollStacks, insured: missionOptions.insured } : undefined);
     setExpandedMission(null);
-    setRerollStacks(0);
-    setInsured(false);
+    setMissionOptions({ rerollStacks: 0, insured: false });
   };
 
-  const toggleExpanded = (missionId: string) => {
-    if (expandedMission === missionId) {
-      setExpandedMission(null);
-    } else {
-      setExpandedMission(missionId);
-      setRerollStacks(0);
-      setInsured(false);
-    }
+  const toggleExpanded = (id: string) => {
+    setExpandedMission((prev) => {
+      const next = prev === id ? null : id;
+      if (next !== prev) setMissionOptions({ rerollStacks: 0, insured: false }); // reset on switch
+      return next;
+    });
   };
 
   const isTierLocked = (missionId: string): boolean => {
@@ -243,27 +242,27 @@ export function MissionPanel({
               <View className="flex-row items-center justify-between">
                 <View className="flex-row items-center gap-1">
                   <Text className="text-sm text-white/50">Reroll</Text>
-                  <Text className="text-sm text-neon-cyan font-mono ml-1">-{rerollStacks * REROLL_REDUCTION}% fail</Text>
+                  <Text className="text-sm text-neon-cyan font-mono ml-1">-{missionOptions.rerollStacks * REROLL_REDUCTION}% fail</Text>
                 </View>
                 <View className="flex-row items-center gap-2">
                   <Button
                     variant="ghost"
                     size="sm"
-                    disabled={rerollStacks <= 0}
-                    onPress={() => setRerollStacks((s) => s - 1)}
+                    disabled={missionOptions.rerollStacks <= 0}
+                    onPress={() => setMissionOptions((prev) => ({ ...prev, rerollStacks: prev.rerollStacks - 1 }))}
                   >
                     <Minus size={12} color="rgba(255,255,255,0.5)" />
                   </Button>
-                  <Text className="font-mono text-sm text-white w-4 text-center">{rerollStacks}</Text>
+                  <Text className="font-mono text-sm text-white w-4 text-center">{missionOptions.rerollStacks}</Text>
                   <Button
                     variant="ghost"
                     size="sm"
-                    disabled={rerollStacks >= MAX_REROLL_STACKS || !canAffordReroll}
-                    onPress={() => setRerollStacks((s) => s + 1)}
+                    disabled={missionOptions.rerollStacks >= MAX_REROLL_STACKS || !canAffordReroll}
+                    onPress={() => setMissionOptions((prev) => ({ ...prev, rerollStacks: prev.rerollStacks + 1 }))}
                   >
                     <Plus size={12} color="rgba(255,255,255,0.5)" />
                   </Button>
-                  {rerollStacks > 0 && (
+                  {missionOptions.rerollStacks > 0 && (
                     <View className="flex-row items-center gap-1">
                       <Image source={require("@/assets/icons/scrap.png")} style={{ width: 16, height: 16 }} />
                       <Text className="text-sm font-mono text-white/50">{rerollCost}</Text>
@@ -280,19 +279,19 @@ export function MissionPanel({
                 </View>
                 <View className="flex-row items-center gap-2">
                   <Button
-                    variant={insured ? "default" : "ghost"}
+                    variant={missionOptions.insured ? "default" : "ghost"}
                     size="sm"
-                    disabled={!insured && !canAffordInsurance}
-                    onPress={() => setInsured(!insured)}
+                    disabled={!missionOptions.insured && !canAffordInsurance}
+                    onPress={() => setMissionOptions((prev) => ({ ...prev, insured: !prev.insured }))}
                   >
                     <View className="flex-row items-center gap-1">
-                      <Shield size={12} color={insured ? "#00ff87" : "rgba(255,255,255,0.5)"} />
-                      <Text className={`text-xs font-mono ${insured ? "text-neon-green" : "text-white/50"}`}>
-                        {insured ? "ON" : "OFF"}
+                      <Shield size={12} color={missionOptions.insured ? "#00ff87" : "rgba(255,255,255,0.5)"} />
+                      <Text className={`text-xs font-mono ${missionOptions.insured ? "text-neon-green" : "text-white/50"}`}>
+                        {missionOptions.insured ? "ON" : "OFF"}
                       </Text>
                     </View>
                   </Button>
-                  {insured && (
+                  {missionOptions.insured && (
                     <View className="flex-row items-center gap-1">
                       <Image source={require("@/assets/icons/tokens.png")} style={{ width: 16, height: 16 }} />
                       <Text className="text-sm font-mono text-white/50">{insuranceCost}</Text>
@@ -302,12 +301,12 @@ export function MissionPanel({
               </View>
 
               {/* Adjusted fail rate */}
-              {(rerollStacks > 0 || insured) && (
+              {(missionOptions.rerollStacks > 0 || missionOptions.insured) && (
                 <Text className="text-xs text-center text-white/50">
                   Fail rate:{" "}
                   <Text style={{ textDecorationLine: "line-through" }}>{boss.failRate}%</Text>{" "}
-                  <Text className="text-neon-green font-mono">{Math.max(0, boss.failRate - rerollStacks * REROLL_REDUCTION)}%</Text>
-                  {insured ? <Text className="text-neon-amber ml-2"> + streak safe</Text> : null}
+                  <Text className="text-neon-green font-mono">{Math.max(0, boss.failRate - missionOptions.rerollStacks * REROLL_REDUCTION)}%</Text>
+                  {missionOptions.insured ? <Text className="text-neon-amber ml-2"> + streak safe</Text> : null}
                 </Text>
               )}
 
@@ -315,7 +314,7 @@ export function MissionPanel({
                 className="w-full border-neon-amber/40"
                 size="sm"
                 variant="outline"
-                onPress={() => handleStartMission("boss")}
+                onPress={() => handleStartMission(boss)}
               >
                 Hunt the Whale
               </Button>
@@ -458,27 +457,27 @@ export function MissionPanel({
                   <View className="flex-row items-center justify-between">
                     <View className="flex-row items-center gap-1">
                       <Text className="text-xs text-white/50">Reroll</Text>
-                      <Text className="text-xs text-neon-cyan font-mono ml-1">-{rerollStacks * REROLL_REDUCTION}% fail</Text>
+                      <Text className="text-xs text-neon-cyan font-mono ml-1">-{missionOptions.rerollStacks * REROLL_REDUCTION}% fail</Text>
                     </View>
                     <View className="flex-row items-center gap-2">
                       <Button
                         variant="ghost"
                         size="sm"
-                        disabled={rerollStacks <= 0}
-                        onPress={() => setRerollStacks((s) => s - 1)}
+                        disabled={missionOptions.rerollStacks <= 0}
+                        onPress={() => setMissionOptions((prev) => ({ ...prev, rerollStacks: prev.rerollStacks - 1 }))}
                       >
                         <Minus size={12} color="rgba(255,255,255,0.5)" />
                       </Button>
-                      <Text className="font-mono text-sm text-white">{rerollStacks}</Text>
+                      <Text className="font-mono text-sm text-white">{missionOptions.rerollStacks}</Text>
                       <Button
                         variant="ghost"
                         size="sm"
-                        disabled={rerollStacks >= MAX_REROLL_STACKS || !canAffordReroll}
-                        onPress={() => setRerollStacks((s) => s + 1)}
+                        disabled={missionOptions.rerollStacks >= MAX_REROLL_STACKS || !canAffordReroll}
+                        onPress={() => setMissionOptions((prev) => ({ ...prev, rerollStacks: prev.rerollStacks + 1 }))}
                       >
                         <Plus size={12} color="rgba(255,255,255,0.5)" />
                       </Button>
-                      {rerollStacks > 0 && (
+                      {missionOptions.rerollStacks > 0 && (
                         <View className="flex-row items-center gap-1">
                           <Image source={require("@/assets/icons/scrap.png")} style={{ width: 16, height: 16 }} />
                           <Text className="text-xs font-mono text-white/50">{rerollCost}</Text>
@@ -495,19 +494,19 @@ export function MissionPanel({
                     </View>
                     <View className="flex-row items-center gap-2">
                       <Button
-                        variant={insured ? "default" : "ghost"}
+                        variant={missionOptions.insured ? "default" : "ghost"}
                         size="sm"
-                        disabled={!insured && !canAffordInsurance}
-                        onPress={() => setInsured(!insured)}
+                        disabled={!missionOptions.insured && !canAffordInsurance}
+                        onPress={() => setMissionOptions((prev) => ({ ...prev, insured: !prev.insured }))}
                       >
                         <View className="flex-row items-center gap-1">
-                          <Shield size={12} color={insured ? "#00ff87" : "rgba(255,255,255,0.5)"} />
-                          <Text className={`text-xs font-mono ${insured ? "text-neon-green" : "text-white/50"}`}>
-                            {insured ? "ON" : "OFF"}
+                          <Shield size={12} color={missionOptions.insured ? "#00ff87" : "rgba(255,255,255,0.5)"} />
+                          <Text className={`text-xs font-mono ${missionOptions.insured ? "text-neon-green" : "text-white/50"}`}>
+                            {missionOptions.insured ? "ON" : "OFF"}
                           </Text>
                         </View>
                       </Button>
-                      {insured && (
+                      {missionOptions.insured && (
                         <View className="flex-row items-center gap-1">
                           <Image source={require("@/assets/icons/tokens.png")} style={{ width: 16, height: 16 }} />
                           <Text className="text-xs font-mono text-white/50">{insuranceCost}</Text>
@@ -517,14 +516,14 @@ export function MissionPanel({
                   </View>
 
                   {/* Adjusted fail rate preview */}
-                  {(rerollStacks > 0 || insured) && (
+                  {(missionOptions.rerollStacks > 0 || missionOptions.insured) && (
                     <Text className="text-xs text-center text-white/50">
                       Fail rate:{" "}
                       <Text style={{ textDecorationLine: "line-through" }}>{mission.failRate}%</Text>{" "}
                       <Text className="text-neon-green font-mono">
-                        {Math.max(0, mission.failRate - rerollStacks * REROLL_REDUCTION)}%
+                        {Math.max(0, mission.failRate - missionOptions.rerollStacks * REROLL_REDUCTION)}%
                       </Text>
-                      {insured ? <Text className="text-neon-amber"> + streak safe</Text> : null}
+                      {missionOptions.insured ? <Text className="text-neon-amber"> + streak safe</Text> : null}
                     </Text>
                   )}
 
@@ -533,7 +532,7 @@ export function MissionPanel({
                     className="w-full"
                     size="sm"
                     variant={riskLevel === "critical" || riskLevel === "dangerous" ? "destructive" : "default"}
-                    onPress={() => handleStartMission(mission.id)}
+                    onPress={() => handleStartMission(mission)}
                   >
                     Send Transaction
                   </Button>

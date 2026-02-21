@@ -76,6 +76,21 @@ function fmtChange(pct: number): { text: string; cls: string } {
 
 // ── Reward Icons ──
 
+const BOOST_ICON: Record<string, { icon: React.ReactNode; cls: string }> = {
+  xp: {
+    icon: <Zap size={14} color="#ffb800" />,
+    cls: "text-neon-amber",
+  },
+  speed: {
+    icon: <Clock size={14} color="#00d4ff" />,
+    cls: "text-neon-cyan",
+  },
+  loot_chance: {
+    icon: <Gem size={14} color="#9945ff" />,
+    cls: "text-neon-purple",
+  },
+};
+
 function RewardIcons({
   scrap,
   crystal,
@@ -87,20 +102,6 @@ function RewardIcons({
   artifact?: number;
   boost?: { type: string; percentBonus: number };
 }) {
-  const BOOST_ICON: Record<string, { icon: React.ReactNode; cls: string }> = {
-    xp: {
-      icon: <Zap size={14} color="#ffb800" />,
-      cls: "text-neon-amber",
-    },
-    speed: {
-      icon: <Clock size={14} color="#00d4ff" />,
-      cls: "text-neon-cyan",
-    },
-    loot_chance: {
-      icon: <Gem size={14} color="#9945ff" />,
-      cls: "text-neon-purple",
-    },
-  };
 
   return (
     <View className="flex-row items-center gap-1.5">
@@ -272,13 +273,6 @@ export function QuestPanel() {
   const dailyCount = (
     ["token_scan", "portfolio_check", "pnl_report"] as QuestId[]
   ).filter(done).length;
-
-  const QUEST_LABELS: Record<string, string> = {
-    token_scan: "Recon Scan",
-    portfolio: "Vault Audit",
-    priceWatch: "Signal Sweep",
-    swap: "Supply Run",
-  };
 
   const run = async (id: string, fn: () => Promise<void>) => {
     setBusy(id);

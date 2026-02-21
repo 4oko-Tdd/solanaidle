@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { View, Text, Pressable } from "react-native";
 import { Users, Copy, Check, LogOut, Shield, Zap, Gift } from "lucide-react-native";
 import { Button } from "@/components/ui";
@@ -24,6 +24,13 @@ export function GuildPanel({ isAuthenticated, onViewRaid }: Props) {
   const [copied, setCopied] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [showJoin, setShowJoin] = useState(false);
+  const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+    };
+  }, []);
 
   const handleLeave = async () => {
     setLeaving(true);
@@ -38,7 +45,8 @@ export function GuildPanel({ isAuthenticated, onViewRaid }: Props) {
     if (!guild) return;
     await Clipboard.setStringAsync(guild.inviteCode);
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+    copyTimeoutRef.current = setTimeout(() => setCopied(false), 2000);
   };
 
   if (loading) return null;
