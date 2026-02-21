@@ -1,6 +1,6 @@
 import { View, Text } from "react-native";
 import { cn } from "@/lib/utils";
-import { FontSize, LetterSpacing } from "@/lib/theme";
+import { FontSize, LetterSpacing } from "@/theme";
 
 interface BadgeProps {
   children: string | number;

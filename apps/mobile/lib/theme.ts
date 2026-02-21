@@ -7,11 +7,3 @@ export const Colors = {
   neonPurple: "#9945ff",
   neonRed: "#FF3366",
 } as const;
-
-export const FontSize = {
-  badge: 10,
-} as const;
-
-export const LetterSpacing = {
-  caps: 0.8,
-} as const;
