@@ -1,11 +1,11 @@
 import { ScrollView, View } from "react-native";
-import { useRouter } from "expo-router";
 import { useAuth } from "@/providers/auth-context";
-import { GuildPanel } from "@/features/guild/guild-panel";
+import { useGameState } from "@/hooks/use-game-state";
+import { InventoryPanel } from "@/features/inventory/inventory-panel";
 
-export default function GuildScreen() {
-  const router = useRouter();
+export default function InventoryRoute() {
   const { isAuthenticated } = useAuth();
+  const { inventory } = useGameState(isAuthenticated);
 
   return (
     <ScrollView
@@ -14,10 +14,7 @@ export default function GuildScreen() {
       contentContainerStyle={{ paddingBottom: 32 }}
     >
       <View className="p-4">
-        <GuildPanel
-          isAuthenticated={isAuthenticated}
-          onViewRaid={() => router.push("/(tabs)/guild/raid")}
-        />
+        <InventoryPanel inventory={inventory} />
       </View>
     </ScrollView>
   );

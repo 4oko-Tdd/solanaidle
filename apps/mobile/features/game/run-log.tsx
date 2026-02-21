@@ -1,0 +1,173 @@
+import { useState, useEffect } from "react";
+import { View, Text, Pressable, FlatList, ActivityIndicator } from "react-native";
+import { Image } from "expo-image";
+import {
+  Trophy,
+  ArrowUp,
+  Sparkles,
+  Swords,
+  Heart,
+  ChevronDown,
+  ChevronUp,
+  Gem,
+  Skull,
+} from "lucide-react-native";
+import { api } from "@/lib/api";
+import type { RunEvent, RunEventType, WeeklyRun } from "@solanaidle/shared";
+
+interface Props {
+  run: WeeklyRun | null;
+}
+
+// Event type → icon mapping (built as a function to allow hooks-free JSX)
+function getEventIcon(eventType: RunEventType): React.ReactNode {
+  switch (eventType) {
+    case "run_start":
+      return <Swords size={14} className="text-neon-cyan" />;
+    case "mission_success":
+      return <Trophy size={14} className="text-neon-green" />;
+    case "mission_fail":
+      return <Skull size={14} className="text-neon-red" />;
+    case "death":
+      return <Skull size={14} className="text-neon-red" />;
+    case "revive":
+      return <Heart size={14} className="text-neon-green" />;
+    case "level_up":
+      return <ArrowUp size={14} className="text-neon-cyan" />;
+    case "boss_kill":
+      return (
+        <Image
+          source={require("@/assets/icons/exp.png")}
+          style={{ width: 18, height: 18 }}
+        />
+      );
+    case "perk_pick":
+      return <Sparkles size={14} className="text-neon-purple" />;
+    case "nft_drop":
+      return <Gem size={14} className="text-neon-amber" />;
+    case "run_end":
+      return <Swords size={14} className="text-white/40" />;
+    default:
+      return <Swords size={14} className="text-white/40" />;
+  }
+}
+
+function getDayNumber(weekStart: string, eventDate: string): number {
+  const start = new Date(weekStart).getTime();
+  const event = new Date(eventDate).getTime();
+  return Math.floor((event - start) / 86400000) + 1;
+}
+
+function formatEvent(event: RunEvent): string {
+  const d = event.data as Record<string, unknown>;
+  switch (event.eventType) {
+    case "run_start":
+      return `Epoch started as ${d.classId}`;
+    case "mission_success":
+      return `${d.missionId} confirmed. +${d.xp} XP, +${d.scrap} scrap${d.crystal ? `, +${d.crystal} tokens` : ""}`;
+    case "mission_fail":
+      return d.escaped
+        ? `${d.missionId} failed — Failover!`
+        : `${d.missionId} failed. Lost 1 life. (${d.livesRemaining} remaining)`;
+    case "death":
+      return "Slashed. Recovering...";
+    case "revive":
+      return "Back online.";
+    case "level_up":
+      return `Leveled up to Lv.${d.newLevel}`;
+    case "boss_kill":
+      return "Whale Hunt complete!";
+    case "perk_pick":
+      return `Perk acquired: ${d.perkName ?? d.perkId}${d.tier ? ` [${d.tier}]` : ""}`;
+    case "nft_drop":
+      return `RARE: NFT Drop — ${d.nftName}!`;
+    case "run_end":
+      return `Epoch ended. ${d.cause === "death" ? "No lives remaining." : "Score finalized."}`;
+    default:
+      return event.eventType;
+  }
+}
+
+function getEventTextClass(eventType: RunEventType): string {
+  switch (eventType) {
+    case "nft_drop":
+    case "boss_kill":
+      return "font-bold text-neon-amber";
+    case "mission_fail":
+    case "death":
+      return "text-neon-red";
+    default:
+      return "text-white/80";
+  }
+}
+
+export function RunLog({ run }: Props) {
+  const [events, setEvents] = useState<RunEvent[]>([]);
+  const [expanded, setExpanded] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!expanded || !run) return;
+    setLoading(true);
+    api<RunEvent[]>(`/runs/${run.id}/events`)
+      .then(setEvents)
+      .catch(() => setEvents([]))
+      .finally(() => setLoading(false));
+  }, [run?.id, expanded]);
+
+  if (!run) return null;
+
+  return (
+    <View className="rounded-lg border border-white/[0.06] bg-white/[0.03]">
+      <Pressable
+        onPress={() => setExpanded(!expanded)}
+        className="flex-row items-center justify-between p-3"
+      >
+        <Text className="text-sm font-display font-medium text-white">
+          Epoch Log
+        </Text>
+        {expanded ? (
+          <ChevronUp size={16} className="text-white/60" />
+        ) : (
+          <ChevronDown size={16} className="text-white/60" />
+        )}
+      </Pressable>
+
+      {expanded && (
+        <View className="border-t border-white/[0.06] px-3 pb-3 pt-2">
+          {loading && (
+            <View className="items-center py-2">
+              <ActivityIndicator size="small" color="rgba(255,255,255,0.4)" />
+            </View>
+          )}
+          {!loading && events.length === 0 && (
+            <Text className="text-xs text-white/40">No events yet.</Text>
+          )}
+          {!loading && events.length > 0 && (
+            <FlatList
+              data={events}
+              keyExtractor={(item) => item.id}
+              scrollEnabled={false}
+              ItemSeparatorComponent={() => <View className="h-1.5" />}
+              renderItem={({ item: event }) => (
+                <View className="flex-row items-start gap-2">
+                  <View className="mt-0.5 shrink-0">
+                    {getEventIcon(event.eventType)}
+                  </View>
+                  <View className="flex-1 flex-row flex-wrap">
+                    <Text className="text-xs font-mono text-white/40">
+                      Day {getDayNumber(run.weekStart, event.createdAt)} —{" "}
+                    </Text>
+                    <Text className={`text-xs ${getEventTextClass(event.eventType)}`}>
+                      {formatEvent(event)}
+                    </Text>
+                  </View>
+                </View>
+              )}
+            />
+          )}
+        </View>
+      )}
+    </View>
+  );
+}
