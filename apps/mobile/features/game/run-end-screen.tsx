@@ -170,7 +170,7 @@ export function RunEndScreen({ run, signMessage, onClose }: Props) {
             </View>
 
             <View className="items-center gap-1">
-              <Text className="text-2xl font-bold text-neon-purple">Rolling Rewards</Text>
+              <Text className="text-2xl font-display text-neon-purple">Rolling Rewards</Text>
               <Text className="text-xs text-white/40 font-mono">Epoch {weekNum} Finalization</Text>
             </View>
 
@@ -256,7 +256,7 @@ export function RunEndScreen({ run, signMessage, onClose }: Props) {
             <View className="w-16 h-16 rounded-full bg-neon-amber/10 border border-neon-amber/20 items-center justify-center">
               <Gift size={36} color="#ffb800" />
             </View>
-            <Text className="text-2xl font-bold text-neon-amber">Epoch Bonus!</Text>
+            <Text className="text-2xl font-display text-neon-amber">Epoch Bonus!</Text>
             {bonus.vrfVerified && (
               <View className="flex-row items-center gap-1.5 rounded-full bg-neon-cyan/10 border border-neon-cyan/20 px-3 py-1">
                 <ShieldCheck size={12} color="#00d4ff" />
@@ -285,7 +285,7 @@ export function RunEndScreen({ run, signMessage, onClose }: Props) {
             <TrendingUp size={20} color={mult.color.includes("amber") ? "#ffb800" : mult.color.includes("purple") ? "#9945ff" : "#00d4ff"} />
             <View className="items-center">
               <Text
-                className={`text-2xl font-bold ${
+                className={`text-2xl font-display ${
                   bonus.multiplier > 1 ? "text-neon-green" : "text-white"
                 }`}
               >
@@ -321,7 +321,7 @@ export function RunEndScreen({ run, signMessage, onClose }: Props) {
         )}
 
         <Button onPress={handleContinue} size="lg" className="w-full">
-          <Text className="text-base font-bold text-neon-green">Continue</Text>
+          <Text className="text-base font-display text-neon-green">Continue</Text>
         </Button>
 
         <Text className="text-xs text-white/30 text-center">Powered by MagicBlock</Text>
@@ -432,7 +432,7 @@ export function RunEndScreen({ run, signMessage, onClose }: Props) {
         <View className="p-4 gap-3">
           <View className="flex-row items-center justify-center gap-2">
             <Dice5 size={20} color="#9945ff" />
-            <Text className="text-base font-bold text-neon-purple">On-Chain Bonus Roll</Text>
+            <Text className="text-base font-display text-neon-purple">On-Chain Bonus Roll</Text>
           </View>
 
           {/* Multiplier chance bars */}
@@ -474,7 +474,7 @@ export function RunEndScreen({ run, signMessage, onClose }: Props) {
           >
             <View className="flex-row items-center gap-2">
               <Dice5 size={20} color="#9945ff" />
-              <Text className="text-base font-bold text-neon-purple">Finalize &amp; Roll</Text>
+              <Text className="text-base font-display text-neon-purple">Finalize &amp; Roll</Text>
             </View>
           </Button>
         </View>

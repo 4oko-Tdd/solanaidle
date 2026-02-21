@@ -58,7 +58,7 @@ export function GuildPanel({ isAuthenticated, onViewRaid }: Props) {
         <View className="rounded-xl border border-[#1a3a5c]/60 bg-[#0a1628]/80 p-4">
           <View className="flex-row items-center gap-2.5 mb-3">
             <Users size={24} color="#9945FF" />
-            <Text className="text-lg font-bold text-white">Guild</Text>
+            <Text className="text-lg font-display text-white">Guild</Text>
           </View>
           <Text className="text-xs text-[#4a7a9b] leading-relaxed">
             Team up with other validators. Create or join a guild to unlock co-op raids with boosted loot.
@@ -155,7 +155,7 @@ export function GuildPanel({ isAuthenticated, onViewRaid }: Props) {
         <View className="flex-row items-center justify-between">
           <View className="flex-row items-center gap-2.5">
             <Users size={20} color="#9945FF" />
-            <Text className="text-base font-bold text-white">{guild.name}</Text>
+            <Text className="text-base font-display text-white">{guild.name}</Text>
           </View>
           <Badge variant="purple">{`${guild.memberCount}/5`}</Badge>
         </View>

@@ -74,7 +74,7 @@ export function ClassPicker({ classes, currentClassId, onSelect }: Props) {
       >
         {/* Header */}
         <View className="items-center gap-2">
-          <Text className="text-2xl font-bold text-neon-green">Epoch {weekNum}</Text>
+          <Text className="text-2xl font-display text-neon-green">Epoch {weekNum}</Text>
           <Text className="text-sm text-white/50 text-center">
             Choose your node type. Each has unique strengths and trade-offs.
           </Text>
@@ -104,7 +104,7 @@ export function ClassPicker({ classes, currentClassId, onSelect }: Props) {
                   <View className="flex-row items-center gap-3">
                     <ClassIcon classId={cls.id} size={40} />
                     <View className="flex-1">
-                      <Text className="text-lg font-bold text-white">{cls.name}</Text>
+                      <Text className="text-lg font-display text-white">{cls.name}</Text>
                       {isCurrent && (
                         <Text className="text-xs text-neon-green font-mono">Current</Text>
                       )}
@@ -160,7 +160,7 @@ export function ClassPicker({ classes, currentClassId, onSelect }: Props) {
             )}
 
             <View className="items-center gap-1">
-              <Text className="text-xl font-bold text-white">Commit to Epoch</Text>
+              <Text className="text-xl font-display text-white">Commit to Epoch</Text>
               <Text className="text-sm text-white/50 text-center">
                 You are about to begin Epoch {weekNum} as a{" "}
                 <Text className="text-white font-medium">{selectedClass?.name}</Text>. 3 lives. No
@@ -184,10 +184,10 @@ export function ClassPicker({ classes, currentClassId, onSelect }: Props) {
                 {signing ? (
                   <View className="flex-row items-center gap-2">
                     <ActivityIndicator size="small" color="#00ff87" />
-                    <Text className="text-base font-bold text-neon-green">Signing...</Text>
+                    <Text className="text-base font-display text-neon-green">Signing...</Text>
                   </View>
                 ) : (
-                  <Text className="text-base font-bold text-neon-green">Sign &amp; Begin</Text>
+                  <Text className="text-base font-display text-neon-green">Sign &amp; Begin</Text>
                 )}
               </Button>
 

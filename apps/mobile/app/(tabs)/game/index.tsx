@@ -12,6 +12,7 @@ import { BossFight } from "@/features/game/boss-fight";
 import { RunLog } from "@/features/game/run-log";
 import { RunStatus } from "@/features/game/run-status";
 import { CurrencyBar } from "@/components/currency-bar";
+import { ScreenBg } from "@/components/screen-bg";
 import { useToast } from "@/components/toast-provider";
 import type { MissionId } from "@solanaidle/shared";
 
@@ -50,13 +51,16 @@ export default function GameScreen() {
 
   if (gameState.loading) {
     return (
-      <View className="flex-1 items-center justify-center">
-        <ActivityIndicator color="#00ff87" />
-      </View>
+      <ScreenBg>
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator color="#00ff87" />
+        </View>
+      </ScreenBg>
     );
   }
 
   return (
+    <ScreenBg>
     <ScrollView
       contentInsetAdjustmentBehavior="automatic"
       className="flex-1"
@@ -97,5 +101,6 @@ export default function GameScreen() {
         <RunLog run={gameState.activeRun ?? null} />
       </View>
     </ScrollView>
+    </ScreenBg>
   );
 }

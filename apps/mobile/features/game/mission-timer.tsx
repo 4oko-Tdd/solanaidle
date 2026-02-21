@@ -67,7 +67,7 @@ export function MissionTimer({ mission, onClaim }: Props) {
       ]}
     >
       <View className="flex-row items-center justify-between">
-        <Text className="text-base font-bold text-white">
+        <Text className="text-base font-display text-white">
           {missionName} in Progress
         </Text>
         {isComplete ? (

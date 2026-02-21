@@ -56,7 +56,7 @@ export function UpgradePanel({ upgradeInfo, onUpgrade }: Props) {
 
   return (
     <View className="rounded-xl border border-[#1a3a5c]/60 bg-[#0a1628]/80 p-4 gap-3">
-      <Text className="text-base font-bold text-white">Node Upgrades</Text>
+      <Text className="text-base font-display text-white tracking-widest">NODE UPGRADES</Text>
       <View className="flex-row gap-2">
         {TRACKS.map((track) => {
           const info = upgradeInfo[track.id];

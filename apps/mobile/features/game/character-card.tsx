@@ -47,7 +47,7 @@ export function CharacterCard({ character, classId, run, onPickClass }: Props) {
           {classId ? (
             <ClassIcon classId={classId} size={40} />
           ) : null}
-          <Text className="text-sm font-bold text-white">
+          <Text className="text-sm font-display text-white">
             {classId ? CLASS_NAMES[classId] : "Node"}
           </Text>
           <View className="flex-row items-center gap-1">
@@ -55,7 +55,7 @@ export function CharacterCard({ character, classId, run, onPickClass }: Props) {
               source={require("@/assets/icons/exp.png")}
               style={{ width: 24, height: 24 }}
             />
-            <Text className="text-xs font-mono font-bold text-white">Lv {character.level}</Text>
+            <Text className="text-xs font-display text-white">Lv {character.level}</Text>
           </View>
         </View>
         {getStatusBadge(character.state, run?.active)}
@@ -82,20 +82,20 @@ export function CharacterCard({ character, classId, run, onPickClass }: Props) {
             )
           )}
           {lives === 1 && (
-            <Text className="ml-1 text-xs font-bold text-neon-red">LAST LIFE</Text>
+            <Text className="ml-1 text-xs font-mono text-neon-red">LAST LIFE</Text>
           )}
         </View>
         {run ? (
           <View className="flex-row items-center gap-2.5">
             <Text className="text-xs text-[#4a7a9b]">
               Score{" "}
-              <Text className="font-mono font-bold text-neon-green">{run.score}</Text>
+              <Text className="font-display text-neon-green">{run.score}</Text>
             </Text>
             {run.streak >= 2 && (
               <Text className="text-xs text-[#4a7a9b]">
                 Streak{" "}
                 <Text
-                  className={`font-mono font-bold ${
+                  className={`font-display ${
                     run.streak >= 6
                       ? "text-neon-amber"
                       : run.streak >= 4
@@ -121,7 +121,7 @@ export function CharacterCard({ character, classId, run, onPickClass }: Props) {
       {/* Warning banners */}
       {lives === 1 && run?.active && character.state !== "dead" && (
         <View className="rounded bg-neon-red/10 border border-neon-red/30 px-2 py-0.5 items-center">
-          <Text className="text-xs font-bold text-neon-red">FAILURE MEANS SLASHING. 1 LIFE REMAINING.</Text>
+          <Text className="text-xs font-mono text-neon-red">FAILURE MEANS SLASHING. 1 LIFE REMAINING.</Text>
         </View>
       )}
       {character.state === "dead" && character.reviveAt ? (

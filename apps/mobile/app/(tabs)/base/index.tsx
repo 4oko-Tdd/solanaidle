@@ -8,6 +8,7 @@ import { PerkPicker } from "@/features/game/perk-picker";
 import { TrophyCase } from "@/features/game/trophy-case";
 import { PermanentCollection } from "@/features/game/permanent-collection";
 import { CurrencyBar } from "@/components/currency-bar";
+import { ScreenBg } from "@/components/screen-bg";
 
 export default function BaseScreen() {
   const router = useRouter();
@@ -16,6 +17,7 @@ export default function BaseScreen() {
   const { offers, hasPending, loading, choosePerk } = usePerks();
 
   return (
+    <ScreenBg>
     <ScrollView
       contentInsetAdjustmentBehavior="automatic"
       className="flex-1"
@@ -50,5 +52,6 @@ export default function BaseScreen() {
         </View>
       </View>
     </ScrollView>
+    </ScreenBg>
   );
 }

@@ -40,7 +40,7 @@ export function MissionResultDialog({ result, onClose, livesRemaining }: Props) 
           {/* Title + description */}
           <View className="items-center gap-1">
             <Text
-              className={`text-xl font-bold text-center ${
+              className={`text-xl font-display text-center ${
                 isRunOver
                   ? "text-neon-red"
                   : isSuccess
@@ -120,7 +120,7 @@ export function MissionResultDialog({ result, onClose, livesRemaining }: Props) 
             className="w-full"
           >
             <Text
-              className={`text-base font-bold ${
+              className={`text-base font-display ${
                 isRunOver ? "text-neon-red" : "text-neon-green"
               }`}
             >

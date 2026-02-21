@@ -36,7 +36,7 @@ export function DailyLoginModal({ status, onClaim, onClose }: Props) {
         {/* Header */}
         <View className="items-center gap-2">
           <Gift size={32} color="#ffb800" />
-          <Text className="text-xl font-bold text-white">
+          <Text className="text-xl font-display text-white">
             {claimed ? "Claimed!" : "Daily Bonus"}
           </Text>
           <Text className="text-sm text-white/50 text-center">
@@ -115,17 +115,17 @@ export function DailyLoginModal({ status, onClaim, onClose }: Props) {
         {/* Action button */}
         {claimed ? (
           <Button onPress={onClose} size="lg" className="w-full">
-            <Text className="text-base font-bold text-neon-green">Continue</Text>
+            <Text className="text-base font-display text-neon-green">Continue</Text>
           </Button>
         ) : (
           <Button onPress={handleClaim} disabled={claiming} size="lg" className="w-full">
             {claiming ? (
               <View className="flex-row items-center gap-2">
                 <ActivityIndicator size="small" color="#00ff87" />
-                <Text className="text-base font-bold text-neon-green">Claiming...</Text>
+                <Text className="text-base font-display text-neon-green">Claiming...</Text>
               </View>
             ) : (
-              <Text className="text-base font-bold text-neon-green">Claim Reward</Text>
+              <Text className="text-base font-display text-neon-green">Claim Reward</Text>
             )}
           </Button>
         )}

@@ -1,6 +1,7 @@
 import { View, Text, Pressable } from "react-native";
 import { useAuth } from "@/providers/auth-context";
 import { useRouter } from "expo-router";
+import { ScreenBg } from "@/components/screen-bg";
 import { useEffect } from "react";
 
 export default function ConnectScreen() {
@@ -12,6 +13,7 @@ export default function ConnectScreen() {
   }, [isAuthenticated, router]);
 
   return (
+    <ScreenBg>
     <View className="flex-1 items-center justify-center px-8 gap-8">
       <View className="items-center gap-4">
         <Text className="text-neon-green font-mono text-4xl font-bold tracking-widest">
@@ -39,5 +41,6 @@ export default function ConnectScreen() {
         Requires a Solana wallet app installed on this device
       </Text>
     </View>
+    </ScreenBg>
   );
 }

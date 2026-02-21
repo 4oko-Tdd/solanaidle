@@ -27,7 +27,7 @@ export function RaidPanel({ raids, activeRaid, loading, startRaid, commitRaid, c
     <View className="rounded-xl border border-[#1a3a5c]/60 bg-[#0a1628]/80 p-4 gap-3">
       <View className="flex-row items-center gap-2.5">
         <Swords size={20} color="#FFB800" />
-        <Text className="text-base font-bold text-white">Raids</Text>
+        <Text className="text-base font-display text-white">Raids</Text>
       </View>
       <Text className="text-xs text-[#4a7a9b] leading-relaxed">
         Co-op missions for your guild. Start a raid and wait for members to join before time runs out.

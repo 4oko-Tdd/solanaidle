@@ -3,6 +3,7 @@ import { useAuth } from "@/providers/auth-context";
 import { useGameState } from "@/hooks/use-game-state";
 import { RunEndScreen } from "@/features/game/run-end-screen";
 import { useRouter } from "expo-router";
+import { ScreenBg } from "@/components/screen-bg";
 
 export default function RunEndRoute() {
   const router = useRouter();
@@ -11,9 +12,11 @@ export default function RunEndRoute() {
 
   if (!endedRun) {
     return (
-      <View className="flex-1 items-center justify-center">
-        <ActivityIndicator color="#00ff87" />
-      </View>
+      <ScreenBg>
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator color="#00ff87" />
+        </View>
+      </ScreenBg>
     );
   }
 

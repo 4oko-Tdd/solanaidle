@@ -36,7 +36,7 @@ export function InventoryPanel({ inventory }: Props) {
       {/* Resources card */}
       <View className="rounded-xl border border-[#1a3a5c]/60 bg-[#0a1628]/80 p-4 gap-3">
         <View className="flex-row items-center justify-between">
-          <Text className="text-base font-bold text-white">Resources</Text>
+          <Text className="text-base font-display text-white">Resources</Text>
           <Badge variant="default" className="bg-[#1a3a5c]/40 border-[#1a3a5c]/60">
             Epoch
           </Badge>

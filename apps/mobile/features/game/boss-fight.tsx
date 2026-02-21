@@ -108,7 +108,7 @@ export function BossFight({
               )}
             </View>
             <Text
-              className={`text-2xl font-bold tracking-wide ${
+              className={`text-2xl font-display tracking-wide ${
                 isDefeated ? "text-[#00ff87]" : "text-[#ff4444]"
               }`}
             >
