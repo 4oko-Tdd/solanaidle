@@ -1,15 +1,15 @@
 import { View } from "react-native";
 import Animated, { useSharedValue, useAnimatedStyle, withTiming } from "react-native-reanimated";
+import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 
 interface ProgressProps {
   value: number; // 0-100
-  color?: string;
   className?: string;
 }
 
-export function Progress({ value, color = "#00ff87", className }: ProgressProps) {
+export function Progress({ value, className }: ProgressProps) {
   const containerWidth = useRef(0);
   const widthValue = useSharedValue(0);
 
@@ -24,16 +24,21 @@ export function Progress({ value, color = "#00ff87", className }: ProgressProps)
 
   return (
     <View
-      className={cn("h-1.5 bg-white/10 overflow-hidden rounded-sm", className)}
+      className={cn("h-2 bg-white/10 overflow-hidden rounded-full", className)}
       onLayout={(e) => {
         containerWidth.current = e.nativeEvent.layout.width;
         // Set initial width immediately without animation
         widthValue.value = (Math.min(100, Math.max(0, value)) / 100) * containerWidth.current;
       }}
     >
-      <Animated.View
-        style={[{ height: "100%", backgroundColor: color }, animatedStyle]}
-      />
+      <Animated.View style={[{ height: "100%", overflow: "hidden" }, animatedStyle]}>
+        <LinearGradient
+          colors={["#9945FF", "#14F195"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={{ flex: 1 }}
+        />
+      </Animated.View>
     </View>
   );
 }
