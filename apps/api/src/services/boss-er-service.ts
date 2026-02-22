@@ -19,6 +19,7 @@ import {
   SystemProgram,
 } from "@solana/web3.js";
 import { serverKeypair } from "./server-keypair.js";
+import { getErValidatorPubkey } from "./er-constants.js";
 
 // ── Constants ──
 
@@ -36,17 +37,7 @@ const SOLANA_RPC_URL =
 const BOSS_SEED = Buffer.from("boss");
 
 // ER validator pubkey — must match ER_VALIDATOR_URL
-const ER_VALIDATOR_MAP: Record<string, string> = {
-  "https://devnet-us.magicblock.app": "MUS3hc9TCw4cGC12vHNoYcCGzJG1txjgQLZWVoeNHNd",
-  "https://devnet-eu.magicblock.app": "MEUGGrYPxKk17hCr7wpT6s8dtNokZj5U2L57vjYMS8e",
-  "https://devnet-as.magicblock.app": "MAS1Dt9qreoRMQ14YQuhg8UTZMMzDdKhmkZMECCzk57",
-  "https://us.magicblock.app": "MUS3hc9TCw4cGC12vHNoYcCGzJG1txjgQLZWVoeNHNd",
-  "https://eu.magicblock.app": "MEUGGrYPxKk17hCr7wpT6s8dtNokZj5U2L57vjYMS8e",
-  "https://as.magicblock.app": "MAS1Dt9qreoRMQ14YQuhg8UTZMMzDdKhmkZMECCzk57",
-};
-const ER_VALIDATOR_PUBKEY = new PublicKey(
-  ER_VALIDATOR_MAP[ER_VALIDATOR_URL] || "MUS3hc9TCw4cGC12vHNoYcCGzJG1txjgQLZWVoeNHNd"
-);
+const ER_VALIDATOR_PUBKEY = getErValidatorPubkey(ER_VALIDATOR_URL);
 
 const ER_ROUTER_URL =
   process.env.ER_ROUTER_URL || "https://devnet-router.magicblock.app";
@@ -55,6 +46,8 @@ const ER_ROUTER_URL =
 
 const solanaConnection = new Connection(SOLANA_RPC_URL, "confirmed");
 const erConnection = new Connection(ER_VALIDATOR_URL, "confirmed");
+const erConnectionCache = new Map<string, Connection>();
+erConnectionCache.set(ER_VALIDATOR_URL, erConnection);
 
 /**
  * Resolve the ER endpoint for a delegated account via the router.
@@ -74,7 +67,11 @@ async function resolveErConnection(accountPda: PublicKey): Promise<Connection> {
     const json = await resp.json() as { result?: { isDelegated: boolean; fqdn?: string } };
     if (json.result?.isDelegated && json.result.fqdn) {
       const url = json.result.fqdn.replace(/\/$/, "");
-      return new Connection(url, "confirmed");
+      const existing = erConnectionCache.get(url);
+      if (existing) return existing;
+      const conn = new Connection(url, "confirmed");
+      erConnectionCache.set(url, conn);
+      return conn;
     }
   } catch (err) {
     console.warn("[BossER] Failed to resolve delegation endpoint:", err);
@@ -286,13 +283,16 @@ export async function initializeBossOnChain(
 
         const tx = new Transaction().add(delegateIx);
         tx.feePayer = serverKeypair.publicKey;
-        tx.recentBlockhash = (
-          await solanaConnection.getLatestBlockhash()
-        ).blockhash;
+        const { blockhash: bh, lastValidBlockHeight: lvbh } =
+          await solanaConnection.getLatestBlockhash();
+        tx.recentBlockhash = bh;
         tx.sign(serverKeypair);
 
         const txHash = await solanaConnection.sendRawTransaction(tx.serialize());
-        const confirmation = await solanaConnection.confirmTransaction(txHash, "confirmed");
+        const confirmation = await solanaConnection.confirmTransaction(
+          { signature: txHash, blockhash: bh, lastValidBlockHeight: lvbh },
+          "confirmed"
+        );
         if (confirmation.value.err) {
           console.warn(`[BossER] Delegate tx failed: ${txHash}`, confirmation.value.err);
           return;
@@ -322,14 +322,17 @@ export async function initializeBossOnChain(
 
     const tx = new Transaction().add(initIx).add(delegateIx);
     tx.feePayer = serverKeypair.publicKey;
-    tx.recentBlockhash = (
-      await solanaConnection.getLatestBlockhash()
-    ).blockhash;
+    const { blockhash: bh, lastValidBlockHeight: lvbh } =
+      await solanaConnection.getLatestBlockhash();
+    tx.recentBlockhash = bh;
     tx.sign(serverKeypair);
 
     const txHash = await solanaConnection.sendRawTransaction(tx.serialize());
 
-    const confirmation = await solanaConnection.confirmTransaction(txHash, "confirmed");
+    const confirmation = await solanaConnection.confirmTransaction(
+      { signature: txHash, blockhash: bh, lastValidBlockHeight: lvbh },
+      "confirmed"
+    );
     if (confirmation.value.err) {
       console.warn(`[BossER] Init+delegate tx failed on-chain: ${txHash}`, confirmation.value.err);
       return;

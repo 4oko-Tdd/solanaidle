@@ -20,6 +20,7 @@ import {
   SystemProgram,
 } from "@solana/web3.js";
 import { serverKeypair } from "./server-keypair.js";
+import { ER_VALIDATOR_MAP, getErValidatorPubkey } from "./er-constants.js";
 
 // ── Constants ──
 
@@ -38,19 +39,7 @@ const SOLANA_RPC_URL =
 
 const PROGRESS_SEED = Buffer.from("progress");
 
-// ER validator pubkeys — must match ER_VALIDATOR_URL
-// See https://docs.magicblock.gg/pages/get-started/how-integrate-your-program/local-setup
-const ER_VALIDATOR_MAP: Record<string, string> = {
-  "https://devnet-us.magicblock.app": "MUS3hc9TCw4cGC12vHNoYcCGzJG1txjgQLZWVoeNHNd",
-  "https://devnet-eu.magicblock.app": "MEUGGrYPxKk17hCr7wpT6s8dtNokZj5U2L57vjYMS8e",
-  "https://devnet-as.magicblock.app": "MAS1Dt9qreoRMQ14YQuhg8UTZMMzDdKhmkZMECCzk57",
-  "https://us.magicblock.app": "MUS3hc9TCw4cGC12vHNoYcCGzJG1txjgQLZWVoeNHNd",
-  "https://eu.magicblock.app": "MEUGGrYPxKk17hCr7wpT6s8dtNokZj5U2L57vjYMS8e",
-  "https://as.magicblock.app": "MAS1Dt9qreoRMQ14YQuhg8UTZMMzDdKhmkZMECCzk57",
-};
-const ER_VALIDATOR_PUBKEY = new PublicKey(
-  ER_VALIDATOR_MAP[ER_VALIDATOR_URL] || "MUS3hc9TCw4cGC12vHNoYcCGzJG1txjgQLZWVoeNHNd"
-);
+const ER_VALIDATOR_PUBKEY = getErValidatorPubkey(ER_VALIDATOR_URL);
 
 // Class ID mapping (matches Anchor program)
 const CLASS_ID_MAP: Record<string, number> = {
@@ -63,6 +52,8 @@ const CLASS_ID_MAP: Record<string, number> = {
 
 const solanaConnection = new Connection(SOLANA_RPC_URL, "confirmed");
 const erConnection = new Connection(ER_VALIDATOR_URL, "confirmed");
+const erConnectionCache = new Map<string, Connection>();
+erConnectionCache.set(ER_VALIDATOR_URL, erConnection);
 
 /**
  * Resolve the ER endpoint for a delegated account via the router.
@@ -86,7 +77,11 @@ async function resolveErConnection(accountPda: PublicKey): Promise<Connection> {
       if (url !== ER_VALIDATOR_URL) {
         console.log(`[ER] PDA delegated to ${url} (not default ${ER_VALIDATOR_URL})`);
       }
-      return new Connection(url, "confirmed");
+      const existing = erConnectionCache.get(url);
+      if (existing) return existing;
+      const conn = new Connection(url, "confirmed");
+      erConnectionCache.set(url, conn);
+      return conn;
     }
   } catch (err) {
     console.warn("[ER] Failed to resolve delegation endpoint:", err);
@@ -330,13 +325,16 @@ export async function initializeProgressOnChain(
 
         const tx = new Transaction().add(delegateIx);
         tx.feePayer = serverKeypair.publicKey;
-        tx.recentBlockhash = (
-          await solanaConnection.getLatestBlockhash()
-        ).blockhash;
+        const { blockhash: bh, lastValidBlockHeight: lvbh } =
+          await solanaConnection.getLatestBlockhash();
+        tx.recentBlockhash = bh;
         tx.sign(serverKeypair);
 
         const txHash = await solanaConnection.sendRawTransaction(tx.serialize());
-        const confirmation = await solanaConnection.confirmTransaction(txHash, "confirmed");
+        const confirmation = await solanaConnection.confirmTransaction(
+          { signature: txHash, blockhash: bh, lastValidBlockHeight: lvbh },
+          "confirmed"
+        );
         if (confirmation.value.err) {
           console.warn(`[ER] Delegate tx failed: ${txHash}`, confirmation.value.err);
           return;
@@ -367,14 +365,17 @@ export async function initializeProgressOnChain(
 
     const tx = new Transaction().add(initIx).add(delegateIx);
     tx.feePayer = serverKeypair.publicKey;
-    tx.recentBlockhash = (
-      await solanaConnection.getLatestBlockhash()
-    ).blockhash;
+    const { blockhash: bh, lastValidBlockHeight: lvbh } =
+      await solanaConnection.getLatestBlockhash();
+    tx.recentBlockhash = bh;
     tx.sign(serverKeypair);
 
     const txHash = await solanaConnection.sendRawTransaction(tx.serialize());
 
-    const confirmation = await solanaConnection.confirmTransaction(txHash, "confirmed");
+    const confirmation = await solanaConnection.confirmTransaction(
+      { signature: txHash, blockhash: bh, lastValidBlockHeight: lvbh },
+      "confirmed"
+    );
     if (confirmation.value.err) {
       console.warn(`[ER] Init+delegate tx failed on-chain: ${txHash}`, confirmation.value.err);
       return;
@@ -588,3 +589,6 @@ export const ER_CONSTANTS = {
   ER_ROUTER_URL,
   ER_VALIDATOR_URL,
 };
+
+// Re-export shared validator map for consumers that need it
+export { ER_VALIDATOR_MAP };
