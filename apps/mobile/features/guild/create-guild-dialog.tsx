@@ -38,7 +38,7 @@ export function CreateGuildDialog({ show, onClose, onCreated, onCreate }: Props)
 
   return (
     <View className="mt-4 rounded-xl border border-[#1a3a5c]/60 bg-[#0a1628]/95 p-4 gap-3">
-      <Text className="text-sm font-bold text-white">Create Guild</Text>
+      <Text className="text-sm font-sans-bold text-white">Create Guild</Text>
       <TextInput
         placeholder="Guild name"
         placeholderTextColor="#4a7a9b"

@@ -3,6 +3,7 @@ import { Swords, Clock, Users, Trophy } from "lucide-react-native";
 import { Button } from "@/components/ui";
 import { Badge } from "@/components/ui";
 import type { RaidMission, ActiveRaid } from "@solanaidle/shared";
+import { GlassPanel } from "@/components/glass-panel";
 
 function formatTime(seconds: number): string {
   const h = Math.floor(seconds / 3600);
@@ -24,7 +25,7 @@ export function RaidPanel({ raids, activeRaid, loading, startRaid, commitRaid, c
   if (raids.length === 0 && !activeRaid) return null;
 
   return (
-    <View className="rounded-xl border border-[#1a3a5c]/60 bg-[#0a1628]/80 p-4 gap-3">
+    <GlassPanel contentStyle={{ padding: 16, gap: 12 }}>
       <View className="flex-row items-center gap-2.5">
         <Swords size={20} color="#FFB800" />
         <Text className="text-base font-display text-white">Raids</Text>
@@ -36,7 +37,7 @@ export function RaidPanel({ raids, activeRaid, loading, startRaid, commitRaid, c
       {activeRaid ? (
         <View className="rounded-lg border border-[#FFB800]/30 bg-[#FFB800]/[0.05] p-3 gap-3">
           <View className="flex-row items-center justify-between">
-            <Text className="font-bold text-sm text-white">
+            <Text className="font-sans-bold text-sm text-white">
               {raids.find((r) => r.id === activeRaid.raidId)?.name ?? activeRaid.raidId}
             </Text>
             {activeRaid.timeRemaining && activeRaid.timeRemaining > 0 ? (
@@ -95,7 +96,7 @@ export function RaidPanel({ raids, activeRaid, loading, startRaid, commitRaid, c
               className="rounded-lg border border-[#1a3a5c]/40 bg-[#0d1f35]/60 p-3 gap-2"
             >
               <View className="flex-row items-center justify-between">
-                <Text className="font-bold text-sm text-white">{raid.name}</Text>
+                <Text className="font-sans-bold text-sm text-white">{raid.name}</Text>
                 <Badge variant="amber">{`${raid.lootMultiplier}x loot`}</Badge>
               </View>
               <View className="flex-row items-center gap-3">
@@ -126,6 +127,6 @@ export function RaidPanel({ raids, activeRaid, loading, startRaid, commitRaid, c
           ))}
         </View>
       )}
-    </View>
+    </GlassPanel>
   );
 }

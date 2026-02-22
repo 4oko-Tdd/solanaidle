@@ -3,6 +3,7 @@ import { View, Text, Image, Pressable } from "react-native";
 import { Clock, Lock, AlertTriangle, Sparkles, Shield, Minus, Plus, Crown, Fish } from "lucide-react-native";
 import { Button } from "@/components/ui";
 import type { MissionType, CharacterState, MissionId, ClassId, Inventory } from "@solanaidle/shared";
+import { GlassPanel } from "@/components/glass-panel";
 
 const REROLL_COST_PER_STACK = 10;
 const MAX_REROLL_STACKS = 3;
@@ -122,17 +123,17 @@ export function MissionPanel({
           <View className="flex-row gap-2 w-full">
             <View className="flex-1 rounded-lg bg-white/[0.04] border border-white/[0.06] p-2.5 items-center gap-1">
               <Sparkles size={16} color="#9945ff" />
-              <Text className="text-sm font-bold font-mono text-neon-purple">+2 SP</Text>
+              <Text className="text-sm font-display text-neon-purple">+2 SP</Text>
               <Text className="text-xs text-white/50">Claimed</Text>
             </View>
             <View className="flex-1 rounded-lg bg-white/[0.04] border border-white/[0.06] p-2.5 items-center gap-1">
               <Crown size={16} color="#ffb800" />
-              <Text className="text-sm font-bold font-mono text-neon-amber">Crown</Text>
+              <Text className="text-sm font-display text-neon-amber">Crown</Text>
               <Text className="text-xs text-white/50">On ranks</Text>
             </View>
             <View className="flex-1 rounded-lg bg-white/[0.04] border border-white/[0.06] p-2.5 items-center gap-1">
-              <Fish size={16} color="#00ff87" />
-              <Text className="text-sm font-bold font-mono text-neon-green">Slain</Text>
+              <Fish size={16} color="#14F195" />
+              <Text className="text-sm font-display text-neon-green">Slain</Text>
               <Text className="text-xs text-white/50">This epoch</Text>
             </View>
           </View>
@@ -169,17 +170,17 @@ export function MissionPanel({
             <View className="flex-row gap-2 w-full">
               <View className="flex-1 rounded-lg bg-white/[0.04] border border-white/[0.06] p-2.5 items-center gap-1">
                 <Sparkles size={16} color="#9945ff" />
-                <Text className="text-sm font-bold font-mono text-neon-purple">+2 SP</Text>
+                <Text className="text-sm font-display text-neon-purple">+2 SP</Text>
                 <Text className="text-xs text-white/50">Skill Points</Text>
               </View>
               <View className="flex-1 rounded-lg bg-white/[0.04] border border-white/[0.06] p-2.5 items-center gap-1">
                 <Crown size={16} color="#ffb800" />
-                <Text className="text-sm font-bold font-mono text-neon-amber">Crown</Text>
+                <Text className="text-sm font-display text-neon-amber">Crown</Text>
                 <Text className="text-xs text-white/50">Leaderboard</Text>
               </View>
               <View className="flex-1 rounded-lg bg-white/[0.04] border border-white/[0.06] p-2.5 items-center gap-1">
-                <Sparkles size={16} color="#00ff87" />
-                <Text className="text-sm font-bold font-mono text-neon-green">20%</Text>
+                <Sparkles size={16} color="#14F195" />
+                <Text className="text-sm font-display text-neon-green">20%</Text>
                 <Text className="text-xs text-white/50">NFT Drop</Text>
               </View>
             </View>
@@ -213,7 +214,7 @@ export function MissionPanel({
                 <Text className="text-xs font-mono text-white/50">{formatDuration(displayDuration)}</Text>
               </View>
               <View className="flex-row items-center gap-1.5">
-                <AlertTriangle size={14} color="#ff4444" />
+                <AlertTriangle size={14} color="#FF3366" />
                 <Text className="text-xs font-mono text-neon-red">{boss.failRate}% fail</Text>
               </View>
             </View>
@@ -285,7 +286,7 @@ export function MissionPanel({
                     onPress={() => setMissionOptions((prev) => ({ ...prev, insured: !prev.insured }))}
                   >
                     <View className="flex-row items-center gap-1">
-                      <Shield size={12} color={missionOptions.insured ? "#00ff87" : "rgba(255,255,255,0.5)"} />
+                      <Shield size={12} color={missionOptions.insured ? "#14F195" : "rgba(255,255,255,0.5)"} />
                       <Text className={`text-xs font-mono ${missionOptions.insured ? "text-neon-green" : "text-white/50"}`}>
                         {missionOptions.insured ? "ON" : "OFF"}
                       </Text>
@@ -335,7 +336,7 @@ export function MissionPanel({
 
   // Normal mission list
   return (
-    <View className="rounded-xl border border-[#1a3a5c]/60 bg-[#0a1628]/80 p-4 gap-3">
+    <GlassPanel contentStyle={{ padding: 16, gap: 12 }}>
       <Text className="text-base font-display text-white">Transactions</Text>
       <View className="gap-3">
         {missions.map((mission) => {
@@ -359,7 +360,7 @@ export function MissionPanel({
                 <View className="gap-1 flex-1 mr-2">
                   <View className="flex-row items-center gap-1.5">
                     <Text
-                      className={`font-medium text-sm ${
+                      className={`font-sans-semibold text-sm ${
                         riskLevel === "critical" && !locked
                           ? "text-neon-red"
                           : riskLevel === "dangerous" && !locked
@@ -382,7 +383,7 @@ export function MissionPanel({
                         size={12}
                         color={
                           (riskLevel === "critical" || riskLevel === "dangerous") && !locked
-                            ? "#ff4444"
+                            ? "#FF3366"
                             : riskLevel === "risky" && !locked
                             ? "#ffb800"
                             : "rgba(255,255,255,0.5)"
@@ -500,7 +501,7 @@ export function MissionPanel({
                         onPress={() => setMissionOptions((prev) => ({ ...prev, insured: !prev.insured }))}
                       >
                         <View className="flex-row items-center gap-1">
-                          <Shield size={12} color={missionOptions.insured ? "#00ff87" : "rgba(255,255,255,0.5)"} />
+                          <Shield size={12} color={missionOptions.insured ? "#14F195" : "rgba(255,255,255,0.5)"} />
                           <Text className={`text-xs font-mono ${missionOptions.insured ? "text-neon-green" : "text-white/50"}`}>
                             {missionOptions.insured ? "ON" : "OFF"}
                           </Text>
@@ -550,6 +551,6 @@ export function MissionPanel({
           </Text>
         )}
       </View>
-    </View>
+    </GlassPanel>
   );
 }

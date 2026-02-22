@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { View, Text } from "react-native";
 import { Button } from "@/components/ui";
 import { Progress } from "@/components/ui";
+import { GlassPanel } from "@/components/glass-panel";
 import type { ActiveMission } from "@solanaidle/shared";
 
 interface Props {
@@ -53,18 +54,22 @@ export function MissionTimer({ mission, onClaim }: Props) {
   const missionName = MISSION_NAMES[mission.missionId] ?? "Transaction";
 
   return (
-    <View
-      className={`rounded-xl border bg-[#0a1628]/80 p-4 gap-3 ${
+    <GlassPanel
+      borderColor={
         isComplete
-          ? "border-neon-green/50"
+          ? "rgba(20,241,149,0.5)"
           : isUrgent
-          ? "border-neon-amber/40"
-          : "border-[#1a3a5c]/60"
-      }`}
-      style={[
-        isComplete ? { boxShadow: "0 0 20px #00ff8740" } : null,
-        isUrgent && !isComplete ? { boxShadow: "0 0 15px #ffb80030" } : null,
-      ]}
+          ? "rgba(255,184,0,0.4)"
+          : "rgba(26,58,92,0.6)"
+      }
+      style={
+        isComplete
+          ? { boxShadow: "0 0 20px #14F19540" }
+          : isUrgent
+          ? { boxShadow: "0 0 15px #ffb80030" }
+          : undefined
+      }
+      contentStyle={{ padding: 16, gap: 12 }}
     >
       <View className="flex-row items-center justify-between">
         <Text className="text-base font-display text-white">
@@ -83,13 +88,13 @@ export function MissionTimer({ mission, onClaim }: Props) {
 
       <Progress
         value={progressPercent}
-        color={isComplete ? "#00ff87" : isUrgent ? "#ffb800" : "#00d4ff"}
+        color={isComplete ? "#14F195" : isUrgent ? "#ffb800" : "#00d4ff"}
       />
 
       <View className="flex-row items-center justify-between">
-        <Text className={`text-sm font-mono ${isUrgent ? "text-neon-amber font-bold" : "text-white/50"}`}>
+        <Text className={`text-sm ${isUrgent ? "font-mono-bold text-neon-amber" : "font-mono text-white/50"}`}>
           {isComplete ? (
-            <Text className="text-neon-green font-bold">Ready to claim!</Text>
+            <Text className="text-neon-green font-sans-bold">Ready to claim!</Text>
           ) : (
             formatTime(timeRemaining)
           )}
@@ -98,11 +103,11 @@ export function MissionTimer({ mission, onClaim }: Props) {
           size="sm"
           disabled={!isComplete}
           onPress={onClaim}
-          style={isComplete ? { borderColor: "#00ff87", borderWidth: 1 } : undefined}
+          style={isComplete ? { borderColor: "#14F195", borderWidth: 1 } : undefined}
         >
           {isComplete ? "Claim Reward" : "In Progress..."}
         </Button>
       </View>
-    </View>
+    </GlassPanel>
   );
 }

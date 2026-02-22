@@ -2,13 +2,14 @@ import { View, Text, Image } from "react-native";
 import { Shield, Zap, Search, ArrowUp } from "lucide-react-native";
 import { Button } from "@/components/ui";
 import type { UpgradeInfo, GearTrack } from "@solanaidle/shared";
+import { GlassPanel } from "@/components/glass-panel";
 
 const TAILWIND_TO_HEX: Record<string, string> = {
   "text-neon-cyan": "#00d4ff",
   "text-neon-amber": "#ffb800",
-  "text-neon-green": "#00ff87",
+  "text-neon-green": "#14F195",
   "text-neon-purple": "#9945ff",
-  "text-neon-red": "#ff4444",
+  "text-neon-red": "#FF3366",
 };
 
 interface Props {
@@ -55,7 +56,7 @@ export function UpgradePanel({ upgradeInfo, onUpgrade }: Props) {
   if (!upgradeInfo) return null;
 
   return (
-    <View className="rounded-xl border border-[#1a3a5c]/60 bg-[#0a1628]/80 p-4 gap-3">
+    <GlassPanel contentStyle={{ padding: 16, gap: 12 }}>
       <Text className="text-base font-display text-white tracking-widest">NODE UPGRADES</Text>
       <View className="flex-row gap-2">
         {TRACKS.map((track) => {
@@ -74,7 +75,7 @@ export function UpgradePanel({ upgradeInfo, onUpgrade }: Props) {
               </View>
 
               {/* Label */}
-              <Text className="text-xs font-bold text-white">{track.label}</Text>
+              <Text className="text-xs font-sans-bold text-white">{track.label}</Text>
 
               {/* Level */}
               <Text className="text-sm font-mono text-white/50">
@@ -82,19 +83,19 @@ export function UpgradePanel({ upgradeInfo, onUpgrade }: Props) {
               </Text>
 
               {/* Effect */}
-              <Text className={`text-xs font-mono font-bold ${track.color}`}>
+              <Text className={`text-xs font-display ${track.color}`}>
                 {info.effectLabel}
               </Text>
 
               {isMaxed ? (
-                <Text className="text-xs font-bold text-neon-green py-1">MAX</Text>
+                <Text className="text-xs font-display text-neon-green py-1">MAX</Text>
               ) : (
                 <>
                   {/* Next level preview */}
                   <View className="border-t border-white/[0.06] pt-1.5 w-full items-center">
                     <Text className="text-[10px] text-white/50">
                       Next:{" "}
-                      <Text className="font-mono font-bold text-white">
+                      <Text className="font-display text-white">
                         {info.next!.effectLabel}
                       </Text>
                     </Text>
@@ -143,7 +144,7 @@ export function UpgradePanel({ upgradeInfo, onUpgrade }: Props) {
                     className="w-full"
                   >
                     <View className="flex-row items-center gap-0.5">
-                      <ArrowUp size={12} color="#00ff87" />
+                      <ArrowUp size={12} color="#14F195" />
                       <Text className="text-xs font-mono text-neon-green">
                         {" "}Lv {info.next!.level}
                       </Text>
@@ -155,6 +156,6 @@ export function UpgradePanel({ upgradeInfo, onUpgrade }: Props) {
           );
         })}
       </View>
-    </View>
+    </GlassPanel>
   );
 }

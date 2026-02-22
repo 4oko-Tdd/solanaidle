@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { View, Text, ActivityIndicator } from "react-native";
+import { BlurView } from "expo-blur";
+import { LinearGradient } from "expo-linear-gradient";
 import { Swords, Users, Zap } from "lucide-react-native";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -39,12 +41,16 @@ export function BossFight({
 
   if (!boss) {
     return (
-      <View className="rounded-xl border border-[#1a3a5c]/60 bg-[#0a1628]/80 p-4 items-center gap-2">
-        <Swords size={32} color="rgba(74,122,155,0.3)" />
-        <Text className="text-sm text-[#4a7a9b] font-mono text-center">No active boss this week</Text>
-        <Text className="text-xs text-[#4a7a9b]/60 text-center leading-relaxed">
-          A new Protocol Leviathan spawns each weekend. Check back Friday.
-        </Text>
+      <View style={{ borderRadius: 12, overflow: "hidden", borderWidth: 1, borderColor: "rgba(26,58,92,0.6)" }}>
+        <BlurView intensity={20} tint="dark">
+          <View style={{ backgroundColor: "rgba(10,22,40,0.82)", padding: 16, alignItems: "center", gap: 8 }}>
+            <Swords size={32} color="rgba(74,122,155,0.3)" />
+            <Text className="text-sm text-[#4a7a9b] font-mono text-center">No active boss this week</Text>
+            <Text className="text-xs text-[#4a7a9b]/60 text-center leading-relaxed">
+              A new Protocol Leviathan spawns each weekend. Check back Friday.
+            </Text>
+          </View>
+        </BlurView>
       </View>
     );
   }
@@ -53,7 +59,7 @@ export function BossFight({
   const isDefeated = boss.killed;
   const contributionPercent = totalDamage > 0 ? (playerContribution * 100).toFixed(1) : "0.0";
 
-  const hpColor = hpPercent > 50 ? "#ff4444" : hpPercent > 20 ? "#ffb800" : "#00ff87";
+  const hpColor = hpPercent > 50 ? "#FF3366" : hpPercent > 20 ? "#ffb800" : "#14F195";
 
   const handleJoin = async () => {
     if (!onJoin) return;
@@ -84,32 +90,32 @@ export function BossFight({
   };
 
   return (
-    <View>
-      <View
-        className={`relative rounded-xl border overflow-hidden ${
-          isDefeated ? "border-[#00ff87]/30" : "border-[#ff4444]/30"
-        } bg-[#0a1628]/80`}
-      >
-        {/* Top accent strip */}
-        <View
-          className={`h-0.5 ${isDefeated ? "bg-[#00ff87]" : "bg-[#ff4444]"}`}
-        />
+    <View style={{ borderRadius: 12, overflow: "hidden", borderWidth: 1, borderColor: isDefeated ? "rgba(20,241,149,0.3)" : "rgba(255,51,102,0.3)" }}>
+      <BlurView intensity={20} tint="dark">
+        <View style={{ backgroundColor: "rgba(10,22,40,0.82)" }}>
+          {/* Top gradient accent strip */}
+          <LinearGradient
+            colors={isDefeated ? ["#14F195", "#ffb800", "#14F195"] : ["#FF3366", "#9945ff", "#FF3366"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={{ height: 2 }}
+          />
 
-        <View className="p-4 gap-3">
+          <View style={{ padding: 16, gap: 12 }}>
           {/* Name & HP label */}
           <View className="items-center gap-1">
             <View className="flex-row items-center gap-2">
               <Text className="text-xs font-mono text-white/40 uppercase tracking-widest">World Boss</Text>
-              {wsConnected && (
+              {!isDefeated && (
                 <View className="flex-row items-center gap-1">
-                  <View className="w-1.5 h-1.5 rounded-full bg-[#00ff87]" />
-                  <Text className="text-[10px] font-mono text-[#00ff87] uppercase">Live</Text>
+                  <View className="w-1.5 h-1.5 rounded-full bg-[#14F195]" />
+                  <Text className="text-[10px] font-mono text-[#14F195] uppercase">Live</Text>
                 </View>
               )}
             </View>
             <Text
               className={`text-2xl font-display tracking-wide ${
-                isDefeated ? "text-[#00ff87]" : "text-[#ff4444]"
+                isDefeated ? "text-[#14F195]" : "text-[#FF3366]"
               }`}
             >
               {boss.name}
@@ -119,15 +125,15 @@ export function BossFight({
           {/* HP Bar */}
           <View className="gap-1.5">
             <View className="flex-row items-center justify-between">
-              <Text className="text-xs font-mono text-white/40">Integrity</Text>
-              <Text className="text-xs font-mono font-bold" style={{ color: hpColor }}>
+              <Text className="text-sm font-mono text-white/50">Integrity</Text>
+              <Text className="text-xs font-display" style={{ color: hpColor }}>
                 {boss.currentHp.toLocaleString()} / {boss.maxHp.toLocaleString()}
               </Text>
             </View>
             <View className="relative">
               <Progress value={hpPercent} color={hpColor} className="h-4" />
               <View className="absolute inset-0 items-center justify-center">
-                <Text className="text-xs font-mono font-bold text-white">
+                <Text className="text-xs font-display text-white">
                   {hpPercent.toFixed(1)}%
                 </Text>
               </View>
@@ -138,18 +144,18 @@ export function BossFight({
           <View className="flex-row gap-2">
             <View className="flex-1 rounded-lg bg-white/[0.04] border border-white/[0.06] p-2.5 items-center gap-1">
               <Users size={16} color="#00d4ff" />
-              <Text className="text-sm font-bold font-mono text-[#00d4ff]">{participantCount}</Text>
-              <Text className="text-xs text-white/40">Hunters</Text>
+              <Text className="text-sm font-display text-[#00d4ff]">{participantCount}</Text>
+              <Text className="text-sm text-white/50">Hunters</Text>
             </View>
             <View className="flex-1 rounded-lg bg-white/[0.04] border border-white/[0.06] p-2.5 items-center gap-1">
               <Swords size={16} color="#ffb800" />
-              <Text className="text-sm font-bold font-mono text-[#ffb800]">{totalDamage.toLocaleString()}</Text>
-              <Text className="text-xs text-white/40">Total DMG</Text>
+              <Text className="text-sm font-display text-[#ffb800]">{totalDamage.toLocaleString()}</Text>
+              <Text className="text-sm text-white/50">Total DMG</Text>
             </View>
             <View className="flex-1 rounded-lg bg-white/[0.04] border border-white/[0.06] p-2.5 items-center gap-1">
               <Zap size={16} color="#9945ff" />
-              <Text className="text-sm font-bold font-mono text-[#9945ff]">{contributionPercent}%</Text>
-              <Text className="text-xs text-white/40">Your Share</Text>
+              <Text className="text-sm font-display text-[#9945ff]">{contributionPercent}%</Text>
+              <Text className="text-sm text-white/50">Your Share</Text>
             </View>
           </View>
 
@@ -160,27 +166,27 @@ export function BossFight({
                 <Button
                   onPress={handleJoin}
                   disabled={joining || !onJoin}
-                  className="w-full bg-[#ff4444]/20 border border-[#ff4444]/40 h-11"
+                  className="w-full bg-[#FF3366]/20 border border-[#FF3366]/40 h-11"
                 >
                   <View className="flex-row items-center gap-2">
                     {joining ? (
-                      <ActivityIndicator size="small" color="#ff4444" />
+                      <ActivityIndicator size="small" color="#FF3366" />
                     ) : (
-                      <Swords size={16} color="#ff4444" />
+                      <Swords size={16} color="#FF3366" />
                     )}
-                    <Text className="text-sm font-bold text-[#ff4444]">Join the Hunt</Text>
+                    <Text className="text-sm font-display text-[#FF3366]">Join the Hunt</Text>
                   </View>
                 </Button>
               ) : (
                 <View className="gap-1.5">
                   <View className="flex-row items-center justify-center gap-2 py-1">
-                    <Swords size={16} color="#00ff87" />
-                    <Text className="text-sm font-bold text-[#00ff87]">Hunting</Text>
+                    <Swords size={16} color="#14F195" />
+                    <Text className="text-sm font-display text-[#14F195]">Hunting</Text>
                   </View>
                   {overloadUsed ? (
                     <View className="flex-row items-center justify-center gap-2 h-11 rounded bg-white/[0.03] border border-white/[0.08] opacity-50">
                       <Zap size={16} color="rgba(255,255,255,0.4)" />
-                      <Text className="text-sm font-bold text-white/40 line-through">OVERLOAD</Text>
+                      <Text className="text-sm font-display text-white/40 line-through">OVERLOAD</Text>
                       <Text className="text-xs text-white/40 ml-1">Used</Text>
                     </View>
                   ) : (
@@ -195,7 +201,7 @@ export function BossFight({
                         ) : (
                           <Zap size={16} color="#9945ff" />
                         )}
-                        <Text className="text-sm font-bold text-[#9945ff]">OVERLOAD</Text>
+                        <Text className="text-sm font-display text-[#9945ff]">OVERLOAD</Text>
                       </View>
                     </Button>
                   )}
@@ -206,7 +212,7 @@ export function BossFight({
 
           {isDefeated && (
             <View className="items-center gap-2 pt-1">
-              <Text className="text-sm font-bold text-[#00ff87]">DEFEATED</Text>
+              <Text className="text-sm font-display text-[#14F195]">DEFEATED</Text>
               <Text className="text-xs text-white/40 text-center">
                 The Leviathan has been destroyed. Check rewards in your collection.
               </Text>
@@ -217,8 +223,9 @@ export function BossFight({
               )}
             </View>
           )}
+          </View>
         </View>
-      </View>
+      </BlurView>
     </View>
   );
 }

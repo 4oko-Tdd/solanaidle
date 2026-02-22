@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ClassIcon } from "@/components/class-icon";
 import { api } from "@/lib/api";
 import type { LeaderboardEntry } from "@solanaidle/shared";
+import { GlassPanel } from "@/components/glass-panel";
 
 function truncateWallet(addr: string): string {
   return addr.slice(0, 4) + "..." + addr.slice(-4);
@@ -59,7 +60,7 @@ export function LeaderboardPanel({ isAuthenticated, currentWallet }: Props) {
     return (
       <View className="gap-4">
         {/* Header */}
-        <View className="rounded-xl border border-[#1a3a5c]/60 bg-[#0a1628]/80 p-4">
+        <GlassPanel contentStyle={{ padding: 16 }}>
           <View className="flex-row items-center gap-2 mb-3">
             <Trophy size={24} color="#ffb800" />
             <Text className="text-lg font-display text-white">Epoch Leaderboard</Text>
@@ -67,44 +68,44 @@ export function LeaderboardPanel({ isAuthenticated, currentWallet }: Props) {
           <Text className="text-xs text-[#4a7a9b] leading-relaxed">
             Compete against other validators each epoch. Complete missions, build streaks, and hunt whales to climb the ranks.
           </Text>
-        </View>
+        </GlassPanel>
 
         {/* Empty state */}
         <View className="rounded-xl border border-dashed border-[#1a3a5c]/60 bg-[#0a1628]/40 p-8 items-center gap-3">
           <Signal size={40} color="rgba(74,122,155,0.4)" />
-          <Text className="text-sm font-bold text-[#4a7a9b]">No rankings yet</Text>
+          <Text className="text-sm font-sans-bold text-[#4a7a9b]">No rankings yet</Text>
           <Text className="text-xs text-[#4a7a9b]/70 text-center leading-relaxed max-w-[240px]">
             Be the first to finalize an epoch and claim the top spot on the leaderboard.
           </Text>
         </View>
 
         {/* How scoring works */}
-        <View className="rounded-xl border border-[#1a3a5c]/60 bg-[#0a1628]/80 p-4 gap-3">
-          <Text className="text-sm font-bold text-white">How Scoring Works</Text>
+        <GlassPanel contentStyle={{ padding: 16, gap: 12 }}>
+          <Text className="text-sm font-sans-bold text-white">How Scoring Works</Text>
           <View className="gap-2">
             <View className="flex-row items-start gap-2">
               <Swords size={14} color="#14F195" style={{ marginTop: 2 }} />
               <View className="flex-1">
-                <Text className="text-xs font-bold text-white">Missions</Text>
+                <Text className="text-xs font-sans-bold text-white">Missions</Text>
                 <Text className="text-xs text-[#4a7a9b]">Each successful transaction adds to your score. Harder missions = more points.</Text>
               </View>
             </View>
             <View className="flex-row items-start gap-2">
               <Crown size={14} color="#ffb800" style={{ marginTop: 2 }} />
               <View className="flex-1">
-                <Text className="text-xs font-bold text-white">Streaks</Text>
+                <Text className="text-xs font-sans-bold text-white">Streaks</Text>
                 <Text className="text-xs text-[#4a7a9b]">Chain successful missions for multipliers: 2x HODL, 4x Diamond Hands, 6x To The Moon.</Text>
               </View>
             </View>
             <View className="flex-row items-start gap-2">
-              <Heart size={14} color="#ff4444" style={{ marginTop: 2 }} />
+              <Heart size={14} color="#FF3366" style={{ marginTop: 2 }} />
               <View className="flex-1">
-                <Text className="text-xs font-bold text-white">Survival</Text>
+                <Text className="text-xs font-sans-bold text-white">Survival</Text>
                 <Text className="text-xs text-[#4a7a9b]">3 lives per epoch. Lose them all and your run ends — choose missions wisely.</Text>
               </View>
             </View>
           </View>
-        </View>
+        </GlassPanel>
       </View>
     );
   }
@@ -115,7 +116,7 @@ export function LeaderboardPanel({ isAuthenticated, currentWallet }: Props) {
   return (
     <View className="gap-4">
       {/* Header */}
-      <View className="rounded-xl border border-[#1a3a5c]/60 bg-[#0a1628]/80 p-4">
+      <GlassPanel contentStyle={{ padding: 16 }}>
         <View className="flex-row items-center justify-between mb-2">
           <View className="flex-row items-center gap-2">
             <Trophy size={20} color="#ffb800" />
@@ -128,7 +129,7 @@ export function LeaderboardPanel({ isAuthenticated, currentWallet }: Props) {
         <Text className="text-[11px] text-[#4a7a9b] leading-relaxed">
           Top validators this epoch. Finalize your run to lock in your score.
         </Text>
-      </View>
+      </GlassPanel>
 
       {/* Your rank highlight */}
       {myEntry && (
@@ -136,14 +137,14 @@ export function LeaderboardPanel({ isAuthenticated, currentWallet }: Props) {
           <View className="flex-row items-center gap-2">
             <Text className="text-xs font-mono text-[#9945FF]">#{myEntry.rank}</Text>
             <ClassIcon classId={myEntry.classId} size={16} />
-            <Text className="text-sm font-bold text-white">You</Text>
+            <Text className="text-sm font-sans-bold text-white">You</Text>
           </View>
-          <Text className="font-bold font-mono text-[#14F195]">{myEntry.score}</Text>
+          <Text className="font-display text-[#14F195]">{myEntry.score}</Text>
         </View>
       )}
 
       {/* Leaderboard rows */}
-      <View className="rounded-xl border border-[#1a3a5c]/60 bg-[#0a1628]/80 overflow-hidden">
+      <GlassPanel>
         <FlatList
           data={displayEntries}
           keyExtractor={(item) => String(item.rank)}
@@ -162,14 +163,14 @@ export function LeaderboardPanel({ isAuthenticated, currentWallet }: Props) {
                     <RankIcon rank={entry.rank} />
                   </View>
                   <ClassIcon classId={entry.classId} size={14} />
-                  <Text className={`font-mono text-xs ${isMe ? "text-white font-bold" : "text-[#7ab8d9]"}`}>
+                  <Text className={`${isMe ? "font-mono-bold text-xs text-white" : "font-mono text-xs text-[#7ab8d9]"}`}>
                     {isMe ? "You" : truncateWallet(entry.walletAddress)}
                   </Text>
                 </View>
                 <View className="flex-row items-center gap-2.5">
                   {entry.bossDefeated && <Crown size={14} color="#ffb800" />}
                   <Text className="text-xs text-[#4a7a9b] font-mono">{entry.missionsCompleted}m</Text>
-                  <Text className="font-bold font-mono text-[#14F195]">{entry.score}</Text>
+                  <Text className="font-display text-[#14F195]">{entry.score}</Text>
                 </View>
               </View>
             );
@@ -189,7 +190,7 @@ export function LeaderboardPanel({ isAuthenticated, currentWallet }: Props) {
             </Button>
           </View>
         )}
-      </View>
+      </GlassPanel>
     </View>
   );
 }

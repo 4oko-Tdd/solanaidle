@@ -2,15 +2,16 @@ import { useState } from "react";
 import { View, Text, Alert, ActivityIndicator } from "react-native";
 import { Flame, Zap, Cpu, Gem, Shield, Crosshair, Clock, Skull } from "lucide-react-native";
 import { Button } from "@/components/ui";
+import { GlassPanel } from "@/components/glass-panel";
 import { useCollection } from "@/hooks/use-collection";
 import { useToast } from "@/components/toast-provider";
 
 const PERK_META: Record<string, { label: string; Icon: typeof Cpu; color: string; bgColor: string; borderColor: string }> = {
   loot_chance: { label: "Drop Rate", Icon: Gem, color: "#ffb800", bgColor: "rgba(255,184,0,0.1)", borderColor: "#ffb80033" },
   speed: { label: "Clock Speed", Icon: Clock, color: "#00d4ff", bgColor: "rgba(0,212,255,0.1)", borderColor: "#00d4ff33" },
-  fail_rate: { label: "Fault Tolerance", Icon: Shield, color: "#00ff87", bgColor: "rgba(0,255,135,0.1)", borderColor: "#00ff8733" },
+  fail_rate: { label: "Fault Tolerance", Icon: Shield, color: "#14F195", bgColor: "rgba(0,255,135,0.1)", borderColor: "#14F19533" },
   xp: { label: "Data Throughput", Icon: Cpu, color: "#9945ff", bgColor: "rgba(153,69,255,0.1)", borderColor: "#9945ff33" },
-  boss_damage: { label: "Strike Power", Icon: Crosshair, color: "#ff4444", bgColor: "rgba(255,68,68,0.1)", borderColor: "#ff444433" },
+  boss_damage: { label: "Strike Power", Icon: Crosshair, color: "#FF3366", bgColor: "rgba(255,51,102,0.1)", borderColor: "#FF336633" },
 };
 
 const DEFAULT_META = { label: "Unknown", Icon: Cpu, color: "#888", bgColor: "rgba(255,255,255,0.05)", borderColor: "#ffffff1a" };
@@ -65,7 +66,7 @@ export function PermanentCollection() {
   return (
     <View className="gap-3">
       {/* Main panel */}
-      <View className="rounded-xl border border-[#1a3a5c]/60 bg-[#0a1628]/80 overflow-hidden">
+      <GlassPanel>
         {/* Header */}
         <View className="px-4 pt-4 pb-3 gap-2">
           <View className="h-0.5 bg-neon-purple absolute top-0 left-0 right-0" />
@@ -75,7 +76,7 @@ export function PermanentCollection() {
                 <Skull size={16} color="#9945ff" />
               </View>
               <View>
-                <Text className="text-sm font-bold text-white uppercase tracking-wide">Leviathan Salvage</Text>
+                <Text className="text-sm font-sans-bold text-white uppercase tracking-wide">Leviathan Salvage</Text>
                 <Text className="text-xs font-mono text-white/50">Protocol artifacts • persist forever</Text>
               </View>
             </View>
@@ -127,9 +128,9 @@ export function PermanentCollection() {
                       <Icon size={16} color={meta.color} />
                     </View>
                     <View className="flex-1 min-w-0">
-                      <Text className="text-sm font-semibold text-white" numberOfLines={1}>{item.itemName}</Text>
+                      <Text className="text-sm font-sans-semibold text-white" numberOfLines={1}>{item.itemName}</Text>
                       <View className="flex-row items-center gap-1.5 mt-0.5">
-                        <Text style={{ color: meta.color }} className="text-xs font-mono font-bold">
+                        <Text style={{ color: meta.color }} className="text-xs font-display">
                           {formatPerkValue(item.perkType, item.perkValue)}
                         </Text>
                         <Text className="text-xs text-white/50">{meta.label}</Text>
@@ -142,9 +143,9 @@ export function PermanentCollection() {
                       disabled={sacrificing === item.id}
                     >
                       {sacrificing === item.id ? (
-                        <ActivityIndicator size="small" color="#ff4444" />
+                        <ActivityIndicator size="small" color="#FF3366" />
                       ) : (
-                        <Flame size={12} color="#ff444450" />
+                        <Flame size={12} color="#FF336650" />
                       )}
                     </Button>
                   </View>
@@ -153,14 +154,14 @@ export function PermanentCollection() {
             </View>
           )}
         </View>
-      </View>
+      </GlassPanel>
 
       {/* Weekly buffs */}
       {weeklyBuffs.length > 0 && (
         <View className="rounded-lg border border-neon-cyan/20 bg-[#0d1525] p-3 gap-2">
           <View className="flex-row items-center gap-2">
             <Zap size={14} color="#00d4ff" />
-            <Text className="text-xs font-semibold text-neon-cyan uppercase tracking-wider">Boss Buffs Active</Text>
+            <Text className="text-xs font-sans-semibold text-neon-cyan uppercase tracking-wider">Boss Buffs Active</Text>
           </View>
           <View className="gap-1">
             {weeklyBuffs.map((buff) => (

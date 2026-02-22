@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { View, Text, Pressable } from "react-native";
 import { Users, Copy, Check, LogOut, Shield, Zap, Gift } from "lucide-react-native";
+import { GlassPanel } from "@/components/glass-panel";
 import { Button } from "@/components/ui";
 import { Badge } from "@/components/ui";
 import { useGuild } from "@/hooks/use-guild";
@@ -55,7 +56,7 @@ export function GuildPanel({ isAuthenticated, onViewRaid }: Props) {
     return (
       <View className="gap-4">
         {/* Header */}
-        <View className="rounded-xl border border-[#1a3a5c]/60 bg-[#0a1628]/80 p-4">
+        <GlassPanel contentStyle={{ padding: 16 }}>
           <View className="flex-row items-center gap-2.5 mb-3">
             <Users size={24} color="#9945FF" />
             <Text className="text-lg font-display text-white">Guild</Text>
@@ -63,12 +64,12 @@ export function GuildPanel({ isAuthenticated, onViewRaid }: Props) {
           <Text className="text-xs text-[#4a7a9b] leading-relaxed">
             Team up with other validators. Create or join a guild to unlock co-op raids with boosted loot.
           </Text>
-        </View>
+        </GlassPanel>
 
         {/* Empty state */}
         <View className="rounded-xl border border-[#1a3a5c]/60 border-dashed bg-[#0a1628]/40 p-8 items-center gap-4">
           <Users size={40} color="#4a7a9b" />
-          <Text className="text-sm font-bold text-[#4a7a9b]">No guild yet</Text>
+          <Text className="text-sm font-sans-bold text-[#4a7a9b]">No guild yet</Text>
           <Text className="text-xs text-[#4a7a9b] text-center leading-relaxed max-w-[260px]">
             Create your own guild or join an existing one with an invite code.
           </Text>
@@ -112,13 +113,13 @@ export function GuildPanel({ isAuthenticated, onViewRaid }: Props) {
         />
 
         {/* Guild perks */}
-        <View className="rounded-xl border border-[#1a3a5c]/60 bg-[#0a1628]/80 p-4 gap-3">
-          <Text className="text-sm font-bold text-white">Guild Perks</Text>
+        <GlassPanel contentStyle={{ padding: 16, gap: 12 }}>
+          <Text className="text-sm font-sans-bold text-white">Guild Perks</Text>
           <View className="gap-2">
             <View className="flex-row items-start gap-2.5">
               <Shield size={16} color="#14F195" />
               <View className="flex-1">
-                <Text className="text-xs font-bold text-white">Co-op Raids</Text>
+                <Text className="text-xs font-sans-bold text-white">Co-op Raids</Text>
                 <Text className="text-xs text-[#4a7a9b]">
                   Team up for Pool Raids (2p) and Protocol Sieges (3p) with massive loot multipliers.
                 </Text>
@@ -127,7 +128,7 @@ export function GuildPanel({ isAuthenticated, onViewRaid }: Props) {
             <View className="flex-row items-start gap-2.5">
               <Zap size={16} color="#FFB800" />
               <View className="flex-1">
-                <Text className="text-xs font-bold text-white">Boosted Rewards</Text>
+                <Text className="text-xs font-sans-bold text-white">Boosted Rewards</Text>
                 <Text className="text-xs text-[#4a7a9b]">
                   Raids give 2-3x loot multiplier plus guaranteed Tokens on higher tiers.
                 </Text>
@@ -136,14 +137,14 @@ export function GuildPanel({ isAuthenticated, onViewRaid }: Props) {
             <View className="flex-row items-start gap-2.5">
               <Gift size={16} color="#9945FF" />
               <View className="flex-1">
-                <Text className="text-xs font-bold text-white">Invite Friends</Text>
+                <Text className="text-xs font-sans-bold text-white">Invite Friends</Text>
                 <Text className="text-xs text-[#4a7a9b]">
                   Share your guild invite code. Up to 5 members per guild.
                 </Text>
               </View>
             </View>
           </View>
-        </View>
+        </GlassPanel>
       </View>
     );
   }
@@ -151,7 +152,7 @@ export function GuildPanel({ isAuthenticated, onViewRaid }: Props) {
   return (
     <View className="gap-4">
       {/* Guild info */}
-      <View className="rounded-xl border border-[#1a3a5c]/60 bg-[#0a1628]/80 p-4 gap-3">
+      <GlassPanel contentStyle={{ padding: 16, gap: 12 }}>
         <View className="flex-row items-center justify-between">
           <View className="flex-row items-center gap-2.5">
             <Users size={20} color="#9945FF" />
@@ -225,13 +226,13 @@ export function GuildPanel({ isAuthenticated, onViewRaid }: Props) {
           className="w-full"
         >
           <View className="flex-row items-center gap-1.5">
-            <LogOut size={12} color="#ff4444" />
+            <LogOut size={12} color="#FF3366" />
             <Text className="text-xs font-mono text-neon-red">
               {leaving ? "Leaving..." : "Leave Guild"}
             </Text>
           </View>
         </Button>
-      </View>
+      </GlassPanel>
     </View>
   );
 }

@@ -33,7 +33,7 @@ export function MissionResultDialog({ result, onClose, livesRemaining }: Props) 
             {isSuccess ? (
               <Trophy size={56} color="#ffb800" />
             ) : (
-              <Skull size={56} color="#ff4444" />
+              <Skull size={56} color="#FF3366" />
             )}
           </View>
 
@@ -66,7 +66,7 @@ export function MissionResultDialog({ result, onClose, livesRemaining }: Props) 
           {/* Rewards */}
           {isSuccess && result.rewards && (
             <View className="gap-2">
-              <Text className="text-sm font-medium text-center text-white uppercase tracking-wider">
+              <Text className="text-sm font-sans-semibold text-center text-white uppercase tracking-wider">
                 Rewards:
               </Text>
               <View className="flex-row flex-wrap justify-center gap-2">
@@ -92,9 +92,9 @@ export function MissionResultDialog({ result, onClose, livesRemaining }: Props) 
             <View className="flex-row items-center justify-center gap-2">
               {Array.from({ length: 3 }, (_, i) =>
                 i < livesRemaining ? (
-                  <Heart key={i} size={20} color="#ff4444" fill="#ff4444" />
+                  <Heart key={i} size={20} color="#FF3366" fill="#FF3366" />
                 ) : (
-                  <HeartCrack key={i} size={20} color="rgba(255,255,255,0.2)" />
+                  <HeartCrack key={i} size={20} color="#1a3a5c" />
                 )
               )}
             </View>

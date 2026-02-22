@@ -41,7 +41,7 @@ export function RunStatus({ run, characterState }: Props) {
       {/* Top row: Week + Class + Status */}
       <View className="flex-row items-center justify-between">
         <View className="flex-row items-center gap-2">
-          <Text className="text-sm font-bold text-white">Epoch {weekNum}</Text>
+          <Text className="text-sm font-sans-bold text-white">Epoch {weekNum}</Text>
           <View className="flex-row items-center gap-1">
             <ClassIcon classId={run.classId} size={14} />
             <Text className="text-xs text-white/50">{CLASS_NAMES[run.classId]}</Text>
@@ -55,29 +55,29 @@ export function RunStatus({ run, characterState }: Props) {
         <View className="flex-row items-center gap-1">
           {Array.from({ length: 3 }, (_, i) =>
             i < run.livesRemaining ? (
-              <Heart key={i} size={16} color="#ff4444" fill="#ff4444" />
+              <Heart key={i} size={16} color="#FF3366" fill="#FF3366" />
             ) : (
-              <HeartCrack key={i} size={16} color="rgba(255,255,255,0.2)" />
+              <HeartCrack key={i} size={16} color="#1a3a5c" />
             )
           )}
           {run.livesRemaining === 1 && (
-            <Text className="ml-1 text-xs font-bold text-neon-red">LAST LIFE</Text>
+            <Text className="ml-1 text-xs font-sans-bold text-neon-red">LAST LIFE</Text>
           )}
         </View>
         <View className="flex-row items-center gap-3">
           <Text className="text-xs text-white/50">
             Score:{" "}
-            <Text className="font-mono font-bold text-neon-green">{run.score}</Text>
+            <Text className="font-display text-neon-green">{run.score}</Text>
           </Text>
           <Text className="text-xs text-white/50">
             Missions:{" "}
-            <Text className="font-mono font-bold text-neon-green">{run.missionsCompleted}</Text>
+            <Text className="font-display text-neon-green">{run.missionsCompleted}</Text>
           </Text>
           {run.streak >= 2 ? (
             <Text className="text-xs text-white/50">
               Streak:{" "}
               <Text
-                className={`font-mono font-bold ${
+                className={`font-display ${
                   run.streak >= 6
                     ? "text-neon-amber"
                     : run.streak >= 4
@@ -95,12 +95,12 @@ export function RunStatus({ run, characterState }: Props) {
       {/* Warning banners */}
       {run.livesRemaining === 1 && run.active && characterState !== "dead" ? (
         <View className="rounded bg-neon-red/10 border border-neon-red/30 px-2 py-1 items-center">
-          <Text className="text-xs font-bold text-neon-red">FAILURE MEANS SLASHING. 1 LIFE REMAINING.</Text>
+          <Text className="text-xs font-sans-bold text-neon-red">FAILURE MEANS SLASHING. 1 LIFE REMAINING.</Text>
         </View>
       ) : null}
       {run.livesRemaining === 2 && run.active ? (
         <View className="rounded bg-neon-amber/10 border border-neon-amber/30 px-2 py-1 items-center">
-          <Text className="text-xs font-medium text-neon-amber">Careful. 2 lives remaining.</Text>
+          <Text className="text-xs font-sans-semibold text-neon-amber">Careful. 2 lives remaining.</Text>
         </View>
       ) : null}
     </View>

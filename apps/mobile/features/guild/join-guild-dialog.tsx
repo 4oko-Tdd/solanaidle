@@ -38,7 +38,7 @@ export function JoinGuildDialog({ show, onClose, onJoined, onJoin }: Props) {
 
   return (
     <View className="mt-4 rounded-xl border border-[#1a3a5c]/60 bg-[#0a1628]/95 p-4 gap-3">
-      <Text className="text-sm font-bold text-white">Join Guild</Text>
+      <Text className="text-sm font-sans-bold text-white">Join Guild</Text>
       <TextInput
         placeholder="Invite code"
         placeholderTextColor="#4a7a9b"

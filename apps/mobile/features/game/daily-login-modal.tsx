@@ -64,7 +64,7 @@ export function DailyLoginModal({ status, onClaim, onClose }: Props) {
               >
                 <Text className="font-mono text-xs text-white/40">D{r.day}</Text>
                 {isPast ? (
-                  <Check size={14} color="#00ff87" />
+                  <Check size={14} color="#14F195" />
                 ) : (
                   <Gift
                     size={16}
@@ -88,7 +88,7 @@ export function DailyLoginModal({ status, onClaim, onClose }: Props) {
                   source={require("@/assets/icons/scrap.png")}
                   style={{ width: 40, height: 40 }}
                 />
-                <Text className="font-mono font-bold text-neon-green">+{reward.scrap}</Text>
+                <Text className="font-display text-neon-green">+{reward.scrap}</Text>
               </View>
             )}
             {reward.crystal > 0 && (
@@ -97,7 +97,7 @@ export function DailyLoginModal({ status, onClaim, onClose }: Props) {
                   source={require("@/assets/icons/tokens.png")}
                   style={{ width: 40, height: 40 }}
                 />
-                <Text className="font-mono font-bold text-neon-green">+{reward.crystal}</Text>
+                <Text className="font-display text-neon-green">+{reward.crystal}</Text>
               </View>
             )}
             {reward.artifact > 0 && (
@@ -106,7 +106,7 @@ export function DailyLoginModal({ status, onClaim, onClose }: Props) {
                   source={require("@/assets/icons/key.png")}
                   style={{ width: 40, height: 40 }}
                 />
-                <Text className="font-mono font-bold text-neon-green">+{reward.artifact}</Text>
+                <Text className="font-display text-neon-green">+{reward.artifact}</Text>
               </View>
             )}
           </View>
@@ -121,7 +121,7 @@ export function DailyLoginModal({ status, onClaim, onClose }: Props) {
           <Button onPress={handleClaim} disabled={claiming} size="lg" className="w-full">
             {claiming ? (
               <View className="flex-row items-center gap-2">
-                <ActivityIndicator size="small" color="#00ff87" />
+                <ActivityIndicator size="small" color="#14F195" />
                 <Text className="text-base font-display text-neon-green">Claiming...</Text>
               </View>
             ) : (

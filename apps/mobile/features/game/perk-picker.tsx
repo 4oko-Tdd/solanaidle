@@ -7,9 +7,9 @@ import type { PerkDefinition } from "@solanaidle/shared";
 const TAILWIND_TO_HEX: Record<string, string> = {
   "text-neon-cyan": "#00d4ff",
   "text-neon-amber": "#ffb800",
-  "text-neon-green": "#00ff87",
+  "text-neon-green": "#14F195",
   "text-neon-purple": "#9945ff",
-  "text-neon-red": "#ff4444",
+  "text-neon-red": "#FF3366",
   "text-white/40": "rgba(255,255,255,0.4)",
 };
 
@@ -91,7 +91,7 @@ function PerkCard({
           <View className="flex-row items-center gap-1.5">
             <Text
               numberOfLines={1}
-              className="text-sm font-bold text-white flex-1"
+              className="text-sm font-sans-bold text-white flex-1"
             >
               {perk.name}
             </Text>

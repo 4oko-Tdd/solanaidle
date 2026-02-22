@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui";
 import { Progress } from "@/components/ui";
 import { Button } from "@/components/ui";
 import { ClassIcon } from "@/components/class-icon";
+import { GlassPanel } from "@/components/glass-panel";
 import type { Character, ClassId, WeeklyRun, CharacterState, UpgradeInfo, Inventory } from "@solanaidle/shared";
 
 const CLASS_NAMES: Record<ClassId, string> = {
@@ -31,7 +32,11 @@ function getStatusBadge(state: CharacterState, runActive?: boolean) {
   if (state === "on_mission") {
     return <Badge variant="purple">ON CHAIN</Badge>;
   }
-  return <Badge variant="green">ONLINE</Badge>;
+  return (
+    <View style={{ backgroundColor: "rgba(20,241,149,0.15)", paddingHorizontal: 8, paddingVertical: 2, borderRadius: 999 }}>
+      <Text style={{ fontFamily: "Orbitron_400Regular", fontSize: 12, color: "#14F195" }}>ONLINE</Text>
+    </View>
+  );
 }
 
 export function CharacterCard({ character, classId, run, onPickClass }: Props) {
@@ -40,7 +45,7 @@ export function CharacterCard({ character, classId, run, onPickClass }: Props) {
   const lives = run?.livesRemaining ?? 3;
 
   return (
-    <View className="rounded-xl border border-[#1a3a5c]/60 bg-[#0a1628]/80 p-3 gap-2">
+    <GlassPanel contentStyle={{ padding: 12, gap: 8 }}>
       {/* Row 1: Class + Level + Status */}
       <View className="flex-row items-center justify-between">
         <View className="flex-row items-center gap-2">
@@ -129,6 +134,6 @@ export function CharacterCard({ character, classId, run, onPickClass }: Props) {
           Back online at {new Date(character.reviveAt).toLocaleTimeString()}
         </Text>
       ) : null}
-    </View>
+    </GlassPanel>
   );
 }

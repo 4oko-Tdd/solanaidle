@@ -2,6 +2,7 @@ import { View, Text, ActivityIndicator, Linking } from "react-native";
 import { Award, Gem, ExternalLink } from "lucide-react-native";
 import { useNfts } from "@/hooks/use-nfts";
 import type { AchievementId } from "@solanaidle/shared";
+import { GlassPanel } from "@/components/glass-panel";
 
 const ACHIEVEMENT_ICONS: Record<AchievementId, string> = {
   boss_slayer: "💀",
@@ -36,23 +37,23 @@ export function TrophyCase({ run, onViewCollection }: Props) {
 
   if (badges.length === 0 && relics.length === 0) {
     return (
-      <View className="rounded-xl border border-[#1a3a5c]/60 bg-[#0a1628]/80 p-4 items-center gap-2">
+      <GlassPanel contentStyle={{ padding: 16, alignItems: "center", gap: 8 }}>
         <View className="flex-row items-center gap-2 mb-1">
           <Award size={20} color="rgba(153,69,255,0.4)" />
-          <Text className="text-sm font-bold text-white/50">Trophy Case</Text>
+          <Text className="text-sm font-sans-bold text-white/50">Trophy Case</Text>
         </View>
         <Text className="text-sm text-white/40 text-center">
           Complete missions to earn permanent on-chain trophies
         </Text>
-      </View>
+      </GlassPanel>
     );
   }
 
   return (
-    <View className="rounded-xl border border-[#1a3a5c]/60 bg-[#0a1628]/80 p-4 gap-3">
+    <GlassPanel contentStyle={{ padding: 16, gap: 12 }}>
       <View className="flex-row items-center gap-2">
         <Award size={16} color="#9945ff" />
-        <Text className="text-sm font-bold text-white">Trophy Case</Text>
+        <Text className="text-sm font-sans-bold text-white">Trophy Case</Text>
         <Text className="ml-auto text-sm text-white/50 font-mono">
           {badges.length + relics.length} items
         </Text>
@@ -72,7 +73,7 @@ export function TrophyCase({ run, onViewCollection }: Props) {
                   {ACHIEVEMENT_ICONS[badge.achievementId] ?? "🏅"}
                 </Text>
                 <View className="min-w-0">
-                  <Text className="text-xs font-bold text-white" numberOfLines={1}>
+                  <Text className="text-xs font-sans-bold text-white" numberOfLines={1}>
                     {badge.name}
                   </Text>
                   <Text className="text-xs text-white/40">
@@ -107,7 +108,7 @@ export function TrophyCase({ run, onViewCollection }: Props) {
               >
                 <Gem size={13} color="#ffb800" />
                 <View className="min-w-0">
-                  <Text className="text-xs font-bold text-white" numberOfLines={1}>
+                  <Text className="text-xs font-sans-bold text-white" numberOfLines={1}>
                     {relic.name}
                   </Text>
                   <Text className="text-xs text-white/40">
@@ -129,6 +130,6 @@ export function TrophyCase({ run, onViewCollection }: Props) {
           </View>
         </View>
       )}
-    </View>
+    </GlassPanel>
   );
 }

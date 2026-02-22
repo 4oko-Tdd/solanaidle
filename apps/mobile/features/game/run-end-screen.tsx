@@ -201,7 +201,7 @@ export function RunEndScreen({ run, signMessage, onClose }: Props) {
                       }`}
                     >
                       {isDone ? (
-                        <ShieldCheck size={14} color="#00ff87" />
+                        <ShieldCheck size={14} color="#14F195" />
                       ) : isActive ? (
                         <ActivityIndicator size="small" color="#9945ff" />
                       ) : (
@@ -209,7 +209,7 @@ export function RunEndScreen({ run, signMessage, onClose }: Props) {
                       )}
                     </View>
                     <Text
-                      className={`text-sm font-medium ${
+                      className={`text-sm font-sans-semibold ${
                         isDone
                           ? "text-neon-green/80"
                           : isActive
@@ -260,7 +260,7 @@ export function RunEndScreen({ run, signMessage, onClose }: Props) {
             {bonus.vrfVerified && (
               <View className="flex-row items-center gap-1.5 rounded-full bg-neon-cyan/10 border border-neon-cyan/20 px-3 py-1">
                 <ShieldCheck size={12} color="#00d4ff" />
-                <Text className="text-xs text-neon-cyan font-medium">Verified by MagicBlock</Text>
+                <Text className="text-xs text-neon-cyan font-sans-semibold">Verified by MagicBlock</Text>
               </View>
             )}
           </View>
@@ -271,7 +271,7 @@ export function RunEndScreen({ run, signMessage, onClose }: Props) {
           <Text className="text-xs font-mono text-white/40 uppercase tracking-widest">
             {mult.label} Roll
           </Text>
-          <Text className={`text-5xl font-bold ${mult.color}`}>{bonus.multiplier}x</Text>
+          <Text className={`text-5xl font-sans-bold ${mult.color}`}>{bonus.multiplier}x</Text>
           <Text className="text-xs text-white/40">Score Multiplier</Text>
         </View>
 
@@ -300,7 +300,7 @@ export function RunEndScreen({ run, signMessage, onClose }: Props) {
         {bonus.permanentLootDrop && bonus.permanentLootItemId && (
           <View className="rounded-xl border border-neon-amber/20 bg-neon-amber/5 p-3 flex-row items-center justify-center gap-2.5">
             <Sparkles size={16} color="#ffb800" />
-            <Text className="text-sm font-bold text-neon-amber">
+            <Text className="text-sm font-sans-bold text-neon-amber">
               Permanent Loot: {bonus.permanentLootItemId}
             </Text>
           </View>
@@ -354,16 +354,16 @@ export function RunEndScreen({ run, signMessage, onClose }: Props) {
                 <ClassIcon classId={run.classId} size={40} />
               </View>
               <View className="absolute -top-0.5 -right-0.5 w-6 h-6 rounded-full bg-terminal border-2 border-white/20 items-center justify-center">
-                <Text className={`text-xs font-bold ${grade.color}`}>{grade.letter}</Text>
+                <Text className={`text-xs font-sans-bold ${grade.color}`}>{grade.letter}</Text>
               </View>
             </View>
 
             {/* Class + score */}
             <View>
-              <Text className={`text-xs font-medium ${classTextColor}`}>
+              <Text className={`text-xs font-sans-semibold ${classTextColor}`}>
                 {CLASS_NAMES[run.classId]}
               </Text>
-              <Text className="text-4xl font-bold text-neon-green leading-none mt-0.5">
+              <Text className="text-4xl font-sans-bold text-neon-green leading-none mt-0.5">
                 {run.score}
               </Text>
               <Text className="text-xs text-white/40 font-mono uppercase tracking-widest mt-0.5">
@@ -378,10 +378,10 @@ export function RunEndScreen({ run, signMessage, onClose }: Props) {
       <View className="flex-row gap-2.5 flex-wrap">
         <View className="flex-1 min-w-[140px] rounded-xl border border-white/[0.08] bg-surface p-3 flex-row items-center gap-3">
           <View className="w-9 h-9 rounded-lg bg-neon-green/10 items-center justify-center">
-            <Swords size={18} color="#00ff87" />
+            <Swords size={18} color="#14F195" />
           </View>
           <View>
-            <Text className="font-bold text-lg font-mono text-neon-green leading-none">
+            <Text className="font-mono-bold text-lg text-neon-green leading-none">
               {run.missionsCompleted}
             </Text>
             <Text className="text-xs text-white/40 font-mono uppercase mt-0.5">Missions</Text>
@@ -390,10 +390,10 @@ export function RunEndScreen({ run, signMessage, onClose }: Props) {
 
         <View className="flex-1 min-w-[140px] rounded-xl border border-white/[0.08] bg-surface p-3 flex-row items-center gap-3">
           <View className="w-9 h-9 rounded-lg bg-neon-red/10 items-center justify-center">
-            <Skull size={18} color="#ff4444" />
+            <Skull size={18} color="#FF3366" />
           </View>
           <View>
-            <Text className="font-bold text-lg font-mono text-neon-red leading-none">{deaths}</Text>
+            <Text className="font-mono-bold text-lg text-neon-red leading-none">{deaths}</Text>
             <Text className="text-xs text-white/40 font-mono uppercase mt-0.5">Deaths</Text>
           </View>
         </View>
@@ -404,7 +404,7 @@ export function RunEndScreen({ run, signMessage, onClose }: Props) {
           </View>
           <View>
             <Text
-              className={`font-bold text-lg font-mono leading-none ${
+              className={`font-mono-bold text-lg leading-none ${
                 run.bossDefeated ? "text-neon-amber" : "text-white/40"
               }`}
             >
@@ -419,7 +419,7 @@ export function RunEndScreen({ run, signMessage, onClose }: Props) {
             <Heart size={18} color="#00d4ff" />
           </View>
           <View>
-            <Text className="font-bold text-lg font-mono text-neon-cyan leading-none">
+            <Text className="font-mono-bold text-lg text-neon-cyan leading-none">
               {run.livesRemaining}
             </Text>
             <Text className="text-xs text-white/40 font-mono uppercase mt-0.5">Lives Left</Text>
@@ -444,7 +444,7 @@ export function RunEndScreen({ run, signMessage, onClose }: Props) {
               { mult: "3x", pct: 2, label: "2%", color: "#9945ff66" },
             ].map((tier) => (
               <View key={tier.mult} className="flex-1 items-center gap-1">
-                <Text className="text-xs font-mono font-bold text-white/80">{tier.mult}</Text>
+                <Text className="text-xs font-display text-white/80">{tier.mult}</Text>
                 <View className="h-1.5 w-full rounded-full bg-white/5 overflow-hidden">
                   <View
                     style={{

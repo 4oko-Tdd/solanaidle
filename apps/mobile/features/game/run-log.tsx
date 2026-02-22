@@ -25,13 +25,13 @@ function getEventIcon(eventType: RunEventType): React.ReactNode {
     case "run_start":
       return <Swords size={14} color="#00d4ff" />;
     case "mission_success":
-      return <Trophy size={14} color="#00ff87" />;
+      return <Trophy size={14} color="#14F195" />;
     case "mission_fail":
-      return <Skull size={14} color="#ff4444" />;
+      return <Skull size={14} color="#FF3366" />;
     case "death":
-      return <Skull size={14} color="#ff4444" />;
+      return <Skull size={14} color="#FF3366" />;
     case "revive":
-      return <Heart size={14} color="#00ff87" />;
+      return <Heart size={14} color="#14F195" />;
     case "level_up":
       return <ArrowUp size={14} color="#00d4ff" />;
     case "boss_kill":
@@ -92,7 +92,7 @@ function getEventTextClass(eventType: RunEventType): string {
   switch (eventType) {
     case "nft_drop":
     case "boss_kill":
-      return "font-bold text-neon-amber";
+      return "font-sans-bold text-neon-amber";
     case "mission_fail":
     case "death":
       return "text-neon-red";
@@ -123,7 +123,7 @@ export function RunLog({ run }: Props) {
         onPress={() => setExpanded(!expanded)}
         className="flex-row items-center justify-between p-3"
       >
-        <Text className="text-sm font-display font-medium text-white">
+        <Text className="text-sm font-display text-white">
           Epoch Log
         </Text>
         {expanded ? (
