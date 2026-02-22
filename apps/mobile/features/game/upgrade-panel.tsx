@@ -57,7 +57,7 @@ export function UpgradePanel({ upgradeInfo, onUpgrade }: Props) {
 
   return (
     <GlassPanel contentStyle={{ padding: 16, gap: 12 }}>
-      <Text className="text-base font-display text-white tracking-widest">NODE UPGRADES</Text>
+      <Text className="text-base font-display text-white tracking-widest" style={{ letterSpacing: 0.5 }}>NODE UPGRADES</Text>
       <View className="flex-row gap-2">
         {TRACKS.map((track) => {
           const info = upgradeInfo[track.id];

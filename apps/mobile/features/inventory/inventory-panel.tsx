@@ -37,7 +37,7 @@ export function InventoryPanel({ inventory }: Props) {
       {/* Resources card */}
       <GlassPanel contentStyle={{ padding: 16, gap: 12 }}>
         <View className="flex-row items-center justify-between">
-          <Text className="text-base font-display text-white">Resources</Text>
+          <Text className="text-base font-display text-white" style={{ letterSpacing: 0.5 }}>Resources</Text>
           <Badge variant="default" className="bg-[#1a3a5c]/40 border-[#1a3a5c]/60">
             Epoch
           </Badge>

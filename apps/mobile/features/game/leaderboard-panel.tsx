@@ -63,7 +63,7 @@ export function LeaderboardPanel({ isAuthenticated, currentWallet }: Props) {
         <GlassPanel contentStyle={{ padding: 16 }}>
           <View className="flex-row items-center gap-2 mb-3">
             <Trophy size={24} color="#ffb800" />
-            <Text className="text-lg font-display text-white">Epoch Leaderboard</Text>
+            <Text className="text-lg font-display text-white" style={{ letterSpacing: 0.5 }}>Epoch Leaderboard</Text>
           </View>
           <Text className="text-xs text-[#4a7a9b] leading-relaxed">
             Compete against other validators each epoch. Complete missions, build streaks, and hunt whales to climb the ranks.
@@ -120,7 +120,7 @@ export function LeaderboardPanel({ isAuthenticated, currentWallet }: Props) {
         <View className="flex-row items-center justify-between mb-2">
           <View className="flex-row items-center gap-2">
             <Trophy size={20} color="#ffb800" />
-            <Text className="text-base font-display text-white">Epoch Leaderboard</Text>
+            <Text className="text-base font-display text-white" style={{ letterSpacing: 0.5 }}>Epoch Leaderboard</Text>
           </View>
           <Badge variant="default">
             {`${safeEntries.length} ${safeEntries.length === 1 ? "player" : "players"}`}

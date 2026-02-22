@@ -354,7 +354,7 @@ export function QuestPanel() {
 
       {/* Daily header */}
       <View className="flex-row items-center justify-between">
-        <Text className="text-sm font-display text-white/70 uppercase tracking-wider">
+        <Text className="text-sm font-display text-white/70 uppercase tracking-wider" style={{ letterSpacing: 0.5 }}>
           Daily Ops
         </Text>
         <View className="flex-row items-center gap-1">
@@ -583,7 +583,7 @@ export function QuestPanel() {
 
       {/* Weekly divider */}
       <View className="flex-row items-center justify-between mt-0.5">
-        <Text className="text-sm font-display text-white/70 uppercase tracking-wider">
+        <Text className="text-sm font-display text-white/70 uppercase tracking-wider" style={{ letterSpacing: 0.5 }}>
           Weekly Op
         </Text>
         <View className="flex-row items-center gap-1">

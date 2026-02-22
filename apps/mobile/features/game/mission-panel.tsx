@@ -159,7 +159,7 @@ export function MissionPanel({
             <Text className="text-xs font-mono text-neon-amber/60 uppercase tracking-[0.2em]">Sunday Weekly Event</Text>
             <View className="flex-row items-center gap-3">
               <Fish size={28} color="#ffb800" />
-              <Text className="text-3xl font-display text-neon-amber tracking-wide">WHALE HUNT</Text>
+              <Text className="text-3xl font-display text-neon-amber tracking-wide" style={{ letterSpacing: 0.5 }}>WHALE HUNT</Text>
               <Fish size={28} color="#ffb800" />
             </View>
             <Text className="text-sm text-white/50 text-center max-w-[260px]">
@@ -337,7 +337,7 @@ export function MissionPanel({
   // Normal mission list
   return (
     <GlassPanel contentStyle={{ padding: 16, gap: 12 }}>
-      <Text className="text-base font-display text-white">Transactions</Text>
+      <Text className="text-base font-display text-white" style={{ letterSpacing: 0.5 }}>Transactions</Text>
       <View className="gap-3">
         {missions.map((mission) => {
           const locked = isTierLocked(mission.id);
