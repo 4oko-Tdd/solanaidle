@@ -70,7 +70,11 @@ export default function GameScreen() {
           classes={gameState.classes}
           currentClassId={null}
           onSelect={async (classId, sig) => {
-            await gameState.startRun(classId, sig);
+            try {
+              await gameState.startRun(classId, sig);
+            } catch (e: any) {
+              toast(e?.message ?? "Failed to start run", "error");
+            }
           }}
         />
       </ScreenBg>
@@ -79,6 +83,8 @@ export default function GameScreen() {
 
   return (
     <ScreenBg>
+    {/* Explicitly reset tab bar — options from ClassPicker branch would otherwise persist */}
+    <Tabs.Screen options={{ tabBarStyle: {} }} />
     <ScrollView
       contentInsetAdjustmentBehavior="automatic"
       className="flex-1"

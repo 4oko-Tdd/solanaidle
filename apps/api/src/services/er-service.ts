@@ -17,9 +17,9 @@ import {
   PublicKey,
   Transaction,
   TransactionInstruction,
-  Keypair,
   SystemProgram,
 } from "@solana/web3.js";
+import { serverKeypair } from "./server-keypair.js";
 
 // ── Constants ──
 
@@ -58,29 +58,6 @@ const CLASS_ID_MAP: Record<string, number> = {
   guardian: 1,
   mystic: 2,
 };
-
-// ── Server Keypair ──
-// In production, load from env/secret. For dev, generate ephemeral.
-let serverKeypair: Keypair;
-try {
-  const keyStr = process.env.SERVER_KEYPAIR;
-  if (keyStr) {
-    serverKeypair = Keypair.fromSecretKey(
-      Uint8Array.from(JSON.parse(keyStr))
-    );
-  } else {
-    serverKeypair = Keypair.generate();
-    console.log(
-      `[ER] Generated ephemeral server keypair: ${serverKeypair.publicKey.toBase58()}`
-    );
-    console.log(
-      "[ER] Set SERVER_KEYPAIR env var for persistent key in production"
-    );
-  }
-} catch {
-  serverKeypair = Keypair.generate();
-  console.warn("[ER] Failed to parse SERVER_KEYPAIR, using ephemeral key");
-}
 
 // ── Connections ──
 

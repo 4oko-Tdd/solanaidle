@@ -16,9 +16,9 @@ import {
   PublicKey,
   Transaction,
   TransactionInstruction,
-  Keypair,
   SystemProgram,
 } from "@solana/web3.js";
+import { serverKeypair } from "./server-keypair.js";
 
 // ── Constants ──
 
@@ -47,29 +47,6 @@ const ER_VALIDATOR_MAP: Record<string, string> = {
 const ER_VALIDATOR_PUBKEY = new PublicKey(
   ER_VALIDATOR_MAP[ER_VALIDATOR_URL] || "MUS3hc9TCw4cGC12vHNoYcCGzJG1txjgQLZWVoeNHNd"
 );
-
-// ── Server Keypair ──
-// Reuse the same server keypair as er-service.ts
-let serverKeypair: Keypair;
-try {
-  const keyStr = process.env.SERVER_KEYPAIR;
-  if (keyStr) {
-    serverKeypair = Keypair.fromSecretKey(
-      Uint8Array.from(JSON.parse(keyStr))
-    );
-  } else {
-    serverKeypair = Keypair.generate();
-    console.log(
-      `[BossER] Generated ephemeral server keypair: ${serverKeypair.publicKey.toBase58()}`
-    );
-    console.log(
-      "[BossER] Set SERVER_KEYPAIR env var for persistent key in production"
-    );
-  }
-} catch {
-  serverKeypair = Keypair.generate();
-  console.warn("[BossER] Failed to parse SERVER_KEYPAIR, using ephemeral key");
-}
 
 const ER_ROUTER_URL =
   process.env.ER_ROUTER_URL || "https://devnet-router.magicblock.app";
