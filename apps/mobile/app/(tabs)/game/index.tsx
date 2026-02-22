@@ -1,6 +1,6 @@
-import { useEffect } from "react";
-import { ScrollView, View, ActivityIndicator } from "react-native";
-import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
+import { ScrollView, View, ActivityIndicator, Text, Pressable, Alert } from "react-native";
+import { useRouter, Tabs } from "expo-router";
 import { useAuth } from "@/providers/auth-context";
 import { useGameState } from "@/hooks/use-game-state";
 import { useBoss } from "@/hooks/use-boss";
@@ -11,10 +11,10 @@ import { MissionPanel } from "@/features/game/mission-panel";
 import { MissionTimer } from "@/features/game/mission-timer";
 import { BossFight } from "@/features/game/boss-fight";
 import { RunLog } from "@/features/game/run-log";
-import { RunStatus } from "@/features/game/run-status";
-import { CurrencyBar } from "@/components/currency-bar";
 import { ScreenBg } from "@/components/screen-bg";
 import { useToast } from "@/components/toast-provider";
+import { api } from "@/lib/api";
+import { Wrench, ChevronDown, ChevronUp } from "lucide-react-native";
 import type { MissionId } from "@solanaidle/shared";
 
 export default function GameScreen() {
@@ -22,15 +22,16 @@ export default function GameScreen() {
   const { isAuthenticated } = useAuth();
   const gameState = useGameState(isAuthenticated);
   const { toast } = useToast();
-  const { boss, applyDamage } = useBoss(isAuthenticated);
+  const { boss, applyDamage, refresh: bossRefresh } = useBoss(isAuthenticated);
   const { status: dailyStatus, onClaim: claimDaily } = useDailyLogin(isAuthenticated);
+  const [devOpen, setDevOpen] = useState(false);
 
-  // Navigate to daily login modal when reward is available and not yet claimed
+  // Navigate to daily login modal only once game is loaded and player has an active run
   useEffect(() => {
-    if (dailyStatus && !dailyStatus.claimedToday) {
+    if (!gameState.loading && gameState.activeRun && dailyStatus && !dailyStatus.claimedToday) {
       router.push("/(tabs)/game/daily-login");
     }
-  }, [dailyStatus?.claimedToday]);
+  }, [dailyStatus?.claimedToday, gameState.loading, !!gameState.activeRun]);
 
   const handleStartMission = async (missionId: MissionId, options?: { rerollStacks?: number; insured?: boolean }) => {
     try {
@@ -54,7 +55,7 @@ export default function GameScreen() {
     return (
       <ScreenBg>
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator color="#00ff87" />
+          <ActivityIndicator color="#14F195" />
         </View>
       </ScreenBg>
     );
@@ -64,6 +65,7 @@ export default function GameScreen() {
   if (!gameState.activeRun && gameState.classes.length > 0) {
     return (
       <ScreenBg>
+        <Tabs.Screen options={{ tabBarStyle: { display: "none" } }} />
         <ClassPicker
           classes={gameState.classes}
           currentClassId={null}
@@ -82,8 +84,45 @@ export default function GameScreen() {
       className="flex-1"
       contentContainerStyle={{ paddingBottom: 32 }}
     >
-      <CurrencyBar inventory={gameState.inventory} />
       <View className="p-4 gap-4">
+        {__DEV__ && (
+          <View>
+            <Pressable
+              onPress={() => setDevOpen((o) => !o)}
+              style={{ flexDirection: "row", alignItems: "center", gap: 4 }}
+            >
+              <Wrench size={12} color="#4a7a9b" />
+              <Text style={{ fontSize: 11, color: "#4a7a9b", fontFamily: "Orbitron_400Regular" }}>Dev</Text>
+              {devOpen ? <ChevronUp size={12} color="#4a7a9b" /> : <ChevronDown size={12} color="#4a7a9b" />}
+            </Pressable>
+            {devOpen && (
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 6 }}>
+                {(
+                  [
+                    { label: "+Resources", color: "#4a7a9b", onPress: async () => { await api("/dev/add-resources", { method: "POST" }); toast("+Resources", "success"); await gameState.refresh(); } },
+                    { label: "+XP", color: "#4a7a9b", onPress: async () => { const r = await api<{ message: string }>("/dev/add-xp", { method: "POST" }); toast(r.message, "success"); await gameState.refresh(); } },
+                    ...(gameState.activeRun ? [
+                      { label: "Skip Timer", color: "#4a7a9b", onPress: async () => { await api("/dev/skip-timer", { method: "POST" }); toast("Timer skipped", "success"); await gameState.refresh(); } },
+                      { label: "End Epoch", color: "#ff4444", onPress: async () => { await api("/dev/end-epoch", { method: "POST" }); toast("Epoch ended", "warning"); await gameState.refresh(); } },
+                      { label: boss ? "Kill Boss" : "Spawn Boss", color: boss ? "#ff4444" : "#9945ff", onPress: async () => { const r = await api<{ message: string }>("/dev/spawn-boss", { method: "POST" }); toast(r.message, boss ? "warning" : "success"); await bossRefresh(); await gameState.refresh(); } },
+                    ] : [
+                      { label: "New Epoch", color: "#14F195", onPress: async () => { const r = await api<{ message: string }>("/dev/reset-epoch", { method: "POST" }); toast(r.message, "success"); await gameState.refresh(); } },
+                    ]),
+                    { label: "Reset Player", color: "rgba(255,68,68,0.6)", onPress: () => Alert.alert("Wipe Data?", "Delete all player data?", [{ text: "Cancel" }, { text: "Confirm", style: "destructive", onPress: async () => { const r = await api<{ message: string }>("/dev/reset-player", { method: "POST" }); toast(r.message, "warning"); await gameState.refresh(); } }]) },
+                  ] as { label: string; color: string; onPress: () => void }[]
+                ).map((btn) => (
+                  <Pressable
+                    key={btn.label}
+                    onPress={btn.onPress}
+                    style={{ paddingHorizontal: 8, paddingVertical: 3, borderRadius: 4, borderWidth: 1, borderColor: "rgba(255,255,255,0.1)", backgroundColor: "rgba(255,255,255,0.04)" }}
+                  >
+                    <Text style={{ fontSize: 11, color: btn.color, fontFamily: "Orbitron_400Regular" }}>{btn.label}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            )}
+          </View>
+        )}
         {gameState.character && (
           <CharacterCard
             character={gameState.character}
@@ -110,9 +149,6 @@ export default function GameScreen() {
             classId={gameState.activeRun?.classId ?? null}
             inventory={gameState.inventory}
           />
-        )}
-        {gameState.activeRun && (
-          <RunStatus run={gameState.activeRun} boss={boss} characterState={gameState.character?.state} />
         )}
         <RunLog run={gameState.activeRun ?? null} />
       </View>
