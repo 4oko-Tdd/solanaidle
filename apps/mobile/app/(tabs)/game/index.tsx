@@ -61,8 +61,10 @@ export default function GameScreen() {
     );
   }
 
-  // No active run → show class picker first (matches web behavior)
-  if (!gameState.activeRun && gameState.classes.length > 0) {
+  // Only show class picker when there is genuinely no run this week at all.
+  // An ended run (active=0) blocks startRun on the server — fall through to
+  // the main game view so dev buttons (Reset Player / New Epoch) are reachable.
+  if (!gameState.activeRun && !gameState.endedRun && gameState.classes.length > 0) {
     return (
       <ScreenBg>
         <Tabs.Screen options={{ tabBarStyle: { display: "none" } }} />
@@ -114,7 +116,7 @@ export default function GameScreen() {
                     ] : [
                       { label: "New Epoch", color: "#14F195", onPress: async () => { const r = await api<{ message: string }>("/dev/reset-epoch", { method: "POST" }); toast(r.message, "success"); await gameState.refresh(); } },
                     ]),
-                    { label: "Reset Player", color: "rgba(255,68,68,0.6)", onPress: () => Alert.alert("Wipe Data?", "Delete all player data?", [{ text: "Cancel" }, { text: "Confirm", style: "destructive", onPress: async () => { const r = await api<{ message: string }>("/dev/reset-player", { method: "POST" }); toast(r.message, "warning"); await gameState.refresh(); } }]) },
+                    { label: "Reset Player", color: "rgba(255,68,68,0.6)", onPress: () => Alert.alert("Wipe Data?", "Delete all player data?", [{ text: "Cancel" }, { text: "Confirm", style: "destructive", onPress: async () => { try { const r = await api<{ message: string }>("/dev/reset-player", { method: "POST" }); toast(r.message, "warning"); await gameState.refresh(); } catch (e: any) { toast(e?.message ?? "Reset failed", "error"); } } }]) },
                   ] as { label: string; color: string; onPress: () => void }[]
                 ).map((btn) => (
                   <Pressable
