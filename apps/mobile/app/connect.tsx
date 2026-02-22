@@ -16,10 +16,10 @@ export default function ConnectScreen() {
     <ScreenBg>
     <View className="flex-1 items-center justify-center px-8 gap-8">
       <View className="items-center gap-4">
-        <Text className="text-neon-green font-mono text-4xl font-bold tracking-widest">
+        <Text className="text-neon-green font-mono-bold text-4xl tracking-widest">
           SEEKER
         </Text>
-        <Text className="text-neon-green font-mono text-4xl font-bold tracking-widest">
+        <Text className="text-neon-green font-mono-bold text-4xl tracking-widest">
           NODE
         </Text>
         <Text className="text-white/40 font-mono text-sm text-center mt-2">
