@@ -14,7 +14,7 @@ export default function RunEndRoute() {
     return (
       <ScreenBg>
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator color="#00ff87" />
+          <ActivityIndicator color="#14F195" />
         </View>
       </ScreenBg>
     );

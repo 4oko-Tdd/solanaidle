@@ -33,7 +33,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     timeoutIds.current.push(tid);
   }, [toasts.length]);
 
-  const typeColors = { success: "#00ff87", error: "#ff4444", info: "#00d4ff" };
+  const typeColors = { success: "#14F195", error: "#FF3366", info: "#00d4ff" };
 
   return (
     <ToastContext.Provider value={{ toast }}>

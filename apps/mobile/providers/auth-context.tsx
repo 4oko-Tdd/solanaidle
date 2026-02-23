@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useCallback } from "react";
 import { useMobileWallet } from "@wallet-ui/react-native-kit";
 import * as SecureStore from "expo-secure-store";
+import bs58 from "bs58";
 import { api, setAuthToken, clearAuthToken, getAuthToken } from "@/lib/api";
 import type { AuthNonceResponse, AuthVerifyResponse } from "@solanaidle/shared";
 
@@ -36,14 +37,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Step 2: Sign nonce (opens MWA again if session closed)
       const signed = await walletSignMessage(new TextEncoder().encode(nonce));
-      const signatureBase64 = Buffer.from(signed).toString("base64");
+      const signatureBase58 = bs58.encode(signed);
 
       // Step 3: Verify with backend
       const res = await api<AuthVerifyResponse>("/auth/verify", {
         method: "POST",
         body: JSON.stringify({
           publicKey: walletAddr,
-          signature: signatureBase64,
+          signature: signatureBase58,
           nonce,
         }),
       });
