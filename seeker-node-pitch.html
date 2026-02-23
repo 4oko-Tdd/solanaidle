@@ -1,0 +1,1292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seeker Node — Monolith Hackathon Pitch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+/* ===========================================
+   THEME
+   Edit :root to restyle everything
+   =========================================== */
+:root {
+  --bg:            #030712;
+  --text:          #e2e8f0;
+  --muted:         #64748b;
+  --dim:           #1e293b;
+  --accent:        #00ffc8;
+  --accent-glow:   rgba(0,255,200,0.22);
+  --accent-dim:    rgba(0,255,200,0.07);
+  --accent-border: rgba(0,255,200,0.22);
+  --red:           #ff3d6e;
+  --purple:        #9b59ff;
+  --yellow:        #ffe156;
+  --teal:          #4fd1c5;
+  --orange:        #f5a623;
+
+  --mono: 'Space Mono', monospace;
+  --sans: 'Space Grotesk', sans-serif;
+
+  /* Typography — all clamp() for responsive scaling */
+  --t-xl:  clamp(3rem,   9vw,  8rem);
+  --t-lg:  clamp(2rem,   5.5vw,4.5rem);
+  --t-md:  clamp(1.4rem, 3.2vw,2.8rem);
+  --t-sm:  clamp(1.1rem, 2.2vw,1.9rem);
+  --b-lg:  clamp(0.88rem,1.5vw,1.1rem);
+  --b-md:  clamp(0.78rem,1.2vw,0.98rem);
+  --b-sm:  clamp(0.65rem,1vw, 0.82rem);
+  --label: clamp(0.54rem,0.78vw,0.7rem);
+
+  /* Spacing */
+  --pad:    clamp(1.5rem,5vw,5rem);
+  --gap:    clamp(0.7rem,2vw,2rem);
+  --gap-sm: clamp(0.35rem,1vw,0.9rem);
+
+  --ease: cubic-bezier(0.16,1,0.3,1);
+  --dur:  0.65s;
+}
+
+/* ===========================================
+   RESET & BASE
+   =========================================== */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+html {
+  height:100%;
+  scroll-snap-type:y mandatory;
+  scroll-behavior:smooth;
+  overflow-x:hidden;
+}
+
+body {
+  font-family:var(--sans);
+  background:var(--bg);
+  color:var(--text);
+  height:100%;
+  overflow-x:hidden;
+}
+
+/* ===========================================
+   SLIDE — CRITICAL: must stay within 100dvh
+   =========================================== */
+.slide {
+  width:100vw;
+  height:100vh;
+  height:100dvh;
+  overflow:hidden;
+  scroll-snap-align:start;
+  position:relative;
+  display:flex;
+  flex-direction:column;
+}
+
+/* Dot grid background */
+.grid-bg {
+  position:absolute; inset:0;
+  background-image:
+    linear-gradient(rgba(0,255,200,.028) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,255,200,.028) 1px,transparent 1px);
+  background-size:58px 58px;
+  pointer-events:none; z-index:0;
+}
+
+/* Corner brackets */
+.slide::before, .slide::after,
+.slide .cb::before, .slide .cb::after {
+  content:'';
+  position:absolute;
+  width:16px; height:16px;
+  border-color:rgba(0,255,200,0.18);
+  border-style:solid;
+  z-index:2; pointer-events:none;
+}
+.slide::before { top:1.2rem; left:1.2rem;  border-width:1px 0 0 1px; }
+.slide::after  { top:1.2rem; right:1.2rem; border-width:1px 1px 0 0; }
+.slide .cb::before { bottom:1.2rem; left:1.2rem;  border-width:0 0 1px 1px; }
+.slide .cb::after  { bottom:1.2rem; right:1.2rem; border-width:0 1px 1px 0; }
+
+/* Slide counter */
+.snum {
+  position:absolute; bottom:1.3rem; left:var(--pad);
+  font-family:var(--mono); font-size:0.52rem;
+  color:var(--dim); letter-spacing:.22em; z-index:10;
+  pointer-events:none;
+}
+
+/* ===========================================
+   SVG ICON SYSTEM
+   All icons are inline SVG — no emoji
+   =========================================== */
+.icon {
+  display:block;
+  width: clamp(1.3rem,2.8vw,2rem);
+  height:clamp(1.3rem,2.8vw,2rem);
+  flex-shrink:0;
+  color:currentColor;
+}
+
+/* Pillar icons */
+.pillar .icon { color:var(--accent); margin-bottom:var(--gap-sm); }
+
+/* Class card icons */
+.ccard.v .icon { color:var(--accent); margin-bottom:.5rem; }
+.ccard.s .icon { color:var(--purple); margin-bottom:.5rem; }
+.ccard.o .icon { color:var(--yellow); margin-bottom:.5rem; }
+
+/* Boss mechanic icons */
+.mech .icon    { color:var(--red); margin-bottom:.4rem; }
+
+/* Integration card icons */
+.icard:nth-child(1) .icon { color:var(--accent);  }
+.icard:nth-child(2) .icon { color:var(--purple);  }
+.icard:nth-child(3) .icon { color:var(--orange);  }
+.icard:nth-child(4) .icon { color:var(--teal);    }
+
+/* ===========================================
+   ANIMATION SYSTEM
+   .rev and .revs trigger on .visible (added by IO)
+   =========================================== */
+.rev {
+  opacity:0; transform:translateY(20px);
+  transition:opacity var(--dur) var(--ease), transform var(--dur) var(--ease);
+}
+.slide.visible .rev { opacity:1; transform:translateY(0); }
+.rev.d1{transition-delay:.05s} .rev.d2{transition-delay:.14s}
+.rev.d3{transition-delay:.23s} .rev.d4{transition-delay:.32s}
+.rev.d5{transition-delay:.41s} .rev.d6{transition-delay:.50s}
+
+.revs {
+  opacity:0; transform:scale(.93);
+  transition:opacity var(--dur) var(--ease), transform var(--dur) var(--ease);
+}
+.slide.visible .revs { opacity:1; transform:scale(1); }
+.revs.d1{transition-delay:.07s} .revs.d2{transition-delay:.17s}
+.revs.d3{transition-delay:.27s} .revs.d4{transition-delay:.37s}
+
+/* ===========================================
+   SHARED ATOMS
+   =========================================== */
+.label {
+  font-family:var(--mono); font-size:var(--label);
+  letter-spacing:.28em; color:var(--accent); text-transform:uppercase;
+  display:flex; align-items:center; gap:.4rem;
+}
+.label::before { content:'//'; opacity:.4; }
+.label.red    { color:var(--red);    } .label.red::before    { color:var(--red);    }
+.label.purple { color:var(--purple); } .label.purple::before { color:var(--purple); }
+
+.chip {
+  font-family:var(--mono); font-size:var(--label);
+  letter-spacing:.1em; text-transform:uppercase;
+  padding:.3rem .72rem;
+  border:1px solid var(--accent-border);
+  color:var(--accent); background:var(--accent-dim);
+  display:inline-block;
+}
+
+/* ===========================================
+   PROGRESS BAR
+   =========================================== */
+#pb {
+  position:fixed; top:0; left:0; height:2px;
+  background:linear-gradient(90deg,var(--accent),rgba(0,255,200,.2));
+  z-index:1000; transition:width .3s ease;
+  box-shadow:0 0 8px var(--accent-glow);
+}
+
+/* ===========================================
+   NAV DOTS
+   =========================================== */
+#dots {
+  position:fixed; right:1.3rem; top:50%; transform:translateY(-50%);
+  display:flex; flex-direction:column; gap:7px; z-index:1000;
+}
+.dot {
+  width:5px; height:5px; border-radius:50%;
+  background:var(--dim); cursor:pointer;
+  transition:background .3s,transform .3s,box-shadow .3s;
+  border:none; padding:0;
+}
+.dot.active {
+  background:var(--accent); transform:scale(1.5);
+  box-shadow:0 0 8px var(--accent-glow);
+}
+
+/* ===========================================
+   SLIDE 1 — TITLE
+   =========================================== */
+#s1 { justify-content:center; align-items:flex-start; padding:var(--pad); }
+#s1 .orb {
+  position:absolute; top:-20%; right:-10%;
+  width:70vw; height:70vw;
+  background:radial-gradient(circle,rgba(0,255,200,.055) 0%,transparent 65%);
+  pointer-events:none; z-index:0;
+}
+#s1 .scanline {
+  position:absolute; left:0; right:0; height:1px;
+  background:linear-gradient(90deg,transparent,rgba(0,255,200,.16),transparent);
+  animation:scan 5s linear infinite; z-index:1; pointer-events:none;
+}
+@keyframes scan { from{top:0} to{top:100%} }
+
+#s1 .inner { position:relative; z-index:1; max-width:min(90vw,820px); }
+#s1 h1 {
+  font-size:var(--t-xl); font-weight:700;
+  line-height:.93; letter-spacing:-.035em;
+  margin:var(--gap-sm) 0 var(--gap);
+}
+#s1 h1 span { color:var(--accent); text-shadow:0 0 48px var(--accent-glow); }
+#s1 .tagline {
+  font-size:var(--b-lg); color:rgba(226,232,240,.55);
+  max-width:500px; line-height:1.75; margin-bottom:var(--gap);
+  font-weight:300;
+}
+#s1 .chips { display:flex; gap:.5rem; flex-wrap:wrap; }
+
+/* ===========================================
+   SLIDE 2 — PROBLEM
+   =========================================== */
+#s2 { justify-content:center; padding:var(--pad); }
+#s2 .inner {
+  position:relative; z-index:1; height:100%;
+  display:flex; flex-direction:column; justify-content:center;
+  max-width:min(90vw,840px);
+}
+#s2 .big-q {
+  font-size:clamp(3.5rem,13vw,10rem); font-weight:700;
+  line-height:1; letter-spacing:-.04em;
+  color:var(--accent); text-shadow:0 0 60px var(--accent-glow);
+  margin:var(--gap-sm) 0;
+}
+#s2 h2 {
+  font-size:var(--t-md); font-weight:600;
+  line-height:1.2; max-width:660px; letter-spacing:-.02em;
+}
+#s2 .sub {
+  font-size:var(--b-md); color:rgba(226,232,240,.5);
+  max-width:580px; line-height:1.78; margin-top:var(--gap-sm);
+  font-weight:300;
+}
+
+/* ===========================================
+   SLIDE 3 — WHAT IS IT
+   =========================================== */
+#s3 { justify-content:center; padding:var(--pad); }
+#s3 .inner {
+  position:relative; z-index:1; height:100%;
+  display:flex; flex-direction:column; justify-content:center;
+}
+#s3 .headline {
+  font-size:var(--t-lg); font-weight:700;
+  line-height:1.05; letter-spacing:-.03em;
+  max-width:740px; margin-bottom:var(--gap);
+}
+#s3 .headline em { font-style:normal; color:var(--accent); }
+#s3 .pillars {
+  display:grid; grid-template-columns:repeat(3,1fr);
+  gap:var(--gap-sm); max-width:min(90vw,880px);
+}
+.pillar {
+  padding:clamp(1rem,2vw,1.6rem);
+  background:rgba(0,255,200,.04);
+  border:1px solid var(--accent-border);
+}
+.pillar h3 { font-size:var(--b-lg); font-weight:600; margin-bottom:.35rem; }
+.pillar p  { font-size:var(--b-sm); color:rgba(226,232,240,.5); line-height:1.6; font-weight:300; }
+
+/* ===========================================
+   SLIDE 4 — THE LOOP
+   =========================================== */
+#s4 { justify-content:center; padding:var(--pad); }
+#s4 .inner {
+  position:relative; z-index:1; height:100%;
+  display:flex; flex-direction:column; justify-content:center;
+}
+#s4 h2 { font-size:var(--t-md); font-weight:700; letter-spacing:-.02em; margin-bottom:var(--gap); }
+#s4 .timeline { display:flex; align-items:stretch; max-width:min(90vw,960px); }
+
+.tblock {
+  flex:1; padding:clamp(.7rem,1.4vw,1.2rem);
+  border:1px solid rgba(255,255,255,.06);
+  border-right:none;
+}
+.tblock:last-child { border-right:1px solid rgba(255,255,255,.06); }
+.tblock.grind { background:rgba(0,255,200,.04);  border-color:var(--accent-border); }
+.tblock.boss  { background:rgba(255,61,110,.04); border-color:rgba(255,61,110,.3); }
+.tblock.reset { background:rgba(155,89,255,.04); border-color:rgba(155,89,255,.3); }
+
+.tday {
+  font-family:var(--mono); font-size:var(--label);
+  letter-spacing:.2em; text-transform:uppercase;
+  color:var(--accent); margin-bottom:.4rem;
+}
+.tblock.boss  .tday { color:var(--red); }
+.tblock.reset .tday { color:var(--purple); }
+
+.tblock h4 { font-size:var(--b-sm); font-weight:600; margin-bottom:.35rem; line-height:1.3; }
+.tblock ul { list-style:none; display:flex; flex-direction:column; gap:.22rem; }
+.tblock ul li {
+  font-size:var(--label); color:rgba(226,232,240,.46);
+  display:flex; align-items:flex-start; gap:.3rem; line-height:1.4;
+}
+.tblock ul li::before { content:'→'; color:var(--accent); flex-shrink:0; font-size:.52rem; margin-top:.12rem; }
+.tblock.boss  ul li::before { color:var(--red); }
+.tblock.reset ul li::before { color:var(--purple); }
+
+#s4 .loop-note {
+  margin-top:var(--gap); font-size:var(--b-sm);
+  color:rgba(226,232,240,.4); font-weight:300; line-height:1.5;
+  max-width:min(90vw,760px);
+}
+#s4 .loop-note strong { color:var(--text); font-weight:600; }
+
+/* ===========================================
+   SLIDE 5 — GAMEPLAY: CLASSES + MISSIONS
+   =========================================== */
+#s5 { justify-content:center; padding:var(--pad); }
+#s5 .inner {
+  position:relative; z-index:1; height:100%;
+  display:flex; flex-direction:column; justify-content:center;
+  gap:var(--gap);
+}
+#s5 h2 { font-size:var(--t-sm); font-weight:700; letter-spacing:-.02em; }
+
+#s5 .classes {
+  display:grid; grid-template-columns:repeat(3,1fr);
+  gap:var(--gap-sm); max-width:min(90vw,880px);
+}
+.ccard {
+  padding:clamp(.9rem,1.8vw,1.5rem);
+  border:1px solid; position:relative; overflow:hidden;
+}
+.ccard::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
+.ccard.v { border-color:rgba(0,255,200,.22); background:rgba(0,255,200,.03); }
+.ccard.v::before { background:var(--accent); }
+.ccard.s { border-color:rgba(155,89,255,.22); background:rgba(155,89,255,.03); }
+.ccard.s::before { background:var(--purple); }
+.ccard.o { border-color:rgba(255,225,86,.22); background:rgba(255,225,86,.03); }
+.ccard.o::before { background:var(--yellow); }
+
+.ccard h3  { font-size:var(--b-md); font-weight:700; margin-bottom:.18rem; }
+.ccard.v h3 { color:var(--accent); }
+.ccard.s h3 { color:var(--purple); }
+.ccard.o h3 { color:var(--yellow); }
+.ccard .cr  { font-family:var(--mono); font-size:var(--label); letter-spacing:.1em; color:var(--muted); text-transform:uppercase; margin-bottom:.5rem; }
+.ccard .stat { display:flex; justify-content:space-between; padding:.22rem 0; border-bottom:1px solid rgba(255,255,255,.05); font-size:var(--b-sm); }
+.ccard .stat:last-child { border-bottom:none; }
+.ccard .sk { color:var(--muted); font-weight:300; }
+.ccard .sv { font-weight:600; }
+
+#s5 .missions {
+  display:flex; flex-direction:column; gap:var(--gap-sm);
+  max-width:min(90vw,880px);
+}
+.mrow {
+  display:grid; grid-template-columns:auto 1fr auto;
+  align-items:center; gap:var(--gap-sm);
+  padding:clamp(.55rem,1.1vw,.95rem);
+  border:1px solid rgba(255,255,255,.07);
+  background:rgba(255,255,255,.02);
+}
+.mbadge {
+  font-family:var(--mono); font-size:var(--label);
+  letter-spacing:.1em; text-transform:uppercase;
+  padding:.2rem .52rem;
+  background:rgba(0,255,200,.1);
+  color:var(--accent); border:1px solid var(--accent-border); white-space:nowrap;
+}
+.mrow:nth-child(2) .mbadge { background:rgba(155,89,255,.1); color:var(--purple); border-color:rgba(155,89,255,.3); }
+.mrow:nth-child(3) .mbadge { background:rgba(255,61,110,.1);  color:var(--red);    border-color:rgba(255,61,110,.3); }
+.minfo h4 { font-size:var(--b-sm); font-weight:600; margin-bottom:.1rem; }
+.minfo p  { font-size:var(--label); color:var(--muted); font-weight:300; }
+.mstats   { display:flex; flex-direction:column; align-items:flex-end; gap:.14rem; }
+.mstats .dur { font-size:var(--b-sm); font-weight:600; }
+.mstats span { font-family:var(--mono); font-size:var(--label); color:var(--muted); }
+#s5 .m-note { font-size:var(--b-sm); color:rgba(226,232,240,.36); font-weight:300; font-style:italic; }
+
+/* ===========================================
+   SLIDE 6 — PERKS + THE TENSION
+   =========================================== */
+#s6 { justify-content:center; padding:var(--pad); }
+#s6 .inner {
+  position:relative; z-index:1; height:100%;
+  display:flex; flex-direction:column; justify-content:center;
+  gap:var(--gap);
+}
+#s6 h2 { font-size:var(--t-sm); font-weight:700; letter-spacing:-.02em; }
+
+#s6 .perks {
+  display:grid; grid-template-columns:repeat(3,1fr);
+  gap:var(--gap-sm); max-width:min(90vw,880px);
+}
+.ptier { padding:clamp(.9rem,1.8vw,1.5rem); border:1px solid; }
+.ptier.c { border-color:rgba(226,232,240,.1);  background:rgba(226,232,240,.02); }
+.ptier.r { border-color:rgba(155,89,255,.28);  background:rgba(155,89,255,.04); }
+.ptier.l { border-color:rgba(255,225,86,.3);   background:rgba(255,225,86,.04); }
+.ptier .th { display:flex; align-items:baseline; gap:.4rem; margin-bottom:.5rem; }
+.ptier .tn { font-family:var(--mono); font-size:var(--b-sm); font-weight:700; text-transform:uppercase; letter-spacing:.12em; }
+.ptier.c .tn { color:var(--text); }
+.ptier.r .tn { color:var(--purple); }
+.ptier.l .tn { color:var(--yellow); text-shadow:0 0 18px rgba(255,225,86,.4); }
+.ptier .tp { font-family:var(--mono); font-size:var(--label); color:var(--muted); }
+.ptier .tdesc { font-size:var(--b-sm); color:rgba(226,232,240,.46); line-height:1.55; margin-bottom:.45rem; font-weight:300; }
+.ptier .examples { display:flex; flex-direction:column; gap:.28rem; }
+.ptier .ex { font-size:var(--label); color:var(--muted); display:flex; align-items:flex-start; gap:.35rem; line-height:1.4; }
+.ptier .ex::before { content:'·'; flex-shrink:0; }
+.ptier.r .ex { color:rgba(155,89,255,.72); }
+.ptier.l .ex { color:rgba(255,225,86,.62); }
+
+#s6 .tension {
+  max-width:min(90vw,880px);
+  padding:clamp(.9rem,1.8vw,1.5rem);
+  border:1px solid rgba(255,255,255,.07);
+  background:rgba(255,255,255,.02);
+}
+#s6 .tension .th2 { font-size:var(--b-md); font-weight:600; margin-bottom:.5rem; color:var(--muted); }
+#s6 .tension .vs-grid { display:grid; grid-template-columns:1fr auto 1fr; gap:var(--gap-sm); align-items:center; }
+.tside { font-size:var(--b-sm); color:rgba(226,232,240,.52); font-weight:300; line-height:1.5; }
+.tside.up strong { color:var(--accent); font-weight:600; }
+.tside.ol strong { color:var(--red);    font-weight:600; }
+.tvs { font-family:var(--mono); font-size:var(--b-md); font-weight:700; color:var(--dim); text-align:center; }
+#s6 .tension .note { margin-top:.5rem; font-size:var(--b-sm); color:rgba(226,232,240,.36); font-style:italic; font-weight:300; }
+
+/* ===========================================
+   SLIDE 7 — WORLD BOSS
+   =========================================== */
+#s7 { justify-content:center; padding:var(--pad); }
+#s7 .glow-red {
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  width:75vw; height:75vw;
+  background:radial-gradient(circle,rgba(255,61,110,.055) 0%,transparent 60%);
+  pointer-events:none; z-index:0;
+}
+#s7 .inner {
+  position:relative; z-index:1; height:100%;
+  display:flex; flex-direction:column; justify-content:center;
+  gap:var(--gap);
+}
+#s7 .bhead { display:flex; align-items:baseline; gap:var(--gap); flex-wrap:wrap; }
+#s7 h2 { font-size:var(--t-md); font-weight:700; letter-spacing:-.02em; }
+#s7 .blast {
+  font-family:var(--mono); font-size:var(--b-sm);
+  color:var(--red); letter-spacing:.15em; text-transform:uppercase;
+  border:1px solid rgba(255,61,110,.4);
+  padding:.26rem .65rem; background:rgba(255,61,110,.06);
+}
+#s7 .eq {
+  max-width:min(90vw,680px);
+  font-size:var(--b-lg); font-weight:400;
+  line-height:1.55; color:rgba(226,232,240,.72);
+  border-left:2px solid var(--red);
+  padding-left:1.2rem;
+}
+#s7 .eq em { font-style:normal; color:var(--text); font-weight:600; }
+
+#s7 .hpwrap { max-width:min(90vw,720px); }
+#s7 .hpmeta { display:flex; justify-content:space-between; font-family:var(--mono); font-size:var(--label); color:var(--muted); margin-bottom:.35rem; letter-spacing:.1em; }
+#s7 .hpmeta .live { color:var(--red); display:flex; align-items:center; gap:.35rem; }
+#s7 .hpmeta .live::before { content:''; width:5px; height:5px; border-radius:50%; background:var(--red); animation:blink 1.2s ease infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.15} }
+#s7 .hpbar { height:7px; background:rgba(255,255,255,.06); border:1px solid rgba(255,61,110,.2); position:relative; overflow:hidden; }
+#s7 .hpfill { position:absolute; top:0; left:0; height:100%; width:0; background:linear-gradient(90deg,var(--red),rgba(255,61,110,.5)); transition:width 1.6s var(--ease) .4s; box-shadow:0 0 12px rgba(255,61,110,.5); }
+#s7.visible .hpfill { width:73%; }
+
+#s7 .mechs { display:grid; grid-template-columns:repeat(3,1fr); gap:var(--gap-sm); max-width:min(90vw,720px); }
+.mech { padding:clamp(.7rem,1.4vw,1.2rem); border:1px solid rgba(255,61,110,.13); background:rgba(255,61,110,.03); }
+.mech h4 { font-size:var(--b-sm); font-weight:600; color:var(--red); margin-bottom:.25rem; }
+.mech p  { font-size:var(--label); color:rgba(226,232,240,.46); line-height:1.5; font-weight:300; }
+
+#s7 .shared-truth { font-family:var(--mono); font-size:var(--label); color:rgba(0,255,200,.45); letter-spacing:.07em; max-width:min(90vw,620px); }
+
+/* ===========================================
+   SLIDE 8 — BUILT FOR SEEKER
+   =========================================== */
+#s8 { justify-content:center; padding:var(--pad); }
+#s8 .inner {
+  position:relative; z-index:1; height:100%;
+  display:flex; flex-direction:column; justify-content:center;
+  gap:var(--gap);
+}
+#s8 h2 { font-size:var(--t-md); font-weight:700; letter-spacing:-.02em; }
+#s8 .thesis {
+  font-size:var(--b-lg); color:rgba(226,232,240,.62); font-weight:300;
+  line-height:1.65; max-width:min(90vw,620px);
+}
+#s8 .thesis strong { color:var(--text); font-weight:600; }
+
+#s8 .three {
+  display:grid; grid-template-columns:repeat(3,1fr);
+  gap:var(--gap-sm); max-width:min(90vw,880px);
+}
+.scard { padding:clamp(1rem,2vw,1.6rem); border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.02); }
+.scard .sn { font-family:var(--mono); font-size:clamp(1.5rem,3vw,2.2rem); font-weight:700; color:var(--accent); opacity:.22; line-height:1; margin-bottom:.5rem; }
+.scard h3 { font-size:var(--b-md); font-weight:600; margin-bottom:.28rem; }
+.scard p  { font-size:var(--b-sm); color:rgba(226,232,240,.48); line-height:1.6; font-weight:300; }
+
+#s8 .ritual {
+  max-width:min(90vw,620px);
+  padding:clamp(.75rem,1.5vw,1.2rem);
+  border:1px solid var(--accent-border); background:var(--accent-dim);
+  font-size:var(--b-md); color:var(--text); font-weight:500;
+}
+#s8 .ritual em { font-style:normal; color:var(--accent); }
+
+/* ===========================================
+   SLIDE 9 — INTEGRATIONS
+   =========================================== */
+#s9 { justify-content:center; padding:var(--pad); }
+#s9 .inner {
+  position:relative; z-index:1; height:100%;
+  display:flex; flex-direction:column; justify-content:center;
+  gap:var(--gap);
+}
+#s9 h2 { font-size:var(--t-sm); font-weight:700; letter-spacing:-.02em; }
+#s9 .grid {
+  display:grid; grid-template-columns:repeat(2,1fr);
+  gap:var(--gap-sm); max-width:min(90vw,820px);
+}
+.icard {
+  padding:clamp(1rem,2vw,1.6rem);
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.02);
+  display:flex; gap:var(--gap-sm); align-items:flex-start;
+}
+.icard .ibody {}
+.icard h4  { font-size:var(--b-md); font-weight:600; margin-bottom:.18rem; }
+.icard:nth-child(1) h4 { color:var(--accent);  }
+.icard:nth-child(2) h4 { color:var(--purple);  }
+.icard:nth-child(3) h4 { color:var(--orange);  }
+.icard:nth-child(4) h4 { color:var(--teal);    }
+.icard .role { font-family:var(--mono); font-size:var(--label); color:var(--muted); letter-spacing:.1em; text-transform:uppercase; margin-bottom:.4rem; }
+.icard p    { font-size:var(--b-sm); color:rgba(226,232,240,.46); line-height:1.6; font-weight:300; }
+.icard .hl  { margin-top:.4rem; font-family:var(--mono); font-size:var(--label); letter-spacing:.05em; opacity:.6; }
+.icard:nth-child(1) .hl { color:var(--accent);  }
+.icard:nth-child(2) .hl { color:var(--purple);  }
+.icard:nth-child(3) .hl { color:var(--orange);  }
+.icard:nth-child(4) .hl { color:var(--teal);    }
+
+#s9 .remove-note { font-family:var(--mono); font-size:var(--label); color:rgba(226,232,240,.32); letter-spacing:.1em; max-width:min(90vw,820px); }
+#s9 .remove-note em { font-style:normal; color:var(--accent); opacity:.65; }
+
+/* ===========================================
+   SLIDE 10 — UNDER THE HOOD
+   =========================================== */
+#s10 { justify-content:center; padding:var(--pad); }
+#s10 .inner {
+  position:relative; z-index:1; height:100%;
+  display:flex; flex-direction:column; justify-content:center;
+  gap:var(--gap);
+}
+#s10 h2 { font-size:var(--t-sm); font-weight:700; letter-spacing:-.02em; }
+#s10 .cols { display:grid; grid-template-columns:1fr 1fr; gap:var(--gap); max-width:min(90vw,900px); }
+#s10 .col h3 { font-family:var(--mono); font-size:var(--label); letter-spacing:.2em; text-transform:uppercase; color:var(--accent); opacity:.6; margin-bottom:var(--gap-sm); }
+.aitem { display:flex; align-items:baseline; gap:.55rem; padding:.5rem 0; border-bottom:1px solid rgba(255,255,255,.05); font-size:var(--b-sm); }
+.aitem:last-child { border-bottom:none; }
+.aitem .an { font-weight:600; min-width:115px; flex-shrink:0; }
+.aitem .av { color:var(--muted); font-weight:300; }
+.aitem .ab { margin-left:auto; font-family:var(--mono); font-size:calc(var(--label)*.9); padding:.12rem .44rem; background:var(--accent-dim); color:var(--accent); border:1px solid var(--accent-border); flex-shrink:0; }
+.aitem .ab.p { background:rgba(155,89,255,.06); color:var(--purple); border-color:rgba(155,89,255,.28); }
+#s10 .flywheel { font-family:var(--mono); font-size:var(--label); color:rgba(0,255,200,.42); letter-spacing:.06em; line-height:1.6; max-width:min(90vw,640px); }
+
+/* ===========================================
+   SLIDE 11 — CLOSING
+   =========================================== */
+#s11 { justify-content:center; align-items:center; text-align:center; padding:var(--pad); }
+#s11 .orb {
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  width:62vw; height:62vw;
+  background:radial-gradient(circle,rgba(0,255,200,.065) 0%,transparent 65%);
+  pointer-events:none; z-index:0;
+}
+#s11 .scanline {
+  position:absolute; left:0; right:0; height:1px;
+  background:linear-gradient(90deg,transparent,rgba(0,255,200,.12),transparent);
+  animation:scan 6s linear infinite; pointer-events:none; z-index:0;
+}
+#s11 .inner { position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; max-width:min(90vw,660px); }
+#s11 .clabel { font-family:var(--mono); font-size:var(--label); letter-spacing:.3em; color:var(--accent); text-transform:uppercase; opacity:.6; margin-bottom:var(--gap-sm); }
+#s11 h2 { font-size:var(--t-lg); font-weight:700; line-height:1.0; letter-spacing:-.03em; margin-bottom:var(--gap-sm); }
+#s11 h2 em { font-style:normal; color:var(--accent); text-shadow:0 0 40px var(--accent-glow); }
+#s11 .csub { font-size:var(--b-md); color:rgba(226,232,240,.46); line-height:1.75; margin-bottom:var(--gap); font-weight:300; max-width:460px; }
+#s11 .chips { display:flex; gap:.5rem; flex-wrap:wrap; justify-content:center; }
+
+/* ===========================================
+   RESPONSIVE BREAKPOINTS
+   =========================================== */
+@media (max-height:700px) {
+  :root {
+    --pad: clamp(1.25rem,4vw,3rem);
+    --t-xl: clamp(2.5rem,7vw,5.5rem);
+    --t-lg: clamp(1.75rem,4.5vw,3.5rem);
+    --t-md: clamp(1.25rem,3vw,2.4rem);
+    --t-sm: clamp(1.1rem,2.2vw,1.75rem);
+  }
+}
+@media (max-height:600px) {
+  :root {
+    --pad: clamp(1rem,3.5vw,2.5rem);
+    --gap: clamp(0.4rem,1.3vw,1rem);
+    --gap-sm: clamp(0.25rem,0.7vw,0.6rem);
+    --t-xl: clamp(2rem,6vw,4rem);
+    --t-lg: clamp(1.5rem,4vw,2.75rem);
+    --t-md: clamp(1.1rem,2.5vw,2rem);
+    --t-sm: clamp(0.98rem,2vw,1.5rem);
+  }
+  #dots, .snum { display:none; }
+  #s5 .classes, #s6 .perks, #s8 .three, #s9 .grid { grid-template-columns:repeat(2,1fr); }
+  #s10 .cols { grid-template-columns:1fr; }
+}
+@media (max-height:500px) {
+  :root { --pad:clamp(0.75rem,3vw,1.75rem); --gap:clamp(0.3rem,1vw,0.75rem); }
+}
+@media (max-width:640px) {
+  #s3 .pillars, #s5 .classes, #s6 .perks,
+  #s7 .mechs,  #s8 .three, #s9 .grid,
+  #s10 .cols { grid-template-columns:1fr !important; }
+  #s4 .timeline, #s6 .tension .vs-grid { flex-direction:column; display:flex; }
+}
+@media (prefers-reduced-motion:reduce) {
+  .rev,.revs { transition:opacity .3s ease; transform:none; }
+  html { scroll-behavior:auto; }
+  #s1 .scanline, #s11 .scanline { animation:none; }
+  #s7 .hpmeta .live::before { animation:none; }
+}
+</style>
+</head>
+<body>
+
+<div id="pb" style="width:0"></div>
+<nav id="dots" aria-label="Slide navigation"></nav>
+
+<!-- ========================================================
+     SLIDE 1 — TITLE
+     ======================================================== -->
+<section class="slide" id="s1">
+  <div class="cb"></div>
+  <div class="grid-bg"></div>
+  <div class="orb"></div>
+  <div class="scanline"></div>
+  <div class="inner">
+    <div class="label rev d1">Solana mobile x Monolith Hackathon · 2026</div>
+    <h1 class="rev d2">SEEKER<br><span>NODE</span></h1>
+    <p class="tagline rev d3">The idle roguelike built to make<br>Solana Mobile your daily ritual.</p>
+    <div class="chips rev d4">
+      <span class="chip">Solana Mobile</span>
+      <span class="chip">MagicBlock ER</span>
+      <span class="chip">Metaplex Core</span>
+      <span class="chip">Jupiter</span>
+    </div>
+  </div>
+  <div class="snum">01 / 11</div>
+</section>
+
+<!-- ========================================================
+     SLIDE 2 — PROBLEM / OPPORTUNITY
+     ======================================================== -->
+<section class="slide" id="s2">
+  <div class="cb"></div>
+  <div class="grid-bg"></div>
+  <div class="inner">
+    <div class="label rev d1">The Opportunity</div>
+    <div class="big-q rev d2">Every day.</div>
+    <h2 class="rev d3">Most apps are opened because of habit.<br>Solana Mobile needs habit-forming apps.</h2>
+    <p class="sub rev d4">DeFi dashboards get checked. Games get <em style="font-style:italic">played</em>. Idle is among the top genres by DAU/MAU retention on mobile — the only genre where coming back is built into the design, not the notification settings.</p>
+  </div>
+  <div class="snum">02 / 11</div>
+</section>
+
+<!-- ========================================================
+     SLIDE 3 — WHAT IS IT
+     ======================================================== -->
+<section class="slide" id="s3">
+  <div class="cb"></div>
+  <div class="grid-bg"></div>
+  <div class="inner">
+    <div class="label rev d1">What Is It</div>
+    <p class="headline rev d2">A week-long roguelike where the <em>weekend boss</em> is the whole point.</p>
+    <div class="pillars">
+
+      <!-- Roguelike Loop — cycle/arrows icon -->
+      <div class="pillar revs d1">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 12a9 9 0 11-6.219-8.56"/>
+          <polyline points="21 3 21 9 15 9"/>
+        </svg>
+        <h3>Roguelike Loop</h3>
+        <p>Every Monday, start fresh. Build a unique character through missions, upgrades, and random perk choices. No two epochs play the same.</p>
+      </div>
+
+      <!-- Community Boss — crosshair/target icon -->
+      <div class="pillar revs d2">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="9"/>
+          <circle cx="12" cy="12" r="4"/>
+          <line x1="12" y1="2"  x2="12" y2="5"/>
+          <line x1="12" y1="19" x2="12" y2="22"/>
+          <line x1="2"  y1="12" x2="5"  y2="12"/>
+          <line x1="19" y1="12" x2="22" y2="12"/>
+        </svg>
+        <h3>Community Boss</h3>
+        <p>Every weekend, Protocol Leviathan spawns. The whole community must take it down together — or nobody gets drops. Real stakes.</p>
+      </div>
+
+      <!-- Real Stakes — hourglass icon -->
+      <div class="pillar revs d3">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M5 21h14M5 3h14M6 3v4l6 5-6 5v4M18 3v4l-6 5 6 5v4"/>
+        </svg>
+        <h3>Real Stakes</h3>
+        <p>Fail a mission — lose a life. Time can't be skipped or purchased. No cheats. No pay-to-win. Time is the only resource.</p>
+      </div>
+
+    </div>
+  </div>
+  <div class="snum">03 / 11</div>
+</section>
+
+<!-- ========================================================
+     SLIDE 4 — THE WEEKLY LOOP
+     ======================================================== -->
+<section class="slide" id="s4">
+  <div class="cb"></div>
+  <div class="grid-bg"></div>
+  <div class="inner">
+    <div class="label rev d1">The Weekly Epoch</div>
+    <h2 class="rev d2">Return is built into time — not notifications.</h2>
+    <div class="timeline rev d3">
+      <div class="tblock grind">
+        <div class="tday">Mon</div>
+        <h4>Fresh Start</h4>
+        <ul>
+          <li>Pick class</li>
+          <li>Level 1, 3 lives</li>
+          <li>Zero resources</li>
+        </ul>
+      </div>
+      <div class="tblock grind">
+        <div class="tday">Mon–Fri</div>
+        <h4>The Grind</h4>
+        <ul>
+          <li>Launch missions</li>
+          <li>Wait → claim</li>
+          <li>Buy upgrades</li>
+          <li>Choose perks</li>
+        </ul>
+      </div>
+      <div class="tblock boss">
+        <div class="tday">Saturday</div>
+        <h4>Boss Spawns</h4>
+        <ul>
+          <li>Missions locked</li>
+          <li>Join the Hunt</li>
+          <li>Passive damage</li>
+          <li>OVERLOAD burst</li>
+        </ul>
+      </div>
+      <div class="tblock reset">
+        <div class="tday">Sun 23:59</div>
+        <h4>Epoch Ends</h4>
+        <ul>
+          <li>Drop rolls</li>
+          <li>Full reset</li>
+          <li>Rare loot kept</li>
+        </ul>
+      </div>
+    </div>
+    <p class="loop-note rev d4">Missions take 7–24 hours. Players are <strong>physically required</strong> to return — that's the stickiness, not a UX trick.</p>
+  </div>
+  <div class="snum">04 / 11</div>
+</section>
+
+<!-- ========================================================
+     SLIDE 5 — GAMEPLAY: CLASSES + MISSIONS
+     ======================================================== -->
+<section class="slide" id="s5">
+  <div class="cb"></div>
+  <div class="grid-bg"></div>
+  <div class="inner">
+    <div class="label rev d1">Gameplay</div>
+    <h2 class="rev d2">Three classes. Three mission tiers. One server clock.</h2>
+
+    <div class="classes">
+
+      <!-- Validator — lightning bolt -->
+      <div class="ccard v revs d1">
+        <svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+        </svg>
+        <h3>Validator</h3>
+        <div class="cr">Scout · Fast &amp; Aggressive</div>
+        <div class="stat"><span class="sk">Mission speed</span><span class="sv" style="color:var(--accent)">−15% duration</span></div>
+        <div class="stat"><span class="sk">Fail risk</span><span class="sv" style="color:var(--red)">+5%</span></div>
+        <div class="stat"><span class="sk">Perk pool</span><span class="sv">Speed + damage</span></div>
+      </div>
+
+      <!-- Staker — shield -->
+      <div class="ccard s revs d2">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 2L3 6v6c0 5.25 3.75 10.15 9 11.25C17.25 22.15 21 17.25 21 12V6L12 2z"/>
+        </svg>
+        <h3>Staker</h3>
+        <div class="cr">Guardian · Defensive Line</div>
+        <div class="stat"><span class="sk">Failure impact</span><span class="sv" style="color:var(--purple)">Reduced</span></div>
+        <div class="stat"><span class="sk">Consistency</span><span class="sv">High</span></div>
+        <div class="stat"><span class="sk">Perk pool</span><span class="sv">Defense + survival</span></div>
+      </div>
+
+      <!-- Oracle — diamond/gem -->
+      <div class="ccard o revs d3">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 2l3 6h6l-5 4.5 2 6.5L12 16l-6 3 2-6.5L3 8h6l3-6z"/>
+        </svg>
+        <h3>Oracle</h3>
+        <div class="cr">Mystic · Loot-Focused</div>
+        <div class="stat"><span class="sk">Boss drop chance</span><span class="sv" style="color:var(--yellow)">+30%</span></div>
+        <div class="stat"><span class="sk">Mission speed</span><span class="sv">Normal</span></div>
+        <div class="stat"><span class="sk">Perk pool</span><span class="sv">Loot + drop odds</span></div>
+      </div>
+
+    </div>
+
+    <div class="missions">
+      <div class="mrow rev d3">
+        <div class="mbadge">Tier 1</div>
+        <div class="minfo"><h4>Quick Swap</h4><p>Scout op — low risk, fast turnaround. Available from Level 1.</p></div>
+        <div class="mstats"><span class="dur">7 hours</span><span>10% fail rate</span></div>
+      </div>
+      <div class="mrow rev d4">
+        <div class="mbadge">Tier 2</div>
+        <div class="minfo"><h4>Liquidity Run</h4><p>Mid expedition — balanced risk and reward. Unlocks at Level 3.</p></div>
+        <div class="mstats"><span class="dur">12 hours</span><span>25% fail rate</span></div>
+      </div>
+      <div class="mrow rev d5">
+        <div class="mbadge">Tier 3</div>
+        <div class="minfo"><h4>Deep Farm</h4><p>Full deep dive — high risk, maximum resources. Unlocks at Level 6.</p></div>
+        <div class="mstats"><span class="dur">24 hours</span><span>40% fail rate</span></div>
+      </div>
+    </div>
+
+    <p class="m-note rev d6">All timers are server-side. The client accelerates nothing. Fair for everyone.</p>
+  </div>
+  <div class="snum">05 / 11</div>
+</section>
+
+<!-- ========================================================
+     SLIDE 6 — PERKS + THE TENSION
+     ======================================================== -->
+<section class="slide" id="s6">
+  <div class="cb"></div>
+  <div class="grid-bg"></div>
+  <div class="inner">
+    <div class="label rev d1">Depth</div>
+    <h2 class="rev d2">Every level-up: choose 1 of 3 perks.<br>Your build emerges from choices.</h2>
+
+    <div class="perks">
+      <div class="ptier c revs d1">
+        <div class="th"><span class="tn">Common</span><span class="tp">80%</span></div>
+        <p class="tdesc">Stackable stat bonuses — appear and compound across the run.</p>
+        <div class="examples">
+          <div class="ex">Bandwidth Boost — +5% mission speed</div>
+          <div class="ex">Reinforced Node — −3% fail rate</div>
+          <div class="ex">Data Miner — +8% resource gain</div>
+          <div class="ex">Signal Amp — +5% XP gain</div>
+        </div>
+      </div>
+      <div class="ptier r revs d2">
+        <div class="th"><span class="tn">Rare</span><span class="tp">15%</span></div>
+        <p class="tdesc">Unique mechanics — each appears once per epoch max.</p>
+        <div class="examples">
+          <div class="ex">Lucky Escape — 50% survive a fatal mission</div>
+          <div class="ex">Insurance Protocol — protect streak on fail</div>
+          <div class="ex">Critical Overload — OVERLOAD crits ×1.5</div>
+          <div class="ex">Early Access — join boss 6h early</div>
+        </div>
+      </div>
+      <div class="ptier l revs d3">
+        <div class="th"><span class="tn">Legendary</span><span class="tp">5%</span></div>
+        <p class="tdesc">Game-changing powers — one per epoch, maximum.</p>
+        <div class="examples">
+          <div class="ex">Immortal Node — no lives lost for 3 missions</div>
+          <div class="ex">Genesis Protocol — carry a rare perk forward</div>
+          <div class="ex">Leviathan's Eye — see boss HP thresholds</div>
+          <div class="ex">Chain Reaction — OVERLOAD boosts guild damage</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tension rev d4">
+      <div class="th2">The question every epoch has no right answer —</div>
+      <div class="vs-grid">
+        <div class="tside up">
+          <strong>Spend on upgrades</strong><br>
+          Stronger all week → more XP → more perks → higher passive boss damage
+        </div>
+        <div class="tvs">vs</div>
+        <div class="tside ol">
+          <strong>Hoard for OVERLOAD</strong><br>
+          One massive crit → more contribution % → better drop odds on kill
+        </div>
+      </div>
+      <p class="note">Different strategies win in different weeks — depending on perks, class, and boss timing.</p>
+    </div>
+  </div>
+  <div class="snum">06 / 11</div>
+</section>
+
+<!-- ========================================================
+     SLIDE 7 — WORLD BOSS
+     ======================================================== -->
+<section class="slide" id="s7">
+  <div class="cb"></div>
+  <div class="grid-bg"></div>
+  <div class="glow-red"></div>
+  <div class="inner">
+    <div class="bhead">
+      <div>
+        <div class="label red rev d1">Every Weekend</div>
+        <h2 class="rev d2">Protocol Leviathan</h2>
+      </div>
+      <span class="blast rev d1">BOSS FIGHT ACTIVE</span>
+    </div>
+
+    <p class="eq rev d3">
+      When the HP bar drops live across every Seeker at the same time —<br>
+      you feel like you're part of <em>something bigger than your own run.</em>
+    </p>
+
+    <div class="hpwrap rev d4">
+      <div class="hpmeta">
+        <span>INTEGRITY</span>
+        <span class="live">LIVE · 847,230 / 1,000,000</span>
+      </div>
+      <div class="hpbar"><div class="hpfill"></div></div>
+    </div>
+
+    <div class="mechs">
+
+      <!-- Passive Damage — crosshair -->
+      <div class="mech revs d1">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="8"/>
+          <circle cx="12" cy="12" r="3"/>
+          <line x1="12" y1="2"  x2="12" y2="4"/>
+          <line x1="12" y1="20" x2="12" y2="22"/>
+          <line x1="2"  y1="12" x2="4"  y2="12"/>
+          <line x1="20" y1="12" x2="22" y2="12"/>
+        </svg>
+        <h4>Passive Damage</h4>
+        <p>Continuous DPS from the moment you Join the Hunt. Earlier join = more time = more contribution %.</p>
+      </div>
+
+      <!-- OVERLOAD — lightning bolt -->
+      <div class="mech revs d2">
+        <svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+        </svg>
+        <h4>OVERLOAD Strike</h4>
+        <p>Dump ALL remaining resources into one critical burst. One-time use. HP drops on everyone's screen instantly.</p>
+      </div>
+
+      <!-- Real-time — signal/wifi waves -->
+      <div class="mech revs d3">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+          <path d="M1.5 8.5a14 14 0 0121 0"/>
+          <path d="M5 12a10 10 0 0114 0"/>
+          <path d="M8.5 15.5a6 6 0 017 0"/>
+          <circle cx="12" cy="19" r="1" fill="currentColor"/>
+        </svg>
+        <h4>On-Chain in Real Time</h4>
+        <p>Boss HP tracked via MagicBlock Ephemeral Rollups. WebSocket broadcast — every client sees the same truth.</p>
+      </div>
+
+    </div>
+
+    <div class="shared-truth rev d5">// Real-time shared state turns it into a communal event — everyone sees the same truth.</div>
+  </div>
+  <div class="snum">07 / 11</div>
+</section>
+
+<!-- ========================================================
+     SLIDE 8 — BUILT FOR SEEKER
+     ======================================================== -->
+<section class="slide" id="s8">
+  <div class="cb"></div>
+  <div class="grid-bg"></div>
+  <div class="inner">
+    <div class="label rev d1">Why Seeker</div>
+    <h2 class="rev d2">Built for early adopters.</h2>
+
+    <p class="thesis rev d3">
+      Seeker owners are <strong>crypto-native early adopters.</strong>
+      Early adopters want three things: status, competition, and shared rituals.
+      Seeker Node delivers all three — every week.
+    </p>
+
+    <div class="three">
+      <div class="scard revs d1">
+        <div class="sn">01</div>
+        <h3>Status</h3>
+        <p>Rare boss drops persist forever. Leviathan Scale, NFT Artifacts — visible in your wallet. The longer you play, the stronger your base. Early players earn advantages that can't be bought.</p>
+      </div>
+      <div class="scard revs d2">
+        <div class="sn">02</div>
+        <h3>Competition</h3>
+        <p>Weekly leaderboard by epoch score. #1 earns the Epoch Champion NFT. Every week is a new race — open to everyone regardless of past performance.</p>
+      </div>
+      <div class="scard revs d3">
+        <div class="sn">03</div>
+        <h3>Shared Ritual</h3>
+        <p>Protocol Leviathan is a community-wide event. One boss. One HP bar. One weekend. Not a solo session — a cultural moment for the entire Seeker audience simultaneously.</p>
+      </div>
+    </div>
+
+    <div class="ritual rev d5">
+      <em>One-tap ritual:</em> open → claim → launch → close. 30 seconds. Every morning.
+    </div>
+  </div>
+  <div class="snum">08 / 11</div>
+</section>
+
+<!-- ========================================================
+     SLIDE 9 — SOLANA INTEGRATIONS
+     ======================================================== -->
+<section class="slide" id="s9">
+  <div class="cb"></div>
+  <div class="grid-bg"></div>
+  <div class="inner">
+    <div class="label rev d1">Ecosystem Integration</div>
+    <h2 class="rev d2">Four integrations. Each serves a core mechanic.</h2>
+
+    <div class="grid">
+
+      <!-- Solana Mobile — phone -->
+      <div class="icard revs d1">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="5" y="2" width="14" height="20" rx="2"/>
+          <line x1="12" y1="18" x2="12.01" y2="18" stroke-width="2"/>
+        </svg>
+        <div class="ibody">
+          <h4>Solana Mobile</h4>
+          <div class="role">Identity · Ownership · Distribution</div>
+          <p>One tap to sign in — no seed phrase, no friction. Your wallet is your identity, your character, and your loot vault. Native to Seeker, deployed on the dApp Store.</p>
+          <div class="hl">MWA v2 · wallet as loot vault · native discovery</div>
+        </div>
+      </div>
+
+      <!-- MagicBlock — bolt/circuit -->
+      <div class="icard revs d2">
+        <svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+        </svg>
+        <div class="ibody">
+          <h4>MagicBlock</h4>
+          <div class="role">Real-time HP · Zero-fee Progress · VRF</div>
+          <p>Three uses: VRF for provably-fair epoch bonuses, ER for zero-fee player progress tracking, ER for live boss HP broadcast to all clients via WebSocket.</p>
+          <div class="hl">3 Anchor programs deployed on devnet</div>
+        </div>
+      </div>
+
+      <!-- Metaplex — diamond -->
+      <div class="icard revs d3">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M6 3h12l4 6-10 13L2 9l4-6z"/>
+          <path d="M2 9h20M12 3l4 6-4 13-4-13 4-6z"/>
+        </svg>
+        <div class="ibody">
+          <h4>Metaplex Core</h4>
+          <div class="role">NFT Relics · Achievement Badges</div>
+          <p>Boss drops minted as Core assets with Attributes plugin — direct to your Seeker wallet. Server mints with zero player signatures. Rare loot lives on-chain, yours forever.</p>
+          <div class="hl">Seeker Node: Relics · Achievements</div>
+        </div>
+      </div>
+
+      <!-- Jupiter — cycle arrows -->
+      <div class="icard revs d4">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="17 2 21 6 17 10"/>
+          <path d="M3 11V9a8 8 0 0118 0v1"/>
+          <polyline points="7 22 3 18 7 14"/>
+          <path d="M21 13v2a8 8 0 01-18 0v-1"/>
+        </svg>
+        <div class="ibody">
+          <h4>Jupiter</h4>
+          <div class="role">Intel Tab · Daily &amp; Weekly Quests</div>
+          <p>In-game Intel tab with daily quests (Price Scout, Token Scan, PnL Report) and weekly quests (Micro Swap). Rewards: resources + temporary boosts.</p>
+          <div class="hl">Bridges idle gameplay to Solana DeFi</div>
+        </div>
+      </div>
+
+    </div>
+
+    <p class="remove-note rev d5">// <em>Remove any one of these — a core mechanic breaks.</em></p>
+  </div>
+  <div class="snum">09 / 11</div>
+</section>
+
+<!-- ========================================================
+     SLIDE 10 — UNDER THE HOOD
+     ======================================================== -->
+<section class="slide" id="s10">
+  <div class="cb"></div>
+  <div class="grid-bg"></div>
+  <div class="inner">
+    <div class="label rev d1">Under the Hood</div>
+    <h2 class="rev d2">Server-authoritative. Mobile-first. Resilient.</h2>
+
+    <div class="cols">
+      <div class="col rev d3">
+        <h3>Stack</h3>
+        <div class="aitem"><span class="an">Frontend</span><span class="av">React 19 + Vite + Tailwind</span><span class="ab">PWA</span></div>
+        <div class="aitem"><span class="an">Backend</span><span class="av">Hono · TypeScript · SQLite</span><span class="ab">Server-auth</span></div>
+        <div class="aitem"><span class="an">Wallet</span><span class="av">MWA v2 · Wallet Standard</span><span class="ab">Mobile</span></div>
+        <div class="aitem"><span class="an">Anti-cheat</span><span class="av">All timers + RNG server-side</span><span class="ab">No exploits</span></div>
+        <div class="aitem"><span class="an">Target</span><span class="av">Bubblewrap APK → dApp Store</span><span class="ab">Android</span></div>
+      </div>
+      <div class="col rev d4">
+        <h3>What Persists Forever</h3>
+        <div class="aitem"><span class="an">progress-tracker</span><span class="av">Per-player epoch PDA via MagicBlock ER</span><span class="ab p">ER</span></div>
+        <div class="aitem"><span class="an">boss-tracker</span><span class="av">Global HP PDA — live WebSocket</span><span class="ab p">ER</span></div>
+        <div class="aitem"><span class="an">vrf-roller</span><span class="av">Verifiable randomness for bonuses</span><span class="ab p">VRF</span></div>
+        <div class="aitem"><span class="an">Rare Loot</span><span class="av">Protocol Core, Leviathan Scale…</span><span class="ab">Passive perks</span></div>
+        <div class="aitem"><span class="an">NFT Artifacts</span><span class="av">~1% boss drop, hand-crafted</span><span class="ab">On-chain</span></div>
+      </div>
+    </div>
+
+    <p class="flywheel rev d5">// flywheel: more boss damage → better drops → stronger next epoch → repeat</p>
+  </div>
+  <div class="snum">10 / 11</div>
+</section>
+
+<!-- ========================================================
+     SLIDE 11 — CLOSING
+     ======================================================== -->
+<section class="slide" id="s11">
+  <div class="cb"></div>
+  <div class="grid-bg"></div>
+  <div class="orb"></div>
+  <div class="scanline"></div>
+  <div class="inner">
+    <div class="clabel rev d1">Seeker Node · Monolith 2026</div>
+    <h2 class="rev d2">Built to be the first<br>thing you open <em>every morning.</em></h2>
+    <p class="csub rev d3">
+      Idle roguelike. Weekly epoch. Community world boss.<br>
+      Stickiness built into the design — not the notification settings.
+    </p>
+    <div class="chips rev d4">
+      <span class="chip">Solana Mobile</span>
+      <span class="chip">MagicBlock ER</span>
+      <span class="chip">Metaplex Core</span>
+      <span class="chip">Jupiter</span>
+    </div>
+  </div>
+  <div class="snum">11 / 11</div>
+</section>
+
+<script>
+/* ===========================================
+   PRESENTATION CONTROLLER
+   Keyboard, touch, wheel navigation + IntersectionObserver animations
+   =========================================== */
+class Deck {
+  constructor() {
+    this.slides  = Array.from(document.querySelectorAll('.slide'));
+    this.total   = this.slides.length;
+    this.current = 0;
+    this.pb      = document.getElementById('pb');
+    this.dotsEl  = document.getElementById('dots');
+    this.init();
+  }
+
+  init() {
+    this.buildDots();
+    this.observe();
+    this.keys();
+    this.touch();
+    this.wheel();
+    this.updatePb(0);
+  }
+
+  buildDots() {
+    this.slides.forEach((_, i) => {
+      const b = document.createElement('button');
+      b.className = 'dot' + (i === 0 ? ' active' : '');
+      b.setAttribute('aria-label', `Slide ${i + 1}`);
+      b.addEventListener('click', () => this.go(i));
+      this.dotsEl.appendChild(b);
+    });
+    this.dots = Array.from(this.dotsEl.querySelectorAll('.dot'));
+  }
+
+  observe() {
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (!e.isIntersecting) return;
+        e.target.classList.add('visible');
+        const i = this.slides.indexOf(e.target);
+        if (i !== -1) this.setActive(i);
+      });
+    }, { threshold: 0.5 });
+    this.slides.forEach(s => io.observe(s));
+  }
+
+  setActive(i) {
+    this.current = i;
+    this.updatePb(i);
+    this.dots.forEach((d, j) => d.classList.toggle('active', j === i));
+  }
+
+  updatePb(i) {
+    this.pb.style.width = ((i + 1) / this.total * 100) + '%';
+  }
+
+  go(i) {
+    const s = this.slides[i];
+    if (s) s.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  next() { if (this.current < this.total - 1) this.go(this.current + 1); }
+  prev() { if (this.current > 0) this.go(this.current - 1); }
+
+  keys() {
+    document.addEventListener('keydown', e => {
+      if (['ArrowDown','ArrowRight',' '].includes(e.key)) { e.preventDefault(); this.next(); }
+      if (['ArrowUp','ArrowLeft'].includes(e.key))        { e.preventDefault(); this.prev(); }
+      if (e.key === 'Home') { e.preventDefault(); this.go(0); }
+      if (e.key === 'End')  { e.preventDefault(); this.go(this.total - 1); }
+    });
+  }
+
+  touch() {
+    let sy = 0, sx = 0;
+    document.addEventListener('touchstart', e => {
+      sy = e.touches[0].clientY;
+      sx = e.touches[0].clientX;
+    }, { passive: true });
+    document.addEventListener('touchend', e => {
+      const dy = sy - e.changedTouches[0].clientY;
+      const dx = sx - e.changedTouches[0].clientX;
+      if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 45) {
+        dy > 0 ? this.next() : this.prev();
+      }
+    }, { passive: true });
+  }
+
+  wheel() {
+    let t = 0;
+    document.addEventListener('wheel', e => {
+      e.preventDefault();
+      const now = Date.now();
+      if (now - t < 650) return;
+      t = now;
+      e.deltaY > 0 ? this.next() : this.prev();
+    }, { passive: false });
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => new Deck());
+</script>
+</body>
+</html>

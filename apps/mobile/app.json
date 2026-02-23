@@ -32,11 +32,13 @@
     "plugins": [
       "expo-router",
       "expo-secure-store",
+      "./plugins/fix-build-gradle",
       [
         "expo-build-properties",
         {
           "android": {
-            "minSdkVersion": 26
+            "minSdkVersion": 26,
+            "kotlinVersion": "2.0.21"
           }
         }
       ]
