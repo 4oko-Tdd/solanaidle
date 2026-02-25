@@ -21,3 +21,18 @@ target/
 .anchor/
 test-ledger/
 programs/*/Cargo.lock
+
+# IDE
+.idea/
+*.swp
+*.swo
+
+# npm lock (pnpm project)
+package-lock.json
+
+# Android local config
+local.properties
+**/build/
+
+# Local testing tools
+mock-mwa-wallet/
