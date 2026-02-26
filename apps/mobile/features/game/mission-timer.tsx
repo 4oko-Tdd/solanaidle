@@ -25,7 +25,7 @@ function CompleteLabel() {
   const fadeIn = useFadeInUp(0, 400);
   return (
     <Animated.View style={fadeIn}>
-      <Text style={{ fontFamily: "RobotoMono_400Regular", fontSize: 16, color: "#14F195", textTransform: "uppercase", letterSpacing: 1.5 }}>
+      <Text style={{ fontFamily: "RobotoMono_400Regular", fontSize: 14, color: "#14F195", textTransform: "uppercase", letterSpacing: 1.5 }}>
         Complete!
       </Text>
     </Animated.View>
@@ -36,7 +36,7 @@ function UrgentTimer({ text }: { text: string }) {
   const pulseStyle = usePulse(true, 800, 0.5);
   return (
     <Animated.View style={pulseStyle}>
-      <Text style={{ fontFamily: "RobotoMono_700Bold", fontSize: 16, color: "#ffb800" }}>
+      <Text style={{ fontFamily: "RobotoMono_700Bold", fontSize: 14, color: "#ffb800" }}>
         {text}
       </Text>
     </Animated.View>
@@ -47,7 +47,7 @@ function ReadyToClaim() {
   const fadeIn = useFadeInUp(100, 400);
   return (
     <Animated.View style={fadeIn}>
-      <Text style={{ fontFamily: "Inter_600SemiBold", fontSize: 16, color: "#14F195" }}>
+      <Text style={{ fontFamily: "Inter_600SemiBold", fontSize: 14, color: "#14F195" }}>
         Ready to claim!
       </Text>
     </Animated.View>
@@ -98,10 +98,10 @@ export function MissionTimer({ mission, onClaim }: Props) {
       }
       glow={isComplete ? "green" : isUrgent ? "amber" : undefined}
       animateGlow={isComplete || isUrgent}
-      contentStyle={{ padding: 20, gap: 14 }}
+      contentStyle={{ padding: 14, gap: 10 }}
     >
       <View className="flex-row items-center justify-between">
-        <Text className="text-lg font-display text-white">
+        <Text className="text-base font-display text-white">
           {missionName} in Progress
         </Text>
         {isComplete ? (
@@ -116,7 +116,7 @@ export function MissionTimer({ mission, onClaim }: Props) {
       <Progress
         value={progressPercent}
         color={isComplete ? "#14F195" : isUrgent ? "#ffb800" : "#00d4ff"}
-        className={isComplete ? "h-3.5" : ""}
+        className={isComplete ? "h-3" : ""}
       />
 
       <View className="flex-row items-center justify-between">
@@ -125,7 +125,7 @@ export function MissionTimer({ mission, onClaim }: Props) {
         ) : isUrgent ? (
           <UrgentTimer text={formatTime(timeRemaining)} />
         ) : (
-          <Text className="text-base font-mono text-white/50">
+          <Text className="text-sm font-mono text-white/50">
             {formatTime(timeRemaining)}
           </Text>
         )}

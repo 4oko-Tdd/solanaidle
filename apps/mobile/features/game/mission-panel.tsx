@@ -1,11 +1,10 @@
 import { useState } from "react";
-import { View, Text, Image, Pressable } from "react-native";
+import { View, Text, Image } from "react-native";
 import Animated from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
 import { Clock, Lock, Sparkles, Shield, Minus, Plus, Crown, Fish, Skull } from "lucide-react-native";
 import { Button } from "@/components/ui";
 import type { MissionType, CharacterState, MissionId, ClassId, Inventory } from "@solanaidle/shared";
-import { GlassPanel } from "@/components/glass-panel";
 import { GradientText } from "@/components/gradient-text";
 import { useFadeInUp, usePulse } from "@/lib/animations";
 
@@ -72,6 +71,136 @@ function CriticalPulse({ children }: { children: React.ReactNode }) {
   return <Animated.View style={pulseStyle}>{children}</Animated.View>;
 }
 
+function RerollControl({
+  rerollStacks,
+  scrapBalance,
+  rerollCost,
+  onDecrease,
+  onIncrease,
+}: {
+  rerollStacks: number;
+  scrapBalance: number;
+  rerollCost: number;
+  onDecrease: () => void;
+  onIncrease: () => void;
+}) {
+  const nextRerollCost = (rerollStacks + 1) * REROLL_COST_PER_STACK;
+  const canIncrease = rerollStacks < MAX_REROLL_STACKS && scrapBalance >= nextRerollCost;
+
+  return (
+    <View
+      style={{
+        borderWidth: 1,
+        borderColor: "rgba(255,255,255,0.08)",
+        backgroundColor: "rgba(255,255,255,0.03)",
+        borderRadius: 10,
+        paddingHorizontal: 10,
+        paddingVertical: 8,
+        gap: 6,
+      }}
+    >
+      <View className="flex-row items-center justify-between">
+        <View className="flex-row items-center gap-1.5">
+          <Text className="text-base text-white/70">Reroll</Text>
+          <Text className="text-sm text-neon-cyan font-mono">-{rerollStacks * REROLL_REDUCTION}% fail</Text>
+        </View>
+        <View className="flex-row items-center gap-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            hitSlop={12}
+            disabled={rerollStacks <= 0}
+            onPress={onDecrease}
+            style={{ minWidth: 44, minHeight: 44, justifyContent: "center", alignItems: "center" }}
+          >
+            <Minus size={20} color="rgba(255,255,255,0.6)" />
+          </Button>
+          <Text className="font-mono text-lg text-white" style={{ minWidth: 20, textAlign: "center" }}>
+            {rerollStacks}
+          </Text>
+          <Button
+            variant="ghost"
+            size="sm"
+            hitSlop={12}
+            disabled={!canIncrease}
+            onPress={onIncrease}
+            style={{ minWidth: 44, minHeight: 44, justifyContent: "center", alignItems: "center" }}
+          >
+            <Plus size={20} color="rgba(255,255,255,0.6)" />
+          </Button>
+        </View>
+      </View>
+      <View className="flex-row items-center justify-between" style={{ minHeight: 20 }}>
+        <Text className="text-xs text-white/40">
+          Cost: {REROLL_COST_PER_STACK} scrap per stack
+        </Text>
+        <View className="flex-row items-center gap-1.5">
+          <Image source={require("@/assets/icons/scrap.png")} style={{ width: 22, height: 22 }} />
+          <Text className="text-sm font-mono text-white/60">{rerollCost}</Text>
+        </View>
+      </View>
+    </View>
+  );
+}
+
+function InsuranceControl({
+  insured,
+  crystalBalance,
+  insuranceCost,
+  onToggle,
+}: {
+  insured: boolean;
+  crystalBalance: number;
+  insuranceCost: number;
+  onToggle: () => void;
+}) {
+  const canEnable = crystalBalance >= insuranceCost;
+  const disabled = !insured && !canEnable;
+
+  return (
+    <View
+      style={{
+        borderRadius: 10,
+        borderWidth: 1,
+        borderColor: insured ? "rgba(20,241,149,0.45)" : "rgba(255,255,255,0.16)",
+        backgroundColor: insured ? "rgba(20,241,149,0.10)" : "rgba(255,255,255,0.03)",
+        paddingHorizontal: 10,
+        paddingVertical: 10,
+        gap: 6,
+      }}
+    >
+      <View className="flex-row items-center justify-between">
+        <View className="flex-row items-center gap-2">
+          <Shield size={16} color={insured ? "#14F195" : "rgba(255,255,255,0.55)"} />
+          <View>
+            <Text className={`text-sm font-mono ${insured ? "text-neon-green" : "text-white/75"}`}>
+              Insurance
+            </Text>
+            <Text className="text-xs text-neon-amber/80">Protect streak on failure</Text>
+          </View>
+        </View>
+        <View className="flex-row items-center gap-1">
+          <Image source={require("@/assets/icons/tokens.png")} style={{ width: 20, height: 20 }} />
+          <Text className="text-xs font-mono text-white/60">{insuranceCost}</Text>
+        </View>
+      </View>
+      <Button
+        variant={insured ? "default" : canEnable ? "outline" : "ghost"}
+        size="sm"
+        disabled={disabled}
+        onPress={onToggle}
+        className="w-full"
+      >
+        {insured
+          ? "Disable insurance"
+          : canEnable
+          ? `Enable insurance (${insuranceCost})`
+          : "Insurance unavailable"}
+      </Button>
+    </View>
+  );
+}
+
 export function MissionPanel({
   missions,
   characterState,
@@ -93,9 +222,6 @@ export function MissionPanel({
   const scrapBalance = inventory?.scrap ?? 0;
   const crystalBalance = inventory?.crystal ?? 0;
   const rerollCost = missionOptions.rerollStacks * REROLL_COST_PER_STACK;
-  const insuranceCost = missionOptions.insured ? INSURANCE_COST : 0;
-  const canAffordReroll = scrapBalance >= (missionOptions.rerollStacks + 1) * REROLL_COST_PER_STACK;
-  const canAffordInsurance = crystalBalance >= INSURANCE_COST;
 
   const handleStartMission = (mission: MissionType) => {
     onStart(mission.id, missionOptions.rerollStacks > 0 || missionOptions.insured ? { rerollStacks: missionOptions.rerollStacks, insured: missionOptions.insured } : undefined);
@@ -273,70 +399,21 @@ export function MissionPanel({
             <ExpandedDrawer>
               <View style={{ paddingHorizontal: 20, paddingBottom: 12, gap: 8 }}>
                 {/* Reroll stacks */}
-                <View className="flex-row items-center justify-between">
-                  <View className="flex-row items-center gap-1.5">
-                    <Text className="text-base text-white/50">Reroll</Text>
-                    <Text className="text-base text-neon-cyan font-mono ml-1">-{missionOptions.rerollStacks * REROLL_REDUCTION}% fail</Text>
-                  </View>
-                  <View className="flex-row items-center gap-2.5">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      hitSlop={12}
-                      disabled={missionOptions.rerollStacks <= 0}
-                      onPress={() => setMissionOptions((prev) => ({ ...prev, rerollStacks: prev.rerollStacks - 1 }))}
-                      style={{ minWidth: 44, minHeight: 44, justifyContent: "center", alignItems: "center" }}
-                    >
-                      <Minus size={20} color="rgba(255,255,255,0.5)" />
-                    </Button>
-                    <Text className="font-mono text-lg text-white" style={{ minWidth: 20, textAlign: "center" }}>{missionOptions.rerollStacks}</Text>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      hitSlop={12}
-                      disabled={missionOptions.rerollStacks >= MAX_REROLL_STACKS || !canAffordReroll}
-                      onPress={() => setMissionOptions((prev) => ({ ...prev, rerollStacks: prev.rerollStacks + 1 }))}
-                      style={{ minWidth: 44, minHeight: 44, justifyContent: "center", alignItems: "center" }}
-                    >
-                      <Plus size={20} color="rgba(255,255,255,0.5)" />
-                    </Button>
-                    {missionOptions.rerollStacks > 0 && (
-                      <View className="flex-row items-center gap-1.5">
-                        <Image source={require("@/assets/icons/scrap.png")} style={{ width: 20, height: 20 }} />
-                        <Text className="text-base font-mono text-white/50">{rerollCost}</Text>
-                      </View>
-                    )}
-                  </View>
-                </View>
+                <RerollControl
+                  rerollStacks={missionOptions.rerollStacks}
+                  scrapBalance={scrapBalance}
+                  rerollCost={rerollCost}
+                  onDecrease={() => setMissionOptions((prev) => ({ ...prev, rerollStacks: prev.rerollStacks - 1 }))}
+                  onIncrease={() => setMissionOptions((prev) => ({ ...prev, rerollStacks: prev.rerollStacks + 1 }))}
+                />
 
                 {/* Insurance */}
-                <View className="flex-row items-center justify-between">
-                  <View className="flex-row items-center gap-1.5">
-                    <Text className="text-base text-white/50">Insurance</Text>
-                    <Text className="text-base text-neon-amber ml-1">protect streak</Text>
-                  </View>
-                  <View className="flex-row items-center gap-2.5">
-                    <Button
-                      variant={missionOptions.insured ? "default" : "ghost"}
-                      size="sm"
-                      disabled={!missionOptions.insured && !canAffordInsurance}
-                      onPress={() => setMissionOptions((prev) => ({ ...prev, insured: !prev.insured }))}
-                    >
-                      <View className="flex-row items-center gap-1.5">
-                        <Shield size={14} color={missionOptions.insured ? "#14F195" : "rgba(255,255,255,0.5)"} />
-                        <Text className={`text-sm font-mono ${missionOptions.insured ? "text-neon-green" : "text-white/50"}`}>
-                          {missionOptions.insured ? "ON" : "OFF"}
-                        </Text>
-                      </View>
-                    </Button>
-                    {missionOptions.insured && (
-                      <View className="flex-row items-center gap-1.5">
-                        <Image source={require("@/assets/icons/tokens.png")} style={{ width: 18, height: 18 }} />
-                        <Text className="text-sm font-mono text-white/50">{insuranceCost}</Text>
-                      </View>
-                    )}
-                  </View>
-                </View>
+                <InsuranceControl
+                  insured={missionOptions.insured}
+                  crystalBalance={crystalBalance}
+                  insuranceCost={INSURANCE_COST}
+                  onToggle={() => setMissionOptions((prev) => ({ ...prev, insured: !prev.insured }))}
+                />
 
                 {/* Adjusted fail rate */}
                 {(missionOptions.rerollStacks > 0 || missionOptions.insured) && (
@@ -374,9 +451,20 @@ export function MissionPanel({
 
   // Normal mission list
   return (
-    <GlassPanel contentStyle={{ padding: 20, gap: 14 }}>
-      <GradientText className="text-lg font-display" style={{ letterSpacing: 0.5 }}>Transactions</GradientText>
-      <View className="gap-3">
+    <View
+      className="rounded-xl border p-4 gap-2.5"
+      style={{
+        borderColor: "rgba(26,58,92,0.6)",
+        backgroundColor: "#081222",
+      }}
+    >
+      <View className="gap-1">
+        <GradientText className="text-lg font-display" style={{ letterSpacing: 0.5 }}>Transactions</GradientText>
+        <Text className="text-sm text-white/45">
+          Select mission, tune risk modifiers, send.
+        </Text>
+      </View>
+      <View className="gap-2">
         {missions.map((mission) => {
           const locked = isTierLocked(mission.id);
           const lockLabel = getTierLabel(mission.id);
@@ -388,25 +476,18 @@ export function MissionPanel({
           const isCritical = riskLevel === "critical" && !locked;
 
           const cardContent = (
-            <Pressable
-              onPress={() => !locked && canStart && toggleExpanded(mission.id)}
-              disabled={locked || !canStart}
-              style={({ pressed }) => ({
-                opacity: pressed ? 0.92 : 1,
-                transform: [{ scale: pressed ? 0.99 : 1 }],
-              })}
+            <View
+              className={`rounded-lg border p-3.5 bg-[#0a1628] gap-2.5 ${
+                locked ? "opacity-50 border-white/[0.06]" : RISK_BORDER_CLASSES[riskLevel]
+              }`}
+              style={{ backgroundColor: "#0d1f34", overflow: "hidden" }}
             >
-              <View
-                className={`rounded-lg border p-5 bg-white/[0.02] gap-3.5 ${
-                  locked ? "opacity-50 border-white/[0.06]" : RISK_BORDER_CLASSES[riskLevel]
-                }`}
-              >
                 {/* Top row: name + start button */}
                 <View className="flex-row items-center justify-between">
-                  <View className="gap-2 flex-1 mr-3">
-                    <View className="flex-row items-center gap-2">
+                  <View className="gap-1.5 flex-1 mr-2">
+                    <View className="flex-row items-center gap-1.5">
                       <Text
-                        className={`font-sans-semibold text-lg ${
+                        className={`font-sans-semibold text-base ${
                           riskLevel === "critical" && !locked
                             ? "text-neon-red"
                             : riskLevel === "dangerous" && !locked
@@ -419,14 +500,20 @@ export function MissionPanel({
                         {locked ? mission.name : dynamicLabel}
                       </Text>
                     </View>
-                    <View className="flex-row items-center gap-4">
-                      <View className="flex-row items-center gap-1.5">
-                        <Clock size={16} color="rgba(255,255,255,0.5)" />
-                        <Text className="text-base font-mono text-white/50">{formatDuration(displayDuration)}</Text>
+                    <View className="flex-row items-center gap-2.5">
+                      <View
+                        className="flex-row items-center gap-1.5 rounded-md px-2 py-1"
+                        style={{ backgroundColor: "rgba(255,255,255,0.05)" }}
+                      >
+                        <Clock size={14} color="rgba(255,255,255,0.5)" />
+                        <Text className="text-sm font-mono text-white/50">{formatDuration(displayDuration)}</Text>
                       </View>
-                      <View className="flex-row items-center gap-1.5">
+                      <View
+                        className="flex-row items-center gap-1.5 rounded-md px-2 py-1"
+                        style={{ backgroundColor: "rgba(255,255,255,0.05)" }}
+                      >
                         <Skull
-                          size={16}
+                          size={14}
                           color={
                             (riskLevel === "critical" || riskLevel === "dangerous") && !locked
                               ? "#FF3366"
@@ -436,7 +523,7 @@ export function MissionPanel({
                           }
                         />
                         <Text
-                          className={`text-base font-mono ${
+                          className={`text-sm font-mono ${
                             (riskLevel === "critical" || riskLevel === "dangerous") && !locked
                               ? "text-neon-red"
                               : riskLevel === "risky" && !locked
@@ -449,9 +536,9 @@ export function MissionPanel({
                       </View>
                     </View>
                     {lockLabel && (
-                      <View className="flex-row items-center gap-2">
-                        <Lock size={16} color="rgba(255,255,255,0.5)" />
-                        <Text className="text-base text-white/50">{lockLabel}</Text>
+                      <View className="flex-row items-center gap-1.5">
+                        <Lock size={14} color="rgba(255,255,255,0.5)" />
+                        <Text className="text-sm text-white/50">{lockLabel}</Text>
                       </View>
                     )}
                   </View>
@@ -467,31 +554,31 @@ export function MissionPanel({
 
                 {/* Rewards row */}
                 {!locked && (
-                  <View className="flex-row flex-wrap items-center gap-x-3.5 gap-y-2 border-t border-white/[0.04] pt-3">
+                  <View className="flex-row flex-wrap items-center gap-x-2.5 gap-y-1.5 border-t border-white/[0.04] pt-2.5">
                     <View className="flex-row items-center gap-1.5">
-                      <Image source={require("@/assets/icons/exp.png")} style={{ width: 22, height: 22 }} />
-                      <Text className="text-base font-mono text-white/50">{r.xpRange[0]}-{r.xpRange[1]}</Text>
+                      <Image source={require("@/assets/icons/exp.png")} style={{ width: 20, height: 20 }} />
+                      <Text className="text-sm font-mono text-white/50">{r.xpRange[0]}-{r.xpRange[1]}</Text>
                     </View>
                     <View className="flex-row items-center gap-1.5">
-                      <Image source={require("@/assets/icons/scrap.png")} style={{ width: 26, height: 26 }} />
-                      <Text className="text-base font-mono text-white/50">{r.scrap[0]}-{r.scrap[1]}</Text>
+                      <Image source={require("@/assets/icons/scrap.png")} style={{ width: 22, height: 22 }} />
+                      <Text className="text-sm font-mono text-white/50">{r.scrap[0]}-{r.scrap[1]}</Text>
                     </View>
                     {r.crystal && (
                       <View className="flex-row items-center gap-1.5">
-                        <Image source={require("@/assets/icons/tokens.png")} style={{ width: 24, height: 24 }} />
-                        <Text className="text-base font-mono text-white/50">{r.crystal[0]}-{r.crystal[1]}</Text>
+                        <Image source={require("@/assets/icons/tokens.png")} style={{ width: 20, height: 20 }} />
+                        <Text className="text-sm font-mono text-white/50">{r.crystal[0]}-{r.crystal[1]}</Text>
                       </View>
                     )}
                     {r.artifact && (
                       <View className="flex-row items-center gap-1.5">
-                        <Image source={require("@/assets/icons/key.png")} style={{ width: 24, height: 24 }} />
-                        <Text className="text-base font-mono text-white/50">{r.artifact[0]}-{r.artifact[1]}</Text>
+                        <Image source={require("@/assets/icons/key.png")} style={{ width: 20, height: 20 }} />
+                        <Text className="text-sm font-mono text-white/50">{r.artifact[0]}-{r.artifact[1]}</Text>
                       </View>
                     )}
                     {r.nftChance != null && r.nftChance > 0 && (
                       <View className="flex-row items-center gap-1.5">
-                        <Sparkles size={16} color="#ffb800" />
-                        <Text className="text-base font-mono text-neon-amber">{r.nftChance}%</Text>
+                        <Sparkles size={14} color="#ffb800" />
+                        <Text className="text-sm font-mono text-neon-amber">{r.nftChance}%</Text>
                       </View>
                     )}
                   </View>
@@ -501,74 +588,25 @@ export function MissionPanel({
                 {isExpanded && !locked && (
                   <ExpandedDrawer>
                     {/* Reroll stacks */}
-                    <View className="flex-row items-center justify-between">
-                      <View className="flex-row items-center gap-1.5">
-                        <Text className="text-base text-white/50">Reroll</Text>
-                        <Text className="text-base text-neon-cyan font-mono ml-1">-{missionOptions.rerollStacks * REROLL_REDUCTION}% fail</Text>
-                      </View>
-                      <View className="flex-row items-center gap-2.5">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          hitSlop={12}
-                          disabled={missionOptions.rerollStacks <= 0}
-                          onPress={() => setMissionOptions((prev) => ({ ...prev, rerollStacks: prev.rerollStacks - 1 }))}
-                          style={{ minWidth: 44, minHeight: 44, justifyContent: "center", alignItems: "center" }}
-                        >
-                          <Minus size={20} color="rgba(255,255,255,0.5)" />
-                        </Button>
-                        <Text className="font-mono text-lg text-white" style={{ minWidth: 20, textAlign: "center" }}>{missionOptions.rerollStacks}</Text>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          hitSlop={12}
-                          disabled={missionOptions.rerollStacks >= MAX_REROLL_STACKS || !canAffordReroll}
-                          onPress={() => setMissionOptions((prev) => ({ ...prev, rerollStacks: prev.rerollStacks + 1 }))}
-                          style={{ minWidth: 44, minHeight: 44, justifyContent: "center", alignItems: "center" }}
-                        >
-                          <Plus size={20} color="rgba(255,255,255,0.5)" />
-                        </Button>
-                        {missionOptions.rerollStacks > 0 && (
-                          <View className="flex-row items-center gap-1.5">
-                            <Image source={require("@/assets/icons/scrap.png")} style={{ width: 20, height: 20 }} />
-                            <Text className="text-base font-mono text-white/50">{rerollCost}</Text>
-                          </View>
-                        )}
-                      </View>
-                    </View>
+                    <RerollControl
+                      rerollStacks={missionOptions.rerollStacks}
+                      scrapBalance={scrapBalance}
+                      rerollCost={rerollCost}
+                      onDecrease={() => setMissionOptions((prev) => ({ ...prev, rerollStacks: prev.rerollStacks - 1 }))}
+                      onIncrease={() => setMissionOptions((prev) => ({ ...prev, rerollStacks: prev.rerollStacks + 1 }))}
+                    />
 
                     {/* Insurance toggle */}
-                    <View className="flex-row items-center justify-between">
-                      <View className="flex-row items-center gap-1.5">
-                        <Text className="text-base text-white/50">Insurance</Text>
-                        <Text className="text-base text-neon-amber ml-1">protect streak</Text>
-                      </View>
-                      <View className="flex-row items-center gap-2.5">
-                        <Button
-                          variant={missionOptions.insured ? "default" : "ghost"}
-                          size="sm"
-                          disabled={!missionOptions.insured && !canAffordInsurance}
-                          onPress={() => setMissionOptions((prev) => ({ ...prev, insured: !prev.insured }))}
-                        >
-                          <View className="flex-row items-center gap-1.5">
-                            <Shield size={14} color={missionOptions.insured ? "#14F195" : "rgba(255,255,255,0.5)"} />
-                            <Text className={`text-sm font-mono ${missionOptions.insured ? "text-neon-green" : "text-white/50"}`}>
-                              {missionOptions.insured ? "ON" : "OFF"}
-                            </Text>
-                          </View>
-                        </Button>
-                        {missionOptions.insured && (
-                          <View className="flex-row items-center gap-1.5">
-                            <Image source={require("@/assets/icons/tokens.png")} style={{ width: 18, height: 18 }} />
-                            <Text className="text-sm font-mono text-white/50">{insuranceCost}</Text>
-                          </View>
-                        )}
-                      </View>
-                    </View>
+                    <InsuranceControl
+                      insured={missionOptions.insured}
+                      crystalBalance={crystalBalance}
+                      insuranceCost={INSURANCE_COST}
+                      onToggle={() => setMissionOptions((prev) => ({ ...prev, insured: !prev.insured }))}
+                    />
 
                     {/* Adjusted fail rate preview */}
                     {(missionOptions.rerollStacks > 0 || missionOptions.insured) && (
-                      <Text className="text-base text-center text-white/50">
+                      <Text className="text-sm text-center text-white/50">
                         Fail rate:{" "}
                         <Text style={{ textDecorationLine: "line-through" }}>{mission.failRate}%</Text>{" "}
                         <Text className="text-neon-green font-mono">
@@ -589,8 +627,7 @@ export function MissionPanel({
                     </Button>
                   </ExpandedDrawer>
                 )}
-              </View>
-            </Pressable>
+            </View>
           );
 
           return isCritical ? (
@@ -601,13 +638,13 @@ export function MissionPanel({
         })}
 
         {!canStart && (
-          <Text className="text-base text-white/50 text-center">
+          <Text className="text-sm text-white/50 text-center">
             {characterState === "on_mission"
               ? "Node is processing on chain"
               : "Node is recovering from slash"}
           </Text>
         )}
       </View>
-    </GlassPanel>
+    </View>
   );
 }

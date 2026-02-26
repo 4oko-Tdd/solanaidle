@@ -1,21 +1,43 @@
+import { useEffect } from "react";
 import { View, Text, Pressable, ImageBackground } from "react-native";
 import { Tabs } from "expo-router";
 import { Swords, Wrench, Users, Trophy } from "lucide-react-native";
-import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "@/providers/auth-context";
 import { useInventory } from "@/hooks/use-inventory";
+import { usePerks } from "@/hooks/use-perks";
 import { CurrencyBar } from "@/components/currency-bar";
+import { useToast } from "@/components/toast-provider";
+import { registerNodeTabTap } from "@/providers/dev-tools";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 
-function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+function getDeepestRouteName(route: any): string | undefined {
+  if (!route?.state || !route.state.routes || route.state.index == null) {
+    return route?.name;
+  }
+  const child = route.state.routes[route.state.index];
+  return getDeepestRouteName(child);
+}
+
+function CustomTabBar({
+  state,
+  descriptors,
+  navigation,
+  baseBadgeCount = 0,
+  onTabPressSync,
+}: BottomTabBarProps & { baseBadgeCount?: number; onTabPressSync?: () => void }) {
   const insets = useSafeAreaInsets();
+  const { toast } = useToast();
 
   // Respect tabBarStyle: { display: 'none' } from active screen options
   const currentRoute = state.routes[state.index];
   const currentOpts = descriptors[currentRoute.key].options;
   if ((currentOpts.tabBarStyle as { display?: string } | undefined)?.display === "none") {
+    return null;
+  }
+  const activeNestedRoute = getDeepestRouteName(currentRoute);
+  if (activeNestedRoute === "class-picker") {
     return null;
   }
 
@@ -27,17 +49,17 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
         overflow: "hidden",
         borderTopWidth: 1,
         borderTopColor: "rgba(26,58,92,0.8)",
+        backgroundColor: "#0a1628",
       }}
     >
-      <BlurView intensity={28} tint="dark" style={{ width: "100%" }}>
-        <View
-          style={{
-            flexDirection: "row",
-            backgroundColor: "rgba(10,22,40,0.90)",
-            height: 52 + bottomPad,
-            paddingBottom: bottomPad,
-          }}
-        >
+      <View
+        style={{
+          flexDirection: "row",
+          backgroundColor: "#0a1628",
+          height: 52 + bottomPad,
+          paddingBottom: bottomPad,
+        }}
+      >
           {state.routes.map((route, index) => {
             const { options } = descriptors[route.key];
             const isFocused = state.index === index;
@@ -54,6 +76,13 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
               <Pressable
                 key={route.key}
                 onPress={() => {
+                  onTabPressSync?.();
+                  if (route.name === "game" && isFocused) {
+                    const toggled = registerNodeTabTap();
+                    if (toggled) {
+                      toast("Developer tools toggled", "info");
+                    }
+                  }
                   const event = navigation.emit({
                     type: "tabPress",
                     target: route.key,
@@ -88,6 +117,35 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
                 >
                   {icon}
                 </View>
+                {route.name === "base" && baseBadgeCount > 0 ? (
+                  <View
+                    style={{
+                      position: "absolute",
+                      top: 2,
+                      right: "26%",
+                      minWidth: 16,
+                      height: 16,
+                      borderRadius: 8,
+                      paddingHorizontal: 4,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      backgroundColor: "#FF3366",
+                      borderWidth: 1,
+                      borderColor: "rgba(10,22,40,0.95)",
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontFamily: "Orbitron_700Bold",
+                        fontSize: 9,
+                        color: "#ffffff",
+                        lineHeight: 11,
+                      }}
+                    >
+                      {baseBadgeCount > 9 ? "9+" : String(baseBadgeCount)}
+                    </Text>
+                  </View>
+                ) : null}
 
                 {/* Label */}
                 <Text
@@ -121,8 +179,7 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
               </Pressable>
             );
           })}
-        </View>
-      </BlurView>
+      </View>
     </View>
   );
 }
@@ -130,7 +187,20 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
 export default function TabLayout() {
   const { isAuthenticated } = useAuth();
   const inventory = useInventory(isAuthenticated);
+  const perks = usePerks(isAuthenticated);
   const insets = useSafeAreaInsets();
+  const showCurrencyBar = isAuthenticated && !!inventory;
+  const baseBadgeCount =
+    isAuthenticated && perks.hasPending ? 1 : 0;
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    void perks.refresh();
+    const id = setInterval(() => {
+      void perks.refresh();
+    }, 30000);
+    return () => clearInterval(id);
+  }, [isAuthenticated, perks.refresh]);
 
   return (
     <ImageBackground
@@ -138,10 +208,18 @@ export default function TabLayout() {
       style={{ flex: 1 }}
       resizeMode="cover"
     >
-      <View style={{ flex: 1, paddingTop: insets.top }}>
-        {isAuthenticated && inventory && <CurrencyBar inventory={inventory} />}
+      <View style={{ flex: 1, paddingTop: showCurrencyBar ? 0 : insets.top }}>
+        {showCurrencyBar && <CurrencyBar inventory={inventory} topInset={insets.top} />}
         <Tabs
-          tabBar={(props) => <CustomTabBar {...props} />}
+          tabBar={(props) => (
+            <CustomTabBar
+              {...props}
+              baseBadgeCount={baseBadgeCount}
+              onTabPressSync={() => {
+                if (isAuthenticated) void perks.refresh();
+              }}
+            />
+          )}
           screenOptions={{
             headerShown: false,
             sceneStyle: { backgroundColor: "transparent" },

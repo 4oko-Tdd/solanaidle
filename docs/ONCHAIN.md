@@ -14,6 +14,8 @@ Three Anchor programs handle different aspects of on-chain state:
 
 All ER writes are **server-signed** — players never sign damage or progress transactions. The server keypair (`SERVER_KEYPAIR`) is the sole authority.
 
+SKR monetization actions (Reconnect / Overload Amplifier / Raid License) are documented in `MONETIZATION_PLAN.md` and `API.md`. Current implementation uses wallet-linked SKR balance checks in backend state; on-chain SKR transfer verification is planned.
+
 ---
 
 ## Ephemeral Rollups (ER) — How It Works

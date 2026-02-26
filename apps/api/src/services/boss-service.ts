@@ -12,6 +12,16 @@ import {
   finalizeBossOnChain,
 } from "./boss-er-service.js";
 
+const INITIAL_SKR_BALANCE = 0;
+const DESTABILIZE_ROLL_CHANCE = 0.12;
+const DESTABILIZE_ROLL_INTERVAL_MS = 20 * 60 * 1000;
+const DESTABILIZE_FREE_RECOVERY_MS = 15 * 60 * 1000;
+const SKR_COSTS = {
+  reconnect: 25,
+  overloadAmplifier: 18,
+  raidLicense: 35,
+} as const;
+
 // ── Helpers ──
 
 /** Returns true if current UTC time is Saturday (6) or Sunday (0) */
@@ -94,6 +104,17 @@ interface ParticipantRow {
   crit_used: number;
 }
 
+interface BossEpochStateRow {
+  wallet_address: string;
+  week_start: string;
+  reconnect_used: number;
+  overload_amp_used: number;
+  raid_license: number;
+  destabilized: number;
+  destabilized_at: string | null;
+  last_roll_at: string | null;
+}
+
 function mapParticipant(row: ParticipantRow): Participant {
   return {
     bossId: row.boss_id,
@@ -103,6 +124,66 @@ function mapParticipant(row: ParticipantRow): Participant {
     critDamage: row.crit_damage,
     critUsed: row.crit_used === 1,
   };
+}
+
+function ensureSkrWallet(walletAddress: string): void {
+  db.prepare(
+    "INSERT OR IGNORE INTO skr_wallets (wallet_address, balance) VALUES (?, ?)"
+  ).run(walletAddress, INITIAL_SKR_BALANCE);
+}
+
+function getSkrBalance(walletAddress: string): number {
+  ensureSkrWallet(walletAddress);
+  const row = db
+    .prepare("SELECT balance FROM skr_wallets WHERE wallet_address = ?")
+    .get(walletAddress) as { balance: number } | undefined;
+  return row?.balance ?? 0;
+}
+
+function ensureBossEpochState(walletAddress: string, weekStart: string): BossEpochStateRow {
+  db.prepare(
+    `INSERT OR IGNORE INTO boss_epoch_state
+      (wallet_address, week_start, reconnect_used, overload_amp_used, raid_license, destabilized)
+     VALUES (?, ?, 0, 0, 0, 0)`
+  ).run(walletAddress, weekStart);
+
+  return db
+    .prepare("SELECT * FROM boss_epoch_state WHERE wallet_address = ? AND week_start = ?")
+    .get(walletAddress, weekStart) as BossEpochStateRow;
+}
+
+function spendSkr(
+  walletAddress: string,
+  amount: number,
+  action: string,
+  weekStart: string
+): { success: boolean; error?: string; balance?: number } {
+  const current = getSkrBalance(walletAddress);
+  if (current < amount) {
+    return { success: false, error: "INSUFFICIENT_SKR" };
+  }
+
+  const burned = Math.floor(amount * 0.5);
+  const treasury = Math.floor(amount * 0.3);
+  const reserve = amount - burned - treasury;
+
+  const tx = db.transaction(() => {
+    db.prepare("UPDATE skr_wallets SET balance = balance - ? WHERE wallet_address = ?").run(
+      amount,
+      walletAddress
+    );
+    db.prepare(
+      "UPDATE skr_distribution SET burned = burned + ?, treasury = treasury + ?, reserve = reserve + ? WHERE id = 1"
+    ).run(burned, treasury, reserve);
+    db.prepare(
+      `INSERT INTO skr_spends
+      (id, wallet_address, week_start, action, amount, burned, treasury, reserve)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+    ).run(randomUUID(), walletAddress, weekStart, action, amount, burned, treasury, reserve);
+  });
+  tx();
+
+  return { success: true, balance: current - amount };
 }
 
 // ── Core functions ──
@@ -244,18 +325,56 @@ export function calculatePassiveDamage(
   walletAddress: string,
   bossId: string
 ): number {
+  const weekStart = getWeekStart();
+  const bossState = ensureBossEpochState(walletAddress, weekStart);
   const participant = db
     .prepare(
-      "SELECT joined_at FROM boss_participants WHERE boss_id = ? AND wallet_address = ?"
+      "SELECT joined_at, passive_damage FROM boss_participants WHERE boss_id = ? AND wallet_address = ?"
     )
-    .get(bossId, walletAddress) as { joined_at: string } | undefined;
+    .get(bossId, walletAddress) as { joined_at: string; passive_damage: number } | undefined;
   if (!participant) return 0;
+  const now = Date.now();
+
+  if (bossState.destabilized === 1) {
+    const destabilizedAtMs = bossState.destabilized_at
+      ? new Date(bossState.destabilized_at).getTime()
+      : now;
+    if (now - destabilizedAtMs >= DESTABILIZE_FREE_RECOVERY_MS) {
+      db.prepare(
+        "UPDATE boss_epoch_state SET destabilized = 0, destabilized_at = NULL, last_roll_at = ? WHERE wallet_address = ? AND week_start = ?"
+      ).run(new Date(now).toISOString(), walletAddress, weekStart);
+    } else {
+      return participant.passive_damage;
+    }
+  }
+
+  const lastRollAt = bossState.last_roll_at ? new Date(bossState.last_roll_at).getTime() : 0;
+  const joinedAtMs = new Date(participant.joined_at).getTime();
+  const canRollDestabilize =
+    bossState.reconnect_used === 0 &&
+    now - joinedAtMs > DESTABILIZE_ROLL_INTERVAL_MS &&
+    now - lastRollAt > DESTABILIZE_ROLL_INTERVAL_MS;
+
+  if (canRollDestabilize) {
+    const rolledDestabilized = Math.random() < DESTABILIZE_ROLL_CHANCE;
+    db.prepare(
+      "UPDATE boss_epoch_state SET last_roll_at = ?, destabilized = ?, destabilized_at = ? WHERE wallet_address = ? AND week_start = ?"
+    ).run(
+      new Date(now).toISOString(),
+      rolledDestabilized ? 1 : 0,
+      rolledDestabilized ? new Date(now).toISOString() : null,
+      walletAddress,
+      weekStart
+    );
+    if (rolledDestabilized) {
+      return participant.passive_damage;
+    }
+  }
 
   const hoursInFight =
-    (Date.now() - new Date(participant.joined_at).getTime()) / 3600000;
+    (now - joinedAtMs) / 3600000;
 
   // Get player's run for gear levels + score
-  const weekStart = getWeekStart();
   const run = db
     .prepare(
       "SELECT armor_level, engine_level, scanner_level, score FROM weekly_runs WHERE wallet_address = ? AND week_start = ? AND active = 1"
@@ -276,7 +395,8 @@ export function calculatePassiveDamage(
     scannerLevel * 2 +
     score / 100;
 
-  const damage = Math.floor(basePower * hoursInFight);
+  const efficiency = bossState.raid_license === 1 ? 1.05 : 1;
+  const damage = Math.floor(basePower * efficiency * hoursInFight);
 
   db.prepare(
     "UPDATE boss_participants SET passive_damage = ? WHERE boss_id = ? AND wallet_address = ?"
@@ -325,8 +445,13 @@ export async function useOverload(
     inv.crystal * OVERLOAD_MULTIPLIERS.crystal +
     inv.artifact * OVERLOAD_MULTIPLIERS.artifact;
 
-  // Check for critical_overload perk (1.5x multiplier)
   const weekStart = getWeekStart();
+  const bossState = ensureBossEpochState(walletAddress, weekStart);
+  if (bossState.overload_amp_used === 1) {
+    damage = Math.floor(damage * 1.1);
+  }
+
+  // Check for critical_overload perk (1.5x multiplier)
   const run = db
     .prepare(
       "SELECT id FROM weekly_runs WHERE wallet_address = ? AND week_start = ? AND active = 1"
@@ -396,6 +521,86 @@ export async function useOverload(
   return { success: true, damage };
 }
 
+export function purchaseRaidLicense(walletAddress: string): { success: boolean; error?: string; skrBalance?: number } {
+  const weekStart = getWeekStart();
+  const state = ensureBossEpochState(walletAddress, weekStart);
+  if (state.raid_license === 1) {
+    return { success: false, error: "RAID_LICENSE_ALREADY_ACTIVE" };
+  }
+
+  const spent = spendSkr(walletAddress, SKR_COSTS.raidLicense, "raid_license", weekStart);
+  if (!spent.success) return { success: false, error: spent.error };
+
+  db.prepare(
+    "UPDATE boss_epoch_state SET raid_license = 1 WHERE wallet_address = ? AND week_start = ?"
+  ).run(walletAddress, weekStart);
+
+  return { success: true, skrBalance: spent.balance };
+}
+
+export function purchaseOverloadAmplifier(walletAddress: string): { success: boolean; error?: string; skrBalance?: number } {
+  const weekStart = getWeekStart();
+  const boss = getCurrentBoss();
+  if (!boss) return { success: false, error: "BOSS_NOT_ACTIVE" };
+
+  const participant = db
+    .prepare("SELECT crit_used FROM boss_participants WHERE boss_id = ? AND wallet_address = ?")
+    .get(boss.id, walletAddress) as { crit_used: number } | undefined;
+  if (!participant) return { success: false, error: "NOT_IN_FIGHT" };
+  if (participant.crit_used === 1) return { success: false, error: "OVERLOAD_ALREADY_USED" };
+
+  const state = ensureBossEpochState(walletAddress, weekStart);
+  if (state.overload_amp_used === 1) return { success: false, error: "OVERLOAD_AMP_ALREADY_ACTIVE" };
+
+  const spent = spendSkr(walletAddress, SKR_COSTS.overloadAmplifier, "overload_amplifier", weekStart);
+  if (!spent.success) return { success: false, error: spent.error };
+
+  db.prepare(
+    "UPDATE boss_epoch_state SET overload_amp_used = 1 WHERE wallet_address = ? AND week_start = ?"
+  ).run(walletAddress, weekStart);
+
+  return { success: true, skrBalance: spent.balance };
+}
+
+export function useReconnectProtocol(walletAddress: string): { success: boolean; error?: string; skrBalance?: number } {
+  const weekStart = getWeekStart();
+  const boss = getCurrentBoss();
+  if (!boss) return { success: false, error: "BOSS_NOT_ACTIVE" };
+  if (boss.killed) return { success: false, error: "BOSS_ALREADY_KILLED" };
+
+  const participant = db
+    .prepare("SELECT joined_at FROM boss_participants WHERE boss_id = ? AND wallet_address = ?")
+    .get(boss.id, walletAddress) as { joined_at: string } | undefined;
+  if (!participant) return { success: false, error: "NOT_IN_FIGHT" };
+
+  const state = ensureBossEpochState(walletAddress, weekStart);
+  if (state.reconnect_used === 1) return { success: false, error: "RECONNECT_ALREADY_USED" };
+  if (state.destabilized === 0) return { success: false, error: "NODE_NOT_DESTABILIZED" };
+
+  const spent = spendSkr(walletAddress, SKR_COSTS.reconnect, "reconnect_protocol", weekStart);
+  if (!spent.success) return { success: false, error: spent.error };
+
+  const now = Date.now();
+  const destabilizedAt = state.destabilized_at ? new Date(state.destabilized_at).getTime() : now;
+  const downtimeMs = Math.max(0, now - destabilizedAt);
+  const joinedAtMs = new Date(participant.joined_at).getTime();
+  const shiftedJoinedAt = new Date(joinedAtMs + downtimeMs).toISOString();
+
+  const tx = db.transaction(() => {
+    db.prepare(
+      "UPDATE boss_participants SET joined_at = ? WHERE boss_id = ? AND wallet_address = ?"
+    ).run(shiftedJoinedAt, boss.id, walletAddress);
+    db.prepare(
+      `UPDATE boss_epoch_state
+       SET reconnect_used = 1, destabilized = 0, destabilized_at = NULL, last_roll_at = ?
+       WHERE wallet_address = ? AND week_start = ?`
+    ).run(new Date(now).toISOString(), walletAddress, weekStart);
+  });
+  tx();
+
+  return { success: true, skrBalance: spent.balance };
+}
+
 /** Recalculate all passive damage and apply to boss HP. */
 export function updateAllPassiveDamage(bossId: string): void {
   const participants = db
@@ -453,6 +658,17 @@ export function getBossStatus(
   participantCount: number;
   totalDamage: number;
   playerContribution?: number;
+  skrBalance?: number;
+  reconnectUsed?: boolean;
+  overloadAmpUsed?: boolean;
+  raidLicense?: boolean;
+  destabilized?: boolean;
+  monetizationCosts?: {
+    reconnect: number;
+    overloadAmplifier: number;
+    raidLicense: number;
+    freeRecoveryMinutes: number;
+  };
 } | null {
   const row = db
     .prepare("SELECT * FROM world_boss WHERE id = ?")
@@ -480,6 +696,17 @@ export function getBossStatus(
     playerContribution?: number;
     hasJoined?: boolean;
     overloadUsed?: boolean;
+    skrBalance?: number;
+    reconnectUsed?: boolean;
+    overloadAmpUsed?: boolean;
+    raidLicense?: boolean;
+    destabilized?: boolean;
+    monetizationCosts?: {
+      reconnect: number;
+      overloadAmplifier: number;
+      raidLicense: number;
+      freeRecoveryMinutes: number;
+    };
   } = {
     boss,
     participantCount: countRow.cnt,
@@ -487,6 +714,8 @@ export function getBossStatus(
   };
 
   if (walletAddress) {
+    const weekStart = getWeekStart();
+    const epochState = ensureBossEpochState(walletAddress, weekStart);
     const playerRow = db
       .prepare(
         "SELECT (passive_damage + crit_damage) as player_total, crit_used FROM boss_participants WHERE boss_id = ? AND wallet_address = ?"
@@ -495,6 +724,17 @@ export function getBossStatus(
 
     result.hasJoined = !!playerRow;
     result.overloadUsed = !!playerRow && playerRow.crit_used === 1;
+    result.skrBalance = getSkrBalance(walletAddress);
+    result.reconnectUsed = epochState.reconnect_used === 1;
+    result.overloadAmpUsed = epochState.overload_amp_used === 1;
+    result.raidLicense = epochState.raid_license === 1;
+    result.destabilized = epochState.destabilized === 1;
+    result.monetizationCosts = {
+      reconnect: SKR_COSTS.reconnect,
+      overloadAmplifier: SKR_COSTS.overloadAmplifier,
+      raidLicense: SKR_COSTS.raidLicense,
+      freeRecoveryMinutes: Math.floor(DESTABILIZE_FREE_RECOVERY_MS / 60000),
+    };
     if (playerRow && dmgRow.total > 0) {
       result.playerContribution = playerRow.player_total / dmgRow.total;
     } else {

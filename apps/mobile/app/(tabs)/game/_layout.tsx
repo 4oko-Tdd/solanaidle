@@ -4,7 +4,7 @@ export default function GameStack() {
     <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: "transparent" } }}>
       <Stack.Screen name="index" />
       <Stack.Screen name="run-end" />
-      <Stack.Screen name="class-picker" options={{ presentation: "formSheet" }} />
+      <Stack.Screen name="class-picker" options={{ presentation: "card" }} />
     </Stack>
   );
 }

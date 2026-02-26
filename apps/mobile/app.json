@@ -9,8 +9,12 @@
     "newArchEnabled": true,
     "androidStatusBar": {
       "barStyle": "light-content",
-      "backgroundColor": "#00000000",
-      "translucent": true
+      "backgroundColor": "#0a1628",
+      "translucent": false
+    },
+    "androidNavigationBar": {
+      "barStyle": "light-content",
+      "backgroundColor": "#0a1628"
     },
     "android": {
       "package": "com.seekernode.app",

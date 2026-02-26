@@ -20,7 +20,7 @@ export function DailyLoginModal({ status, loading, onClaim, onClose }: Props) {
   // Still loading or no data yet — show spinner with skip option
   if (!status) {
     return (
-      <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.85)", justifyContent: "center", alignItems: "center", gap: 16 }}>
+      <View style={{ flex: 1, backgroundColor: "rgba(10,22,40,0.98)", justifyContent: "center", alignItems: "center", gap: 16 }}>
         {loading ? (
           <ActivityIndicator size="large" color="#ffb800" />
         ) : (
@@ -49,9 +49,10 @@ export function DailyLoginModal({ status, loading, onClaim, onClose }: Props) {
 
   return (
     <TouchableWithoutFeedback onPress={onClose}>
-      <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.85)" }}>
+      <View style={{ flex: 1, backgroundColor: "rgba(10,22,40,0.98)" }}>
         <ScrollView
           style={{ flex: 1 }}
+          showsVerticalScrollIndicator={false}
           contentContainerStyle={{ padding: 20, paddingBottom: 32, flexGrow: 1, justifyContent: "center" }}
         >
           <TouchableWithoutFeedback>

@@ -84,9 +84,13 @@ export function useBoss() {
   }, [refresh]);
 
   const overload = useCallback(async () => {
-    const playerSignature = signMessage && publicKey
-      ? await signOverload(signMessage, publicKey.toBase58())
-      : null;
+    if (!signMessage || !publicKey) {
+      throw new Error("Wallet signature required");
+    }
+    const playerSignature = await signOverload(signMessage, publicKey.toBase58());
+    if (!playerSignature) {
+      throw new Error("Boss OVERLOAD was cancelled in wallet");
+    }
     await api("/boss/overload", {
       method: "POST",
       body: JSON.stringify({ playerSignature }),

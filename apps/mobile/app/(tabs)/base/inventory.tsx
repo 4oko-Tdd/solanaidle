@@ -10,6 +10,7 @@ export default function InventoryRoute() {
   return (
     <ScrollView
       contentInsetAdjustmentBehavior="automatic"
+      showsVerticalScrollIndicator={false}
       className="flex-1"
       contentContainerStyle={{ paddingBottom: 32 }}
     >

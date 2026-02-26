@@ -1,5 +1,10 @@
 # Seeker Node — SKR Utility & Monetization Model
 
+SKR token:
+- Network: Solana
+- Mint: `SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3`
+- Position in UI: top Resource Bar (shown with core resources)
+
 ## Philosophy
 
 - SKR is NOT required to play.
@@ -31,16 +36,18 @@ No SKR required to play or win.
 During the World Boss:
 - Player has a % chance to become "Node Destabilized"
 - This temporarily removes them from contributing damage
+- Player auto-recovers for free after a short timeout
+- Player can pay SKR for instant recovery
 
 Player may activate:
 
 ### Reconnect Protocol
-Cost: X SKR
+Cost: 25 SKR
 Limit: 1 per epoch
 
 Effect:
-- Rejoin the Hunt
-- Restore passive damage contribution
+- Instant recovery from destabilized state
+- Restore passive damage contribution immediately
 - No additional bonus multiplier
 
 Purpose:
@@ -57,7 +64,7 @@ Hard Cap:
 
 Optional SKR usage before triggering OVERLOAD:
 
-Cost: Y SKR
+Cost: 18 SKR
 Limit: 1 per epoch
 
 Effect:
@@ -78,13 +85,10 @@ Free Entry:
 - Normal contribution scaling
 
 Premium Raid License (per epoch):
-Cost: Z SKR
+Cost: 35 SKR
 
 Grants:
 - +5% contribution efficiency
-- Cosmetic boss aura
-- Priority damage animation effect
-- Exclusive leaderboard badge for that week
 
 Does NOT:
 - Increase drop odds directly
@@ -148,7 +152,25 @@ Fairness remains intact.
 
 ---
 
-# 7. Economic Intent
+# 7. Current Implementation Status
+
+Implemented now:
+- Reconnect Protocol (25 SKR, once per epoch)
+- Overload Amplifier (18 SKR, +10% OVERLOAD, once per epoch)
+- Raid License (35 SKR, +5% passive contribution efficiency, once per epoch)
+- Destabilization system with free auto-recovery window
+- SKR spend routing:
+  - 50% burn
+  - 30% treasury
+  - 20% reserve
+- SKR shown in mobile Resource Bar
+
+Not implemented yet:
+- On-chain SKR transfer + on-chain payment verification for purchases
+
+---
+
+# 8. Economic Intent
 
 Goal:
 - Create steady SKR burn pressure

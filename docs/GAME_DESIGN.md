@@ -59,6 +59,7 @@ Each week is an **epoch** (matching Solana terminology). Epochs define the compe
 
 - Character deals **passive damage** based on power (gear level + upgrades + score)
 - **One OVERLOAD** available: dump remaining resources for a single burst of damage
+- Optional SKR utilities are available with strict per-epoch caps (Reconnect / Amplifier / License)
 - Boss HP bar visible to all players in **real-time via websocket** (powered by MagicBlock Ephemeral Rollups — `boss-tracker` program). A "LIVE" indicator appears when connected.
 - Falls back to 30s HTTP polling when websocket is unavailable
 - Guild members' damage stacks (incentive to coordinate)
@@ -78,6 +79,7 @@ Each week is an **epoch** (matching Solana terminology). Epochs define the compe
 |---|---|
 | Character level | Permanent rare loot (boss drops) |
 | Resources (Scrap, Crystal, Keys) | NFT artifacts (hand-crafted legendaries) |
+| Boss monetization flags (reconnect/amp/license) | SKR wallet balance (SKR token) |
 | Gear upgrades (Armor/Engine/Scanner) | Achievement badges |
 | Roguelike perks | Inventory capacity (Data Core expansions) |
 | Streak counter | |
@@ -158,13 +160,19 @@ When the world boss spawns Saturday 00:00 UTC, all regular missions are **locked
 
 ## Resources
 
-All resources are off-chain, stored in the server database. **Resources reset to zero every epoch.**
+Epoch resources are off-chain, stored in the server database. **Epoch resources reset to zero every epoch.**
 
 | Resource | Display Name | Source | Use |
 |---|---|---|---|
 | scrap | Scrap | All missions | Basic upgrades, OVERLOAD fuel |
 | crystal | Crystal | Liquidity Run+ | Advanced upgrades, OVERLOAD fuel |
 | artifact | Keys | Deep Farm | Rare upgrades, OVERLOAD fuel |
+
+### SKR Token (Wallet Utility)
+
+| Token | Source | Use | Reset |
+|---|---|---|---|
+| SKR | Wallet on-chain balance | Optional boss utility actions | Does not reset per epoch |
 
 ### The Spending Tension
 
@@ -174,6 +182,15 @@ Resources serve two competing purposes every epoch:
 2. **Hoard for OVERLOAD** → dump everything into one massive boss crit → more contribution % → better drop odds
 
 This is the core economic decision. There is no "correct" answer — it depends on your build, your class, and how the boss fight is going.
+
+### Boss Utility Layer (SKR, Optional)
+
+The weekend fight includes optional SKR actions:
+
+- **Reconnect Protocol** — instant recovery from `destabilized` (25 SKR, max 1 per epoch)
+- **Overload Amplifier** — +10% OVERLOAD damage (18 SKR, max 1 per epoch)
+- **Raid License** — +5% passive contribution efficiency (35 SKR, max 1 per epoch)
+- `destabilized` has a free timed auto-recovery path; SKR is for instant recovery only
 
 ---
 
@@ -305,6 +322,13 @@ damage_per_hour = base_power
 - Modified by perks (Critical Overload = 1.5x, Chain Reaction = guild boost)
 - Can only be used **once per boss fight**
 - Button text: "OVERLOAD" with resource amount shown
+
+### Boss Utility Actions (SKR)
+
+- **Reconnect Protocol (25 SKR):** instantly clears `destabilized` state. Max 1 per epoch.
+- **Overload Amplifier (18 SKR):** adds +10% to your OVERLOAD burst. Max 1 per epoch.
+- **Raid License (35 SKR):** grants +5% passive contribution efficiency. Max 1 per epoch.
+- Destabilization can still recover for free over time (no purchase required).
 
 ### Resolution (Sunday 23:59 UTC)
 
@@ -499,7 +523,7 @@ The game world is **Solana's network as a cyberpunk city.**
 | Boss crit | OVERLOAD | Overclock your node beyond safe limits |
 | Permanent loot | On-chain artifacts | Fragments recovered from defeated Leviathans |
 | Weekly buffs | Residual charge | Energy left over from fighting the Leviathan |
-| Resources | Scrap / Crystal / Keys | Network-native currency |
+| Resources | Scrap / Crystal / Keys / SKR | Epoch resources + wallet utility token |
 | Missions | Network operations | Quick Swap, Liquidity Run, Deep Farm |
 
 ### UI Text Tone
@@ -520,6 +544,7 @@ The game world is **Solana's network as a cyberpunk city.**
 | Epoch Start | `signMessage` — commits class selection + ER delegation |
 | Epoch End | Score sealed on-chain via Ephemeral Rollups |
 | VRF Bonus | `signTransaction` — requests on-chain randomness (MagicBlock VRF) |
+| Boss Utility Purchase | Uses wallet-linked SKR balance for optional boss actions (on-chain transfer verification in progress) |
 | Claim NFT | Server mints to wallet (no player signature) |
 | View NFTs | Read Metaplex Core assets from wallet |
 
