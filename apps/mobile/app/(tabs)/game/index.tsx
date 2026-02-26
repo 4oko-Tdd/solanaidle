@@ -151,7 +151,6 @@ export default function GameScreen() {
     return (
       <RunEndScreen
         run={gameState.endedRun}
-        signMessage={signMessage}
         onClose={() => gameState.refresh()}
       />
     );

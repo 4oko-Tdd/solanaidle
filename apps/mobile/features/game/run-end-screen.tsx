@@ -14,7 +14,6 @@ import {
   Heart,
   TrendingUp,
 } from "lucide-react-native";
-import bs58 from "bs58";
 import { Button } from "@/components/ui";
 import { ClassIcon } from "@/components/class-icon";
 import { ScreenBg } from "@/components/screen-bg";
@@ -30,7 +29,6 @@ import type {
 
 interface Props {
   run: WeeklyRun;
-  signMessage?: ((msg: Uint8Array) => Promise<Uint8Array>) | null;
   onClose: () => void;
 }
 
@@ -81,7 +79,7 @@ function MagicBlockNote() {
   );
 }
 
-export function RunEndScreen({ run, signMessage, onClose }: Props) {
+export function RunEndScreen({ run, onClose }: Props) {
   const [phase, setPhase] = useState<"summary" | "rolling" | "bonus" | "done">("summary");
   const [events, setEvents] = useState<RunEvent[]>([]);
   const [bonus, setBonus] = useState<EpochBonusRewards | null>(null);
@@ -105,24 +103,25 @@ export function RunEndScreen({ run, signMessage, onClose }: Props) {
     setPhase("rolling");
 
     try {
-      // Step 1: Request VRF randomness (player signs one MagicBlock tx)
-      const vrfAccount = await requestRoll();
-
-      // Step 2: Sign the epoch-end message to authorize finalization
-      if (!signMessage) {
-        throw new Error("Wallet signature required");
-      }
+      // Build epoch-end message to sign in the same MWA session as the VRF tx
       const msg = `END_RUN:week${weekNum}:score:${run.score}:${Date.now()}`;
       const msgBytes = new TextEncoder().encode(msg);
-      const sigBytes = await signMessage(msgBytes);
-      const signature = bs58.encode(sigBytes);
 
-      // Step 3: Finalize with backend (includes VRF account for bonus calc)
+      // Single MWA session: VRF tx + message signature (one wallet popup)
+      const rollResult = await requestRoll(msgBytes);
+
+      if (!rollResult) {
+        throw new Error("VRF roll failed");
+      }
+
+      const signature = rollResult.messageSig ?? "vrf-authorized";
+
+      // Finalize with backend (includes VRF account for bonus calc)
       const result = await api<EpochFinalizeResponse>(`/runs/${run.id}/finalize`, {
         method: "POST",
         body: JSON.stringify({
           signature,
-          vrfAccount,
+          vrfAccount: rollResult.vrfAccount,
         }),
       });
 
