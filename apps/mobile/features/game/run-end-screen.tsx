@@ -14,13 +14,10 @@ import {
   Heart,
   TrendingUp,
 } from "lucide-react-native";
-import { transact } from "@solana-mobile/mobile-wallet-adapter-protocol-web3js";
-import { PublicKey } from "@solana/web3.js";
 import bs58 from "bs58";
 import { Button } from "@/components/ui";
 import { ClassIcon } from "@/components/class-icon";
 import { ScreenBg } from "@/components/screen-bg";
-import { useVrfRoll } from "@/hooks/use-vrf-roll";
 import { api } from "@/lib/api";
 import type {
   WeeklyRun,
@@ -32,6 +29,7 @@ import type {
 
 interface Props {
   run: WeeklyRun;
+  signMessage: (msg: Uint8Array) => Promise<Uint8Array>;
   onClose: () => void;
 }
 
@@ -82,12 +80,11 @@ function MagicBlockNote() {
   );
 }
 
-export function RunEndScreen({ run, onClose }: Props) {
+export function RunEndScreen({ run, signMessage, onClose }: Props) {
   const [phase, setPhase] = useState<"summary" | "rolling" | "bonus" | "done">("summary");
   const [events, setEvents] = useState<RunEvent[]>([]);
   const [bonus, setBonus] = useState<EpochBonusRewards | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const { requestRoll, status: vrfStatus, reset: resetVrf } = useVrfRoll();
   const weekNum = getWeekNumber(run.weekStart);
 
   useEffect(() => {
@@ -106,48 +103,21 @@ export function RunEndScreen({ run, onClose }: Props) {
     setPhase("rolling");
 
     try {
+      // Sign epoch-end message via wallet-ui (uses reauthorize — shows "Sign message", not "Connect")
       const msg = `END_RUN:week${weekNum}:score:${run.score}:${Date.now()}`;
       const msgBytes = new TextEncoder().encode(msg);
+      const sigBytes = await signMessage(msgBytes);
+      // MWA sign_messages returns message+signature; extract last 64 bytes (ed25519)
+      const raw = new Uint8Array(sigBytes);
+      const sig64 = raw.length > 64 ? raw.slice(raw.length - 64) : raw;
+      const signature = bs58.encode(sig64);
 
-      // Try combined VRF + sign in one MWA session
-      const rollResult = await requestRoll(msgBytes);
-
-      let signature: string;
-      let vrfAccount: string | null = null;
-
-      if (rollResult?.messageSig) {
-        // VRF succeeded (or oracle timed out) but we have the message signature
-        signature = rollResult.messageSig;
-        vrfAccount = rollResult.vrfAccount;
-      } else {
-        // VRF transact() failed entirely — fall back to signing message only
-        signature = await transact(async (wallet) => {
-          const authResult = await wallet.authorize({
-            cluster: "devnet",
-            identity: {
-              name: "Seeker Node",
-              uri: "https://seekernode.app",
-              icon: "/icon.png",
-            },
-          });
-          const signed = await wallet.signMessages({
-            addresses: [authResult.accounts[0].address],
-            payloads: [msgBytes],
-          });
-          const sigBytes = new Uint8Array(signed[0]);
-          const sig64 = sigBytes.length > 64
-            ? sigBytes.slice(sigBytes.length - 64)
-            : sigBytes;
-          return bs58.encode(sig64);
-        });
-      }
-
-      // Finalize with backend (VRF account is optional — server uses fallback RNG)
+      // Finalize with backend (server uses fallback RNG when vrfAccount is null)
       const result = await api<EpochFinalizeResponse>(`/runs/${run.id}/finalize`, {
         method: "POST",
         body: JSON.stringify({
           signature,
-          vrfAccount,
+          vrfAccount: null,
         }),
       });
 
@@ -162,7 +132,6 @@ export function RunEndScreen({ run, onClose }: Props) {
       console.error("[RunEndScreen] finalize failed:", e);
       setError("Finalization failed. Try again.");
       setPhase("summary");
-      resetVrf();
     }
   };
 
@@ -175,13 +144,6 @@ export function RunEndScreen({ run, onClose }: Props) {
 
   // ── Rolling phase ──
   if (phase === "rolling") {
-    const steps = [
-      { key: "requesting", label: "Requesting randomness", Icon: Dice5 },
-      { key: "waiting-oracle", label: "Oracle verifying", Icon: ShieldCheck },
-      { key: "fulfilled", label: "Calculating bonus", Icon: Sparkles },
-    ];
-    const activeIdx = steps.findIndex((s) => s.key === vrfStatus);
-
     return (
       <ScreenBg>
         <ScrollView
@@ -192,76 +154,14 @@ export function RunEndScreen({ run, onClose }: Props) {
         <View className="rounded-2xl border border-neon-purple/20 bg-[#091120] overflow-hidden">
           <View className="h-1 bg-neon-purple/60" />
           <View className="p-6 gap-6 items-center">
-            {/* Animated dice */}
             <View className="w-20 h-20 rounded-full bg-neon-purple/10 border border-neon-purple/30 items-center justify-center">
               <ActivityIndicator color="#9945ff" size="large" />
             </View>
-
             <View className="items-center gap-1">
-              <Text className="text-2xl font-display text-neon-purple">Rolling Rewards</Text>
+              <Text className="text-2xl font-display text-neon-purple">Sealing Score</Text>
               <Text className="text-xs text-white/40 font-mono">Epoch {weekNum} Finalization</Text>
             </View>
-
-            {/* Progress steps */}
-            <View className="w-full gap-2">
-              {steps.map((step, i) => {
-                const isActive = step.key === vrfStatus;
-                const isDone = activeIdx > i;
-                const { Icon } = step;
-                return (
-                  <View
-                    key={step.key}
-                    className={`flex-row items-center gap-3 rounded-lg px-3 py-2.5 border ${
-                      isActive
-                        ? "bg-neon-purple/10 border-neon-purple/30"
-                        : isDone
-                        ? "bg-neon-green/5 border-neon-green/20"
-                        : "bg-white/[0.02] border-transparent"
-                    }`}
-                  >
-                    <View
-                      className={`w-7 h-7 rounded-full items-center justify-center ${
-                        isDone
-                          ? "bg-neon-green/20"
-                          : isActive
-                          ? "bg-neon-purple/20"
-                          : "bg-white/5"
-                      }`}
-                    >
-                      {isDone ? (
-                        <ShieldCheck size={14} color="#14F195" />
-                      ) : isActive ? (
-                        <ActivityIndicator size="small" color="#9945ff" />
-                      ) : (
-                        <Icon size={14} color="rgba(255,255,255,0.2)" />
-                      )}
-                    </View>
-                    <Text
-                      className={`text-sm font-sans-semibold ${
-                        isDone
-                          ? "text-neon-green/80"
-                          : isActive
-                          ? "text-neon-purple"
-                          : "text-white/20"
-                      }`}
-                    >
-                      {step.label}
-                    </Text>
-                  </View>
-                );
-              })}
-
-              {vrfStatus === "error" && (
-                <View className="flex-row items-center gap-3 rounded-lg px-3 py-2.5 bg-neon-amber/5 border border-neon-amber/20">
-                  <View className="w-7 h-7 rounded-full bg-neon-amber/20 items-center justify-center">
-                    <Zap size={14} color="#ffb800" />
-                  </View>
-                  <Text className="text-sm text-neon-amber">Using server randomness</Text>
-                </View>
-              )}
-            </View>
-
-            <MagicBlockNote />
+            <Text className="text-sm text-white/40 text-center">Calculating your bonus rewards...</Text>
           </View>
         </View>
         </ScrollView>
