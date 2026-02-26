@@ -14,6 +14,9 @@ import {
   Heart,
   TrendingUp,
 } from "lucide-react-native";
+import { transact } from "@solana-mobile/mobile-wallet-adapter-protocol-web3js";
+import { PublicKey } from "@solana/web3.js";
+import bs58 from "bs58";
 import { Button } from "@/components/ui";
 import { ClassIcon } from "@/components/class-icon";
 import { ScreenBg } from "@/components/screen-bg";
@@ -103,25 +106,48 @@ export function RunEndScreen({ run, onClose }: Props) {
     setPhase("rolling");
 
     try {
-      // Build epoch-end message to sign in the same MWA session as the VRF tx
       const msg = `END_RUN:week${weekNum}:score:${run.score}:${Date.now()}`;
       const msgBytes = new TextEncoder().encode(msg);
 
-      // Single MWA session: VRF tx + message signature (one wallet popup)
+      // Try combined VRF + sign in one MWA session
       const rollResult = await requestRoll(msgBytes);
 
-      if (!rollResult) {
-        throw new Error("VRF roll failed");
+      let signature: string;
+      let vrfAccount: string | null = null;
+
+      if (rollResult?.messageSig) {
+        // VRF succeeded (or oracle timed out) but we have the message signature
+        signature = rollResult.messageSig;
+        vrfAccount = rollResult.vrfAccount;
+      } else {
+        // VRF transact() failed entirely — fall back to signing message only
+        signature = await transact(async (wallet) => {
+          const authResult = await wallet.authorize({
+            cluster: "devnet",
+            identity: {
+              name: "Seeker Node",
+              uri: "https://seekernode.app",
+              icon: "/icon.png",
+            },
+          });
+          const signed = await wallet.signMessages({
+            addresses: [authResult.accounts[0].address],
+            payloads: [msgBytes],
+          });
+          const sigBytes = new Uint8Array(signed[0]);
+          const sig64 = sigBytes.length > 64
+            ? sigBytes.slice(sigBytes.length - 64)
+            : sigBytes;
+          return bs58.encode(sig64);
+        });
       }
 
-      const signature = rollResult.messageSig ?? "vrf-authorized";
-
-      // Finalize with backend (includes VRF account for bonus calc)
+      // Finalize with backend (VRF account is optional — server uses fallback RNG)
       const result = await api<EpochFinalizeResponse>(`/runs/${run.id}/finalize`, {
         method: "POST",
         body: JSON.stringify({
           signature,
-          vrfAccount: rollResult.vrfAccount,
+          vrfAccount,
         }),
       });
 
