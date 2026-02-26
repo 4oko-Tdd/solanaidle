@@ -4,6 +4,7 @@ import { Trophy, Crown, Medal, Signal, Swords, Heart } from "lucide-react-native
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ClassIcon } from "@/components/class-icon";
+import { GradientText } from "@/components/gradient-text";
 import { api } from "@/lib/api";
 import type { LeaderboardEntry } from "@solanaidle/shared";
 import { GlassPanel } from "@/components/glass-panel";
@@ -13,11 +14,11 @@ function truncateWallet(addr: string): string {
 }
 
 function RankIcon({ rank }: { rank: number }) {
-  if (rank === 1) return <Trophy size={14} color="#ffb800" />;
-  if (rank === 2) return <Medal size={14} color="rgba(255,255,255,0.4)" />;
-  if (rank === 3) return <Medal size={14} color="rgba(255,184,0,0.6)" />;
+  if (rank === 1) return <Trophy size={18} color="#ffb800" />;
+  if (rank === 2) return <Medal size={18} color="rgba(255,255,255,0.4)" />;
+  if (rank === 3) return <Medal size={18} color="rgba(255,184,0,0.6)" />;
   return (
-    <Text className="font-mono text-[#4a7a9b] text-xs">#{rank}</Text>
+    <Text className="font-mono text-[#4a7a9b] text-sm">#{rank}</Text>
   );
 }
 
@@ -49,7 +50,7 @@ export function LeaderboardPanel({ isAuthenticated, currentWallet }: Props) {
     return (
       <View className="flex-col items-center justify-center gap-3 py-16">
         <ActivityIndicator color="#4a7a9b" size="small" />
-        <Text className="text-xs text-[#4a7a9b] font-mono">Loading rankings...</Text>
+        <Text className="text-sm text-[#4a7a9b] font-mono">Loading rankings...</Text>
       </View>
     );
   }
@@ -60,48 +61,56 @@ export function LeaderboardPanel({ isAuthenticated, currentWallet }: Props) {
     return (
       <View className="gap-4">
         {/* Header */}
-        <GlassPanel contentStyle={{ padding: 16 }}>
-          <View className="flex-row items-center gap-2 mb-3">
-            <Trophy size={24} color="#ffb800" />
-            <Text className="text-lg font-display text-white" style={{ letterSpacing: 0.5 }}>Epoch Leaderboard</Text>
+        <GlassPanel contentStyle={{ padding: 20, gap: 12 }}>
+          <View className="flex-row items-center gap-2.5">
+            <Trophy size={26} color="#ffb800" />
+            <GradientText className="text-lg font-display" style={{ letterSpacing: 0.5 }}>Epoch Leaderboard</GradientText>
           </View>
-          <Text className="text-xs text-[#4a7a9b] leading-relaxed">
+          <Text className="text-base text-[#4a7a9b] leading-relaxed">
             Compete against other validators each epoch. Complete missions, build streaks, and hunt whales to climb the ranks.
           </Text>
         </GlassPanel>
 
         {/* Empty state */}
-        <View className="rounded-xl border border-dashed border-[#1a3a5c]/60 bg-[#0a1628]/40 p-8 items-center gap-3">
-          <Signal size={40} color="rgba(74,122,155,0.4)" />
-          <Text className="text-sm font-sans-bold text-[#4a7a9b]">No rankings yet</Text>
-          <Text className="text-xs text-[#4a7a9b]/70 text-center leading-relaxed max-w-[240px]">
+        <GlassPanel contentStyle={{ padding: 24, alignItems: "center", gap: 16 }}>
+          <View className="w-20 h-20 rounded-full bg-neon-amber/5 border border-neon-amber/10 items-center justify-center">
+            <Signal size={36} color="#4a7a9b" />
+          </View>
+          <Text className="text-lg font-sans-bold text-[#4a7a9b]">No rankings yet</Text>
+          <Text className="text-base text-[#4a7a9b] text-center leading-relaxed max-w-[280px]">
             Be the first to finalize an epoch and claim the top spot on the leaderboard.
           </Text>
-        </View>
+        </GlassPanel>
 
         {/* How scoring works */}
-        <GlassPanel contentStyle={{ padding: 16, gap: 12 }}>
-          <Text className="text-sm font-sans-bold text-white">How Scoring Works</Text>
-          <View className="gap-2">
-            <View className="flex-row items-start gap-2">
-              <Swords size={14} color="#14F195" style={{ marginTop: 2 }} />
+        <GlassPanel contentStyle={{ padding: 20, gap: 14 }}>
+          <Text className="text-lg font-display text-white" style={{ letterSpacing: 0.5 }}>How Scoring Works</Text>
+          <View className="gap-3.5">
+            <View className="flex-row items-start gap-3">
+              <View className="w-9 h-9 rounded-md bg-neon-green/10 border border-neon-green/20 items-center justify-center mt-0.5">
+                <Swords size={18} color="#14F195" />
+              </View>
               <View className="flex-1">
-                <Text className="text-xs font-sans-bold text-white">Missions</Text>
-                <Text className="text-xs text-[#4a7a9b]">Each successful transaction adds to your score. Harder missions = more points.</Text>
+                <Text className="text-base font-sans-bold text-white">Missions</Text>
+                <Text className="text-sm text-[#4a7a9b] leading-relaxed">Each successful transaction adds to your score. Harder missions = more points.</Text>
               </View>
             </View>
-            <View className="flex-row items-start gap-2">
-              <Crown size={14} color="#ffb800" style={{ marginTop: 2 }} />
+            <View className="flex-row items-start gap-3">
+              <View className="w-9 h-9 rounded-md bg-neon-amber/10 border border-neon-amber/20 items-center justify-center mt-0.5">
+                <Crown size={18} color="#ffb800" />
+              </View>
               <View className="flex-1">
-                <Text className="text-xs font-sans-bold text-white">Streaks</Text>
-                <Text className="text-xs text-[#4a7a9b]">Chain successful missions for multipliers: 2x HODL, 4x Diamond Hands, 6x To The Moon.</Text>
+                <Text className="text-base font-sans-bold text-white">Streaks</Text>
+                <Text className="text-sm text-[#4a7a9b] leading-relaxed">Chain successful missions for multipliers: 2x HODL, 4x Diamond Hands, 6x To The Moon.</Text>
               </View>
             </View>
-            <View className="flex-row items-start gap-2">
-              <Heart size={14} color="#FF3366" style={{ marginTop: 2 }} />
+            <View className="flex-row items-start gap-3">
+              <View className="w-9 h-9 rounded-md bg-neon-red/10 border border-neon-red/20 items-center justify-center mt-0.5">
+                <Heart size={18} color="#FF3366" />
+              </View>
               <View className="flex-1">
-                <Text className="text-xs font-sans-bold text-white">Survival</Text>
-                <Text className="text-xs text-[#4a7a9b]">3 lives per epoch. Lose them all and your run ends — choose missions wisely.</Text>
+                <Text className="text-base font-sans-bold text-white">Survival</Text>
+                <Text className="text-sm text-[#4a7a9b] leading-relaxed">3 lives per epoch. Lose them all and your run ends — choose missions wisely.</Text>
               </View>
             </View>
           </View>
@@ -116,35 +125,35 @@ export function LeaderboardPanel({ isAuthenticated, currentWallet }: Props) {
   return (
     <View className="gap-4">
       {/* Header */}
-      <GlassPanel contentStyle={{ padding: 16 }}>
-        <View className="flex-row items-center justify-between mb-2">
-          <View className="flex-row items-center gap-2">
-            <Trophy size={20} color="#ffb800" />
-            <Text className="text-base font-display text-white" style={{ letterSpacing: 0.5 }}>Epoch Leaderboard</Text>
+      <GlassPanel contentStyle={{ padding: 20, gap: 10 }}>
+        <View className="flex-row items-center justify-between">
+          <View className="flex-row items-center gap-2.5">
+            <Trophy size={24} color="#ffb800" />
+            <GradientText className="text-lg font-display" style={{ letterSpacing: 0.5 }}>Epoch Leaderboard</GradientText>
           </View>
           <Badge variant="default">
             {`${safeEntries.length} ${safeEntries.length === 1 ? "player" : "players"}`}
           </Badge>
         </View>
-        <Text className="text-[11px] text-[#4a7a9b] leading-relaxed">
+        <Text className="text-sm text-[#4a7a9b] leading-relaxed">
           Top validators this epoch. Finalize your run to lock in your score.
         </Text>
       </GlassPanel>
 
       {/* Your rank highlight */}
       {myEntry && (
-        <View className="rounded-xl border border-[#9945FF]/40 bg-[#9945FF]/[0.08] px-3 py-2.5 flex-row items-center justify-between">
-          <View className="flex-row items-center gap-2">
-            <Text className="text-xs font-mono text-[#9945FF]">#{myEntry.rank}</Text>
-            <ClassIcon classId={myEntry.classId} size={16} />
-            <Text className="text-sm font-sans-bold text-white">You</Text>
+        <GlassPanel glow="purple" contentStyle={{ paddingHorizontal: 16, paddingVertical: 14, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+          <View className="flex-row items-center gap-3">
+            <Text className="text-base font-mono text-[#9945FF]">#{myEntry.rank}</Text>
+            <ClassIcon classId={myEntry.classId} size={20} />
+            <Text className="text-base font-sans-bold text-white">You</Text>
           </View>
-          <Text className="font-display text-[#14F195]">{myEntry.score}</Text>
-        </View>
+          <Text className="text-lg font-display text-[#14F195]">{myEntry.score}</Text>
+        </GlassPanel>
       )}
 
       {/* Leaderboard rows */}
-      <GlassPanel>
+      <GlassPanel contentStyle={{ padding: 0 }}>
         <FlatList
           data={displayEntries}
           keyExtractor={(item) => String(item.rank)}
@@ -154,23 +163,23 @@ export function LeaderboardPanel({ isAuthenticated, currentWallet }: Props) {
             const isLast = index === displayEntries.length - 1;
             return (
               <View
-                className={`flex-row items-center justify-between px-3 py-2.5 ${
+                className={`flex-row items-center justify-between px-4 py-3.5 ${
                   !isLast ? "border-b border-[#1a3a5c]/30" : ""
                 } ${isMe ? "bg-[#9945FF]/[0.06]" : ""}`}
               >
-                <View className="flex-row items-center gap-2.5">
-                  <View className="w-6 items-center">
+                <View className="flex-row items-center gap-3">
+                  <View className="w-7 items-center">
                     <RankIcon rank={entry.rank} />
                   </View>
-                  <ClassIcon classId={entry.classId} size={14} />
-                  <Text className={`${isMe ? "font-mono-bold text-xs text-white" : "font-mono text-xs text-[#7ab8d9]"}`}>
+                  <ClassIcon classId={entry.classId} size={18} />
+                  <Text className={`${isMe ? "font-mono-bold text-sm text-white" : "font-mono text-sm text-[#7ab8d9]"}`}>
                     {isMe ? "You" : truncateWallet(entry.walletAddress)}
                   </Text>
                 </View>
-                <View className="flex-row items-center gap-2.5">
-                  {entry.bossDefeated && <Crown size={14} color="#ffb800" />}
-                  <Text className="text-xs text-[#4a7a9b] font-mono">{entry.missionsCompleted}m</Text>
-                  <Text className="font-display text-[#14F195]">{entry.score}</Text>
+                <View className="flex-row items-center gap-3">
+                  {entry.bossDefeated && <Crown size={16} color="#ffb800" />}
+                  <Text className="text-sm text-[#4a7a9b] font-mono">{entry.missionsCompleted}m</Text>
+                  <Text className="text-base font-display text-[#14F195]">{entry.score}</Text>
                 </View>
               </View>
             );
@@ -178,15 +187,14 @@ export function LeaderboardPanel({ isAuthenticated, currentWallet }: Props) {
         />
 
         {safeEntries.length > 10 && (
-          <View className="px-3 py-2 border-t border-[#1a3a5c]/30">
+          <View className="px-4 py-3 border-t border-[#1a3a5c]/30">
             <Button
-              variant="ghost"
-              size="sm"
+              variant="outline"
+              size="md"
               onPress={() => setExpanded(!expanded)}
+              className="w-full"
             >
-              <Text className="text-xs text-[#4a7a9b]">
-                {expanded ? "Show top 10" : `Show all ${safeEntries.length} players`}
-              </Text>
+              {expanded ? "Show top 10" : `Show all ${safeEntries.length} players`}
             </Button>
           </View>
         )}

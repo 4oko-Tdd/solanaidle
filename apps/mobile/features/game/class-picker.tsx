@@ -107,7 +107,7 @@ export function ClassPicker({ classes, currentClassId, onSelect }: Props) {
                     </View>
                   </View>
 
-                  <Text className="text-sm text-white/50">{cls.description}</Text>
+                  <Text className="text-sm text-white/70">{cls.description}</Text>
 
                   {/* Modifier badges */}
                   <View className="flex-row flex-wrap gap-1">

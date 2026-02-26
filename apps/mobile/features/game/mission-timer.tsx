@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { View, Text } from "react-native";
+import Animated from "react-native-reanimated";
 import { Button } from "@/components/ui";
 import { Progress } from "@/components/ui";
 import { GlassPanel } from "@/components/glass-panel";
+import { useFadeInUp, usePulse } from "@/lib/animations";
 import type { ActiveMission } from "@solanaidle/shared";
 
 interface Props {
@@ -17,6 +19,39 @@ function formatTime(seconds: number): string {
   if (h > 0) return `${h}h ${m}m ${s}s`;
   if (m > 0) return `${m}m ${s}s`;
   return `${s}s`;
+}
+
+function CompleteLabel() {
+  const fadeIn = useFadeInUp(0, 400);
+  return (
+    <Animated.View style={fadeIn}>
+      <Text style={{ fontFamily: "RobotoMono_400Regular", fontSize: 16, color: "#14F195", textTransform: "uppercase", letterSpacing: 1.5 }}>
+        Complete!
+      </Text>
+    </Animated.View>
+  );
+}
+
+function UrgentTimer({ text }: { text: string }) {
+  const pulseStyle = usePulse(true, 800, 0.5);
+  return (
+    <Animated.View style={pulseStyle}>
+      <Text style={{ fontFamily: "RobotoMono_700Bold", fontSize: 16, color: "#ffb800" }}>
+        {text}
+      </Text>
+    </Animated.View>
+  );
+}
+
+function ReadyToClaim() {
+  const fadeIn = useFadeInUp(100, 400);
+  return (
+    <Animated.View style={fadeIn}>
+      <Text style={{ fontFamily: "Inter_600SemiBold", fontSize: 16, color: "#14F195" }}>
+        Ready to claim!
+      </Text>
+    </Animated.View>
+  );
 }
 
 export function MissionTimer({ mission, onClaim }: Props) {
@@ -36,7 +71,6 @@ export function MissionTimer({ mission, onClaim }: Props) {
 
   const isComplete = timeRemaining <= 0;
 
-  // Calculate progress from endsAt and startedAt
   const startedAt = new Date(mission.startedAt).getTime();
   const endsAt = new Date(mission.endsAt).getTime();
   const totalDuration = Math.max(1, (endsAt - startedAt) / 1000);
@@ -62,25 +96,18 @@ export function MissionTimer({ mission, onClaim }: Props) {
           ? "rgba(255,184,0,0.4)"
           : "rgba(26,58,92,0.6)"
       }
-      style={
-        isComplete
-          ? { boxShadow: "0 0 20px #14F19540" }
-          : isUrgent
-          ? { boxShadow: "0 0 15px #ffb80030" }
-          : undefined
-      }
-      contentStyle={{ padding: 16, gap: 12 }}
+      glow={isComplete ? "green" : isUrgent ? "amber" : undefined}
+      animateGlow={isComplete || isUrgent}
+      contentStyle={{ padding: 20, gap: 14 }}
     >
       <View className="flex-row items-center justify-between">
-        <Text className="text-base font-display text-white">
+        <Text className="text-lg font-display text-white">
           {missionName} in Progress
         </Text>
         {isComplete ? (
-          <Text className="text-xs font-mono text-neon-green uppercase tracking-wider">
-            Complete!
-          </Text>
+          <CompleteLabel />
         ) : isUrgent ? (
-          <Text className="text-xs font-mono text-neon-amber uppercase tracking-wider">
+          <Text className="text-sm font-mono text-neon-amber uppercase tracking-wider">
             Almost...
           </Text>
         ) : null}
@@ -89,21 +116,25 @@ export function MissionTimer({ mission, onClaim }: Props) {
       <Progress
         value={progressPercent}
         color={isComplete ? "#14F195" : isUrgent ? "#ffb800" : "#00d4ff"}
+        className={isComplete ? "h-3.5" : ""}
       />
 
       <View className="flex-row items-center justify-between">
-        <Text className={`text-sm ${isUrgent ? "font-mono-bold text-neon-amber" : "font-mono text-white/50"}`}>
-          {isComplete ? (
-            <Text className="text-neon-green font-sans-bold">Ready to claim!</Text>
-          ) : (
-            formatTime(timeRemaining)
-          )}
-        </Text>
+        {isComplete ? (
+          <ReadyToClaim />
+        ) : isUrgent ? (
+          <UrgentTimer text={formatTime(timeRemaining)} />
+        ) : (
+          <Text className="text-base font-mono text-white/50">
+            {formatTime(timeRemaining)}
+          </Text>
+        )}
         <Button
-          size="sm"
+          size="md"
+          variant={isComplete ? "gradient" : "default"}
           disabled={!isComplete}
           onPress={onClaim}
-          style={isComplete ? { borderColor: "#14F195", borderWidth: 1 } : undefined}
+          shimmer={isComplete}
         >
           {isComplete ? "Claim Reward" : "In Progress..."}
         </Button>

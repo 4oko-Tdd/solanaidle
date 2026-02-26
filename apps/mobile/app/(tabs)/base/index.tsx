@@ -1,5 +1,6 @@
+import { useEffect } from "react";
 import { ScrollView, View, Text } from "react-native";
-import { useRouter } from "expo-router";
+import { useRouter, useNavigation } from "expo-router";
 import { useAuth } from "@/providers/auth-context";
 import { useGameState } from "@/hooks/use-game-state";
 import { usePerks } from "@/hooks/use-perks";
@@ -8,13 +9,22 @@ import { PerkPicker } from "@/features/game/perk-picker";
 import { TrophyCase } from "@/features/game/trophy-case";
 import { PermanentCollection } from "@/features/game/permanent-collection";
 import { ScreenBg } from "@/components/screen-bg";
-import { GlassPanel } from "@/components/glass-panel";
 
 export default function BaseScreen() {
   const router = useRouter();
   const { isAuthenticated } = useAuth();
-  const { upgradeInfo, inventory, upgradeTrack, activeRun } = useGameState(isAuthenticated);
-  const { offers, hasPending, loading, choosePerk } = usePerks();
+  const { upgradeInfo, inventory, upgradeTrack, activeRun, refresh } = useGameState(isAuthenticated);
+  const { offers, hasPending, loading, choosePerk, refresh: refreshPerks } = usePerks();
+  const navigation = useNavigation();
+
+  // Re-fetch game state & perks when tab gains focus (e.g. after a new epoch or level-up on GAME tab)
+  useEffect(() => {
+    const unsub = navigation.addListener("focus", () => {
+      refresh();
+      refreshPerks();
+    });
+    return unsub;
+  }, [navigation, refresh, refreshPerks]);
 
   return (
     <ScreenBg>
@@ -40,24 +50,47 @@ export default function BaseScreen() {
           onViewCollection={() => router.push("/(tabs)/ranks/collection")}
         />
 
-        {/* Epoch Rules */}
-        <GlassPanel contentStyle={{ padding: 12, gap: 8 }}>
-          <Text className="text-[10px] font-mono text-white/40 uppercase tracking-widest">Epoch Rules</Text>
-          <View className="gap-2">
-            <View className="flex-row items-center gap-2">
-              <View className="w-1.5 h-1.5 rounded-full bg-[#FF3366]" />
-              <Text className="text-xs font-mono text-white/50">Resets: missions, score, streak, boss</Text>
-            </View>
-            <View className="flex-row items-center gap-2">
-              <View className="w-1.5 h-1.5 rounded-full bg-[#14F195]" />
-              <Text className="text-xs font-mono text-white/50">Persists: gear, perks, inventory, salvage</Text>
-            </View>
-            <View className="flex-row items-center gap-2">
-              <View className="w-1.5 h-1.5 rounded-full bg-[#ffb800]" />
-              <Text className="text-xs font-mono text-white/50">Carry-over: 20% of resources</Text>
-            </View>
+        {/* Epoch Rules — compact like web */}
+        <View
+          style={{
+            borderRadius: 8,
+            borderWidth: 1,
+            borderColor: "rgba(255,255,255,0.06)",
+            backgroundColor: "rgba(10,22,40,0.60)",
+            padding: 12,
+            gap: 6,
+          }}
+        >
+          <Text className="text-sm font-mono text-white/40 uppercase tracking-wider">Epoch Rules</Text>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", columnGap: 10, rowGap: 4 }}>
+            {[
+              { keeps: false, text: "Resources reset" },
+              { keeps: false, text: "Upgrades reset" },
+              { keeps: true, text: "Boss Loot persists" },
+              { keeps: true, text: "Badges persist" },
+            ].map((item) => (
+              <View key={item.text} style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
+                <View
+                  style={{
+                    width: 5,
+                    height: 5,
+                    borderRadius: 2.5,
+                    backgroundColor: item.keeps ? "#14F195" : "rgba(255,51,102,0.6)",
+                  }}
+                />
+                <Text
+                  style={{
+                    fontSize: 14,
+                    fontFamily: "RobotoMono_400Regular",
+                    color: item.keeps ? "rgba(255,255,255,0.8)" : "rgba(255,255,255,0.4)",
+                  }}
+                >
+                  {item.text}
+                </Text>
+              </View>
+            ))}
           </View>
-        </GlassPanel>
+        </View>
       </View>
     </ScrollView>
     </ScreenBg>

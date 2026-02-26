@@ -363,57 +363,6 @@ export interface DailyLoginStatus {
   rewards: DailyReward[]; // all 7 days for calendar display
 }
 
-// ── Jupiter Quests ──
-
-export type QuestId =
-  | "price_scout"      // Free daily: check a token price
-  | "token_scan"       // Free daily: look up a token's info
-  | "portfolio_check"  // Free daily: view your portfolio via Jupiter
-  | "pnl_report"       // Free daily: check PnL on holdings
-  | "micro_swap"       // Weekly: do a small swap via Jupiter
-  | "prediction_bet";  // Weekly: place a micro prediction bet
-
-export type QuestFrequency = "daily" | "weekly";
-
-export interface QuestDefinition {
-  id: QuestId;
-  name: string;
-  description: string;
-  frequency: QuestFrequency;
-  requiresTx: boolean;
-  reward: QuestReward;
-}
-
-export interface QuestReward {
-  scrap?: number;
-  crystal?: number;
-  artifact?: number;
-  boost?: {
-    type: "loot_chance" | "speed" | "xp";
-    percentBonus: number;
-    durationMinutes: number;
-  };
-}
-
-export interface QuestProgress {
-  questId: QuestId;
-  completed: boolean;
-  completedAt: string | null;
-  result: Record<string, unknown> | null;
-}
-
-export interface QuestStatus {
-  quests: (QuestDefinition & QuestProgress)[];
-  activeBoosts: ActiveBoost[];
-}
-
-export interface ActiveBoost {
-  type: "loot_chance" | "speed" | "xp";
-  percentBonus: number;
-  expiresAt: string;
-  source: QuestId;
-}
-
 // ── Permanent Loot & Inventory ──
 
 export interface PermanentLootItem {

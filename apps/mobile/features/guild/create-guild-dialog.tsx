@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { View, Text, TextInput } from "react-native";
 import { Button } from "@/components/ui";
+import { GlassPanel } from "@/components/glass-panel";
 
 interface Props {
   show: boolean;
@@ -37,29 +38,31 @@ export function CreateGuildDialog({ show, onClose, onCreated, onCreate }: Props)
   };
 
   return (
-    <View className="mt-4 rounded-xl border border-[#1a3a5c]/60 bg-[#0a1628]/95 p-4 gap-3">
-      <Text className="text-sm font-sans-bold text-white">Create Guild</Text>
+    <GlassPanel contentStyle={{ padding: 20, gap: 14 }}>
+      <Text className="text-lg font-display text-white" style={{ letterSpacing: 0.5 }}>Create Guild</Text>
       <TextInput
         placeholder="Guild name"
         placeholderTextColor="#4a7a9b"
         value={name}
         onChangeText={setName}
         maxLength={24}
-        className="rounded border border-[#1a3a5c]/60 bg-[#0d1f35] px-3 py-2 text-sm text-white font-mono"
+        className="rounded-lg border border-[#1a3a5c]/60 bg-[#0d1f35] px-4 py-3 text-base text-white font-mono"
       />
       {!!error && (
-        <Text className="text-xs text-neon-red">{error}</Text>
+        <Text className="text-sm text-neon-red">{error}</Text>
       )}
-      <View className="flex-row gap-2">
-        <Button variant="ghost" size="sm" onPress={onClose} className="flex-1">
-          Cancel
-        </Button>
-        <Button size="sm" onPress={handleCreate} disabled={creating} className="flex-1">
-          <Text className="text-xs font-mono text-neon-green">
+      <View style={{ flexDirection: "row", gap: 12, width: "100%" }}>
+        <View style={{ flex: 1 }}>
+          <Button variant="outline" size="lg" onPress={onClose}>
+            Cancel
+          </Button>
+        </View>
+        <View style={{ flex: 1 }}>
+          <Button variant="gradient" size="lg" onPress={handleCreate} disabled={creating}>
             {creating ? "Creating..." : "Create Guild"}
-          </Text>
-        </Button>
+          </Button>
+        </View>
       </View>
-    </View>
+    </GlassPanel>
   );
 }
