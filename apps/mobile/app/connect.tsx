@@ -6,7 +6,7 @@ import { ScreenBg } from "@/components/screen-bg";
 import { useEffect } from "react";
 
 export default function ConnectScreen() {
-  const { authenticate, isAuthenticated, authLoading } = useAuth();
+  const { authenticate, isAuthenticated, authLoading, authError } = useAuth();
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
@@ -42,6 +42,11 @@ export default function ConnectScreen() {
       <Text className="text-white/20 font-mono text-xs text-center">
         Requires a Solana wallet app installed on this device
       </Text>
+      {authError ? (
+        <Text className="text-red-400/90 font-mono text-xs text-center">
+          {authError}
+        </Text>
+      ) : null}
     </View>
     </ScreenBg>
   );

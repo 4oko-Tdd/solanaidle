@@ -158,6 +158,7 @@ export function LeaderboardPanel({ isAuthenticated, currentWallet }: Props) {
           data={displayEntries}
           keyExtractor={(item) => String(item.rank)}
           scrollEnabled={false}
+          showsVerticalScrollIndicator={false}
           renderItem={({ item: entry, index }) => {
             const isMe = !!(currentWallet && entry.walletAddress === currentWallet);
             const isLast = index === displayEntries.length - 1;

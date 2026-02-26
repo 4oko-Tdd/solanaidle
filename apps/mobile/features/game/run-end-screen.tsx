@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { View, Text, ScrollView, ActivityIndicator, Linking } from "react-native";
+import { View, Text, ScrollView, ActivityIndicator, Linking, Pressable } from "react-native";
 import {
   Sparkles,
   Gift,
@@ -17,6 +17,7 @@ import {
 import bs58 from "bs58";
 import { Button } from "@/components/ui";
 import { ClassIcon } from "@/components/class-icon";
+import { ScreenBg } from "@/components/screen-bg";
 import { useVrfRoll } from "@/hooks/use-vrf-roll";
 import { api } from "@/lib/api";
 import type {
@@ -71,6 +72,15 @@ function getGrade(
   return { letter: "D", color: "text-white/40" };
 }
 
+function MagicBlockNote() {
+  return (
+    <View className="flex-row items-center justify-center gap-1.5">
+      <ShieldCheck size={12} color="#00d4ff" />
+      <Text className="text-xs text-white/40">Randomness secured by MagicBlock VRF</Text>
+    </View>
+  );
+}
+
 export function RunEndScreen({ run, signMessage, onClose }: Props) {
   const [phase, setPhase] = useState<"summary" | "rolling" | "bonus" | "done">("summary");
   const [events, setEvents] = useState<RunEvent[]>([]);
@@ -96,25 +106,16 @@ export function RunEndScreen({ run, signMessage, onClose }: Props) {
 
     try {
       // Step 1: Request VRF randomness (player signs one MagicBlock tx)
-      let vrfAccount: string | null = null;
-      try {
-        vrfAccount = await requestRoll();
-      } catch (e) {
-        console.warn("[RunEndScreen] VRF request failed, continuing without:", e);
-      }
+      const vrfAccount = await requestRoll();
 
       // Step 2: Sign the epoch-end message to authorize finalization
-      let signature = "unsigned";
-      if (signMessage) {
-        try {
-          const msg = `END_RUN:week${weekNum}:score:${run.score}:${Date.now()}`;
-          const msgBytes = new TextEncoder().encode(msg);
-          const sigBytes = await signMessage(msgBytes);
-          signature = bs58.encode(sigBytes);
-        } catch (e) {
-          console.warn("[RunEndScreen] signMessage failed, using fallback:", e);
-        }
+      if (!signMessage) {
+        throw new Error("Wallet signature required");
       }
+      const msg = `END_RUN:week${weekNum}:score:${run.score}:${Date.now()}`;
+      const msgBytes = new TextEncoder().encode(msg);
+      const sigBytes = await signMessage(msgBytes);
+      const signature = bs58.encode(sigBytes);
 
       // Step 3: Finalize with backend (includes VRF account for bonus calc)
       const result = await api<EpochFinalizeResponse>(`/runs/${run.id}/finalize`, {
@@ -157,11 +158,13 @@ export function RunEndScreen({ run, signMessage, onClose }: Props) {
     const activeIdx = steps.findIndex((s) => s.key === vrfStatus);
 
     return (
-      <ScrollView
-        className="flex-1"
-        contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
-      >
-        <View className="rounded-2xl border border-neon-purple/20 bg-surface overflow-hidden">
+      <ScreenBg>
+        <ScrollView
+          className="flex-1"
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
+        >
+        <View className="rounded-2xl border border-neon-purple/20 bg-[#091120] overflow-hidden">
           <View className="h-1 bg-neon-purple/60" />
           <View className="p-6 gap-6 items-center">
             {/* Animated dice */}
@@ -233,110 +236,133 @@ export function RunEndScreen({ run, signMessage, onClose }: Props) {
               )}
             </View>
 
-            <Text className="text-xs text-white/30">Powered by MagicBlock</Text>
+            <MagicBlockNote />
           </View>
         </View>
-      </ScrollView>
+        </ScrollView>
+      </ScreenBg>
     );
   }
 
   // ── Bonus reveal phase ──
   if (phase === "bonus" && bonus) {
     const mult = MULTIPLIER_LABELS[bonus.multiplier] ?? { color: "text-neon-green", label: "Bonus" };
+    const scoreDelta = bonus.boostedScore - bonus.originalScore;
+    const rollToneColor =
+      bonus.multiplier >= 3 ? "#9945ff" : bonus.multiplier >= 2 ? "#ffb800" : bonus.multiplier > 1 ? "#00d4ff" : "#4a7a9b";
 
     return (
-      <ScrollView
-        className="flex-1"
-        contentContainerStyle={{ padding: 16, paddingBottom: 32, gap: 16 }}
-      >
-        {/* Header card */}
-        <View className="rounded-2xl border border-neon-amber/20 bg-surface overflow-hidden">
-          <View className="h-1 bg-neon-amber/60" />
-          <View className="p-5 items-center gap-3">
-            <View className="w-16 h-16 rounded-full bg-neon-amber/10 border border-neon-amber/20 items-center justify-center">
-              <Gift size={36} color="#ffb800" />
-            </View>
-            <Text className="text-2xl font-display text-neon-amber">Epoch Bonus!</Text>
-            {bonus.vrfVerified && (
-              <View className="flex-row items-center gap-1.5 rounded-full bg-neon-cyan/10 border border-neon-cyan/20 px-3 py-1">
-                <ShieldCheck size={14} color="#00d4ff" />
-                <Text className="text-sm text-neon-cyan font-sans-semibold">Verified by MagicBlock</Text>
+      <ScreenBg>
+        <ScrollView
+          className="flex-1"
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ padding: 16, paddingBottom: 32, gap: 16 }}
+        >
+          <View className="rounded-2xl border border-neon-amber/20 bg-[#091120] overflow-hidden">
+            <View className="h-1 bg-neon-amber/60" />
+            <View className="p-4 items-center gap-2.5">
+              <View className="w-14 h-14 rounded-full bg-neon-amber/10 border border-neon-amber/20 items-center justify-center">
+                <Gift size={30} color="#ffb800" />
               </View>
-            )}
-          </View>
-        </View>
-
-        {/* Score multiplier */}
-        <View className="rounded-2xl border border-white/[0.08] bg-surface p-4 items-center gap-2">
-          <Text className="text-xs font-mono text-white/40 uppercase tracking-widest">
-            {mult.label} Roll
-          </Text>
-          <Text className={`text-5xl font-sans-bold ${mult.color}`}>{bonus.multiplier}x</Text>
-          <Text className="text-xs text-white/40">Score Multiplier</Text>
-        </View>
-
-        {/* Score boost result */}
-        <View className="rounded-xl border border-white/[0.08] bg-surface p-4">
-          <View className="flex-row items-center justify-center gap-4">
-            <View className="items-center">
-              <Text className="text-lg font-mono text-white/40">{bonus.originalScore}</Text>
-              <Text className="text-xs text-white/40 uppercase">Before</Text>
+              <Text className="text-xl font-display text-neon-amber">Epoch Bonus Result</Text>
+              <Text className="text-sm text-white/50 text-center">Your roll has been applied to final score.</Text>
+              {bonus.vrfVerified && (
+                <View className="flex-row items-center gap-1.5 rounded-full bg-neon-cyan/10 border border-neon-cyan/20 px-3 py-1">
+                  <ShieldCheck size={12} color="#00d4ff" />
+                  <Text className="text-xs text-neon-cyan font-sans-semibold">VRF verified</Text>
+                </View>
+              )}
             </View>
-            <TrendingUp size={20} color={mult.color.includes("amber") ? "#ffb800" : mult.color.includes("purple") ? "#9945ff" : "#00d4ff"} />
+          </View>
+
+          <View className="rounded-xl border border-white/[0.08] bg-[#091120] p-4 gap-3">
+            <View className="items-center gap-1">
+              <Text className="text-xs font-mono text-white/40 uppercase tracking-widest">Your Roll</Text>
+              <Text className={`text-5xl font-sans-bold ${mult.color}`}>{bonus.multiplier}x</Text>
+              <Text className="text-xs text-white/45">{mult.label} multiplier</Text>
+            </View>
+
+            <View className="rounded-lg border border-white/[0.08] bg-white/[0.03] p-3">
+              <View className="flex-row items-center justify-between">
+                <View className="items-center">
+                  <Text className="text-xs text-white/40 uppercase tracking-wider">Before</Text>
+                  <Text className="text-lg font-mono text-white/75">{bonus.originalScore}</Text>
+                </View>
+                <TrendingUp size={18} color={rollToneColor} />
+                <View className="items-center">
+                  <Text className="text-xs text-white/40 uppercase tracking-wider">Final</Text>
+                  <Text className="text-2xl font-display text-neon-green">{bonus.boostedScore}</Text>
+                </View>
+              </View>
+            </View>
+
             <View className="items-center">
-              <Text
-                className={`text-2xl font-display ${
-                  bonus.multiplier > 1 ? "text-neon-green" : "text-white"
-                }`}
+              <View
+                style={{
+                  borderRadius: 999,
+                  borderWidth: 1,
+                  borderColor: scoreDelta > 0 ? "rgba(20,241,149,0.35)" : "rgba(255,255,255,0.14)",
+                  backgroundColor: scoreDelta > 0 ? "rgba(20,241,149,0.12)" : "rgba(255,255,255,0.05)",
+                  paddingHorizontal: 10,
+                  paddingVertical: 5,
+                }}
               >
-                {bonus.boostedScore}
-              </Text>
-              <Text className="text-xs text-white/40 uppercase">Final Score</Text>
+                <Text
+                  style={{
+                    fontSize: 12,
+                    color: scoreDelta > 0 ? "#14F195" : "rgba(255,255,255,0.55)",
+                    fontFamily: "RobotoMono_400Regular",
+                  }}
+                >
+                  {scoreDelta > 0 ? `+${scoreDelta} bonus score` : "No score bonus"}
+                </Text>
+              </View>
             </View>
           </View>
-        </View>
 
-        {/* Permanent loot drop */}
-        {bonus.permanentLootDrop && bonus.permanentLootItemId && (
-          <View className="rounded-xl border border-neon-amber/20 bg-neon-amber/5 p-3 flex-row items-center justify-center gap-2.5">
-            <Sparkles size={16} color="#ffb800" />
-            <Text className="text-sm font-sans-bold text-neon-amber">
-              Permanent Loot: {bonus.permanentLootItemId}
-            </Text>
-          </View>
-        )}
+          {bonus.permanentLootDrop && bonus.permanentLootItemId && (
+            <View className="rounded-xl border border-neon-amber/20 bg-neon-amber/5 p-3 flex-row items-center justify-center gap-2.5">
+              <Sparkles size={16} color="#ffb800" />
+              <View className="items-center">
+                <Text className="text-xs text-neon-amber/70 uppercase tracking-wider">Permanent Loot</Text>
+                <Text className="text-sm font-sans-bold text-neon-amber">{bonus.permanentLootItemId}</Text>
+              </View>
+            </View>
+          )}
 
-        {/* Explorer link */}
-        {bonus.vrfVerified && bonus.vrfAccount && (
-          <Text
-            className="text-xs text-neon-cyan/60 text-center"
-            onPress={() =>
-              Linking.openURL(
-                `https://explorer.solana.com/address/${bonus.vrfAccount}?cluster=devnet`
-              )
-            }
-          >
-            Verify on Solana Explorer
-          </Text>
-        )}
+          {bonus.vrfVerified && bonus.vrfAccount && (
+            <Pressable
+              onPress={() =>
+                Linking.openURL(
+                  `https://explorer.solana.com/address/${bonus.vrfAccount}?cluster=devnet`
+                )
+              }
+              className="rounded-lg border border-neon-cyan/25 bg-neon-cyan/5 py-2"
+            >
+              <Text className="text-xs text-neon-cyan/80 text-center">Open VRF proof on Solana Explorer</Text>
+            </Pressable>
+          )}
 
-        <Button onPress={handleContinue} size="lg" className="w-full">
-          <Text className="text-base font-display text-neon-green">Continue</Text>
-        </Button>
+          <Button onPress={handleContinue} size="lg" className="w-full">
+            <Text className="text-base font-display text-neon-green">Apply & Continue</Text>
+          </Button>
 
-        <Text className="text-xs text-white/30 text-center">Powered by MagicBlock</Text>
-      </ScrollView>
+          <MagicBlockNote />
+        </ScrollView>
+      </ScreenBg>
     );
   }
 
   // ── Summary phase (default) ──
   return (
-    <ScrollView
-      className="flex-1"
-      contentContainerStyle={{ padding: 16, paddingBottom: 32, gap: 16 }}
-    >
+    <ScreenBg>
+      <ScrollView
+        className="flex-1"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ padding: 16, paddingBottom: 32, gap: 16 }}
+      >
       {/* Hero card */}
-      <View className="rounded-2xl border border-white/[0.08] bg-surface overflow-hidden">
+      <View className="rounded-2xl border border-white/[0.08] bg-[#091120] overflow-hidden">
         <View className="p-4 items-center gap-3">
           {/* Epoch label */}
           <View className="flex-row items-center gap-1.5 rounded-full bg-white/[0.04] border border-white/[0.08] px-2.5 py-0.5">
@@ -350,7 +376,7 @@ export function RunEndScreen({ run, signMessage, onClose }: Props) {
           <View className="flex-row items-center gap-4">
             {/* Avatar + grade */}
             <View className="relative">
-              <View className="rounded-full border-2 border-white/20 bg-surface p-1.5 items-center justify-center w-16 h-16">
+              <View className="rounded-full border-2 border-white/20 bg-[#091120] p-1.5 items-center justify-center w-16 h-16">
                 <ClassIcon classId={run.classId} size={40} />
               </View>
               <View className="absolute -top-0.5 -right-0.5 w-6 h-6 rounded-full bg-terminal border-2 border-white/20 items-center justify-center">
@@ -376,7 +402,7 @@ export function RunEndScreen({ run, signMessage, onClose }: Props) {
 
       {/* Stats grid — 2x2 */}
       <View className="flex-row gap-2.5 flex-wrap">
-        <View className="flex-1 min-w-[140px] rounded-xl border border-white/[0.08] bg-surface p-3 flex-row items-center gap-3">
+        <View className="flex-1 min-w-[140px] rounded-xl border border-white/[0.08] bg-[#091120] p-3 flex-row items-center gap-3">
           <View className="w-9 h-9 rounded-lg bg-neon-green/10 items-center justify-center">
             <Swords size={18} color="#14F195" />
           </View>
@@ -388,7 +414,7 @@ export function RunEndScreen({ run, signMessage, onClose }: Props) {
           </View>
         </View>
 
-        <View className="flex-1 min-w-[140px] rounded-xl border border-white/[0.08] bg-surface p-3 flex-row items-center gap-3">
+        <View className="flex-1 min-w-[140px] rounded-xl border border-white/[0.08] bg-[#091120] p-3 flex-row items-center gap-3">
           <View className="w-9 h-9 rounded-lg bg-neon-red/10 items-center justify-center">
             <Skull size={18} color="#FF3366" />
           </View>
@@ -398,7 +424,7 @@ export function RunEndScreen({ run, signMessage, onClose }: Props) {
           </View>
         </View>
 
-        <View className="flex-1 min-w-[140px] rounded-xl border border-white/[0.08] bg-surface p-3 flex-row items-center gap-3">
+        <View className="flex-1 min-w-[140px] rounded-xl border border-white/[0.08] bg-[#091120] p-3 flex-row items-center gap-3">
           <View className="w-9 h-9 rounded-lg bg-neon-amber/10 items-center justify-center">
             <Crown size={18} color="#ffb800" />
           </View>
@@ -414,7 +440,7 @@ export function RunEndScreen({ run, signMessage, onClose }: Props) {
           </View>
         </View>
 
-        <View className="flex-1 min-w-[140px] rounded-xl border border-white/[0.08] bg-surface p-3 flex-row items-center gap-3">
+        <View className="flex-1 min-w-[140px] rounded-xl border border-white/[0.08] bg-[#091120] p-3 flex-row items-center gap-3">
           <View className="w-9 h-9 rounded-lg bg-neon-cyan/10 items-center justify-center">
             <Heart size={18} color="#00d4ff" />
           </View>
@@ -428,7 +454,7 @@ export function RunEndScreen({ run, signMessage, onClose }: Props) {
       </View>
 
       {/* VRF CTA card */}
-      <View className="rounded-2xl border border-neon-purple/25 bg-surface overflow-hidden">
+      <View className="rounded-2xl border border-neon-purple/25 bg-[#091120] overflow-hidden">
         <View className="p-4 gap-3">
           <View className="flex-row items-center justify-center gap-2">
             <Dice5 size={20} color="#9945ff" />
@@ -480,9 +506,10 @@ export function RunEndScreen({ run, signMessage, onClose }: Props) {
         </View>
 
         <View className="py-2 bg-white/[0.02] border-t border-white/[0.04] items-center">
-          <Text className="text-xs text-white/30">Powered by MagicBlock</Text>
+          <MagicBlockNote />
         </View>
       </View>
-    </ScrollView>
+      </ScrollView>
+    </ScreenBg>
   );
 }

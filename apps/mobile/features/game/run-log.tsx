@@ -24,17 +24,17 @@ interface Props {
 function getEventIcon(eventType: RunEventType): React.ReactNode {
   switch (eventType) {
     case "run_start":
-      return <Swords size={16} color="#00d4ff" />;
+      return <Swords size={14} color="#00d4ff" />;
     case "mission_success":
-      return <Trophy size={16} color="#14F195" />;
+      return <Trophy size={14} color="#14F195" />;
     case "mission_fail":
-      return <Skull size={16} color="#FF3366" />;
+      return <Skull size={14} color="#FF3366" />;
     case "death":
-      return <Skull size={16} color="#FF3366" />;
+      return <Skull size={14} color="#FF3366" />;
     case "revive":
-      return <Heart size={16} color="#14F195" />;
+      return <Heart size={14} color="#14F195" />;
     case "level_up":
-      return <ArrowUp size={16} color="#00d4ff" />;
+      return <ArrowUp size={14} color="#00d4ff" />;
     case "boss_kill":
       return (
         <Image
@@ -43,13 +43,13 @@ function getEventIcon(eventType: RunEventType): React.ReactNode {
         />
       );
     case "perk_pick":
-      return <Sparkles size={16} color="#9945ff" />;
+      return <Sparkles size={14} color="#9945ff" />;
     case "nft_drop":
-      return <Gem size={16} color="#ffb800" />;
+      return <Gem size={14} color="#ffb800" />;
     case "run_end":
-      return <Swords size={16} color="rgba(255,255,255,0.4)" />;
+      return <Swords size={14} color="rgba(255,255,255,0.4)" />;
     default:
-      return <Swords size={16} color="rgba(255,255,255,0.4)" />;
+      return <Swords size={14} color="rgba(255,255,255,0.4)" />;
   }
 }
 
@@ -122,44 +122,45 @@ export function RunLog({ run }: Props) {
     <GlassPanel contentStyle={{ padding: 0 }}>
       <Pressable
         onPress={() => setExpanded(!expanded)}
-        className="flex-row items-center justify-between p-4"
+        className="flex-row items-center justify-between p-3"
       >
-        <Text className="text-base font-display text-white">
+        <Text className="text-sm font-display text-white">
           Epoch Log
         </Text>
         {expanded ? (
-          <ChevronUp size={16} color="rgba(255,255,255,0.6)" />
+          <ChevronUp size={14} color="rgba(255,255,255,0.6)" />
         ) : (
-          <ChevronDown size={16} color="rgba(255,255,255,0.6)" />
+          <ChevronDown size={14} color="rgba(255,255,255,0.6)" />
         )}
       </Pressable>
 
       {expanded && (
-        <View className="border-t border-white/[0.06] px-4 pb-4 pt-2.5">
+        <View className="border-t border-white/[0.06] px-3 pb-3 pt-2">
           {loading && (
             <View className="items-center py-2">
               <ActivityIndicator size="small" color="rgba(255,255,255,0.4)" />
             </View>
           )}
           {!loading && events.length === 0 && (
-            <Text className="text-sm text-white/40">No events yet.</Text>
+            <Text className="text-xs text-white/40">No events yet.</Text>
           )}
           {!loading && events.length > 0 && (
             <FlatList
               data={events}
               keyExtractor={(item) => item.id}
               scrollEnabled={false}
-              ItemSeparatorComponent={() => <View className="h-2" />}
+              showsVerticalScrollIndicator={false}
+              ItemSeparatorComponent={() => <View className="h-1.5" />}
               renderItem={({ item: event }) => (
                 <View className="flex-row items-start gap-2">
                   <View className="mt-0.5 shrink-0">
                     {getEventIcon(event.eventType)}
                   </View>
                   <View className="flex-1 flex-row flex-wrap">
-                    <Text className="text-sm font-mono text-white/40">
+                    <Text className="text-xs font-mono text-white/40">
                       Day {getDayNumber(run.weekStart, event.createdAt)} —{" "}
                     </Text>
-                    <Text className={`text-sm ${getEventTextClass(event.eventType)}`}>
+                    <Text className={`text-xs ${getEventTextClass(event.eventType)}`}>
                       {formatEvent(event)}
                     </Text>
                   </View>

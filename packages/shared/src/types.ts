@@ -64,6 +64,7 @@ export interface Inventory {
   scrap: number;
   crystal: number;
   artifact: number;
+  skr?: number;
 }
 
 // ── Upgrades ──

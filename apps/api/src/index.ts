@@ -282,6 +282,135 @@ if (process.env.NODE_ENV !== "production") {
     return c.json({ message: "Daily login reset" });
   });
 
+  // Dev: Add SKR balance for monetization testing
+  app.post("/dev/add-skr", async (c) => {
+    const header = c.req.header("Authorization");
+    if (!header?.startsWith("Bearer ")) {
+      return c.json({ error: "UNAUTHORIZED", message: "Missing token" }, 401);
+    }
+    const { verifyToken } = await import("./services/auth-service.js");
+    const payload = verifyToken(header.slice(7));
+    if (!payload) {
+      return c.json({ error: "UNAUTHORIZED", message: "Invalid token" }, 401);
+    }
+    const db = (await import("./db/database.js")).default;
+    const w = payload.wallet;
+    db.prepare("INSERT OR IGNORE INTO skr_wallets (wallet_address, balance) VALUES (?, 150)").run(w);
+    db.prepare("UPDATE skr_wallets SET balance = balance + 100 WHERE wallet_address = ?").run(w);
+    const row = db.prepare("SELECT balance FROM skr_wallets WHERE wallet_address = ?").get(w) as { balance: number } | undefined;
+    return c.json({ message: `+100 SKR (now ${row?.balance ?? 0})` });
+  });
+
+  // Dev: Toggle destabilized state for current epoch
+  app.post("/dev/toggle-destabilized", async (c) => {
+    const header = c.req.header("Authorization");
+    if (!header?.startsWith("Bearer ")) {
+      return c.json({ error: "UNAUTHORIZED", message: "Missing token" }, 401);
+    }
+    const { verifyToken } = await import("./services/auth-service.js");
+    const payload = verifyToken(header.slice(7));
+    if (!payload) {
+      return c.json({ error: "UNAUTHORIZED", message: "Invalid token" }, 401);
+    }
+    const db = (await import("./db/database.js")).default;
+    const { getWeekStart } = await import("./services/boss-service.js");
+    const weekStart = getWeekStart();
+    const w = payload.wallet;
+    db.prepare(
+      `INSERT OR IGNORE INTO boss_epoch_state
+       (wallet_address, week_start, reconnect_used, overload_amp_used, raid_license, destabilized)
+       VALUES (?, ?, 0, 0, 0, 0)`
+    ).run(w, weekStart);
+    const state = db.prepare(
+      "SELECT destabilized FROM boss_epoch_state WHERE wallet_address = ? AND week_start = ?"
+    ).get(w, weekStart) as { destabilized: number } | undefined;
+    const next = state?.destabilized === 1 ? 0 : 1;
+    db.prepare(
+      "UPDATE boss_epoch_state SET destabilized = ?, destabilized_at = ? WHERE wallet_address = ? AND week_start = ?"
+    ).run(next, next ? new Date().toISOString() : null, w, weekStart);
+    return c.json({ message: `Destabilized: ${next === 1 ? "ON" : "OFF"}` });
+  });
+
+  // Dev: Force raid license on/off for current epoch
+  app.post("/dev/toggle-raid-license", async (c) => {
+    const header = c.req.header("Authorization");
+    if (!header?.startsWith("Bearer ")) {
+      return c.json({ error: "UNAUTHORIZED", message: "Missing token" }, 401);
+    }
+    const { verifyToken } = await import("./services/auth-service.js");
+    const payload = verifyToken(header.slice(7));
+    if (!payload) {
+      return c.json({ error: "UNAUTHORIZED", message: "Invalid token" }, 401);
+    }
+    const db = (await import("./db/database.js")).default;
+    const { getWeekStart } = await import("./services/boss-service.js");
+    const weekStart = getWeekStart();
+    const w = payload.wallet;
+    db.prepare(
+      `INSERT OR IGNORE INTO boss_epoch_state
+       (wallet_address, week_start, reconnect_used, overload_amp_used, raid_license, destabilized)
+       VALUES (?, ?, 0, 0, 0, 0)`
+    ).run(w, weekStart);
+    const state = db.prepare(
+      "SELECT raid_license FROM boss_epoch_state WHERE wallet_address = ? AND week_start = ?"
+    ).get(w, weekStart) as { raid_license: number } | undefined;
+    const next = state?.raid_license === 1 ? 0 : 1;
+    db.prepare(
+      "UPDATE boss_epoch_state SET raid_license = ? WHERE wallet_address = ? AND week_start = ?"
+    ).run(next, w, weekStart);
+    return c.json({ message: `Raid License: ${next === 1 ? "ON" : "OFF"}` });
+  });
+
+  // Dev: Force overload amplifier on/off for current epoch
+  app.post("/dev/toggle-overload-amp", async (c) => {
+    const header = c.req.header("Authorization");
+    if (!header?.startsWith("Bearer ")) {
+      return c.json({ error: "UNAUTHORIZED", message: "Missing token" }, 401);
+    }
+    const { verifyToken } = await import("./services/auth-service.js");
+    const payload = verifyToken(header.slice(7));
+    if (!payload) {
+      return c.json({ error: "UNAUTHORIZED", message: "Invalid token" }, 401);
+    }
+    const db = (await import("./db/database.js")).default;
+    const { getWeekStart } = await import("./services/boss-service.js");
+    const weekStart = getWeekStart();
+    const w = payload.wallet;
+    db.prepare(
+      `INSERT OR IGNORE INTO boss_epoch_state
+       (wallet_address, week_start, reconnect_used, overload_amp_used, raid_license, destabilized)
+       VALUES (?, ?, 0, 0, 0, 0)`
+    ).run(w, weekStart);
+    const state = db.prepare(
+      "SELECT overload_amp_used FROM boss_epoch_state WHERE wallet_address = ? AND week_start = ?"
+    ).get(w, weekStart) as { overload_amp_used: number } | undefined;
+    const next = state?.overload_amp_used === 1 ? 0 : 1;
+    db.prepare(
+      "UPDATE boss_epoch_state SET overload_amp_used = ? WHERE wallet_address = ? AND week_start = ?"
+    ).run(next, w, weekStart);
+    return c.json({ message: `Overload Amp: ${next === 1 ? "ON" : "OFF"}` });
+  });
+
+  // Dev: Reset boss monetization state for current epoch
+  app.post("/dev/reset-boss-monetization", async (c) => {
+    const header = c.req.header("Authorization");
+    if (!header?.startsWith("Bearer ")) {
+      return c.json({ error: "UNAUTHORIZED", message: "Missing token" }, 401);
+    }
+    const { verifyToken } = await import("./services/auth-service.js");
+    const payload = verifyToken(header.slice(7));
+    if (!payload) {
+      return c.json({ error: "UNAUTHORIZED", message: "Invalid token" }, 401);
+    }
+    const db = (await import("./db/database.js")).default;
+    const { getWeekStart } = await import("./services/boss-service.js");
+    const weekStart = getWeekStart();
+    db.prepare(
+      `DELETE FROM boss_epoch_state WHERE wallet_address = ? AND week_start = ?`
+    ).run(payload.wallet, weekStart);
+    return c.json({ message: "Boss monetization state reset (this epoch)" });
+  });
+
   // Dev: Reset DB -- wipe everything for this player
   app.post("/dev/reset-player", async (c) => {
     const header = c.req.header("Authorization");
@@ -308,6 +437,9 @@ if (process.env.NODE_ENV !== "production") {
       db.prepare("DELETE FROM inventory_capacity WHERE wallet_address = ?").run(w);
       db.prepare("DELETE FROM leaderboard WHERE wallet_address = ?").run(w);
       db.prepare("DELETE FROM daily_logins WHERE wallet_address = ?").run(w);
+      db.prepare("DELETE FROM boss_epoch_state WHERE wallet_address = ?").run(w);
+      db.prepare("DELETE FROM skr_spends WHERE wallet_address = ?").run(w);
+      db.prepare("DELETE FROM skr_wallets WHERE wallet_address = ?").run(w);
 
       // Runs + events
       const runs = db.prepare("SELECT id FROM weekly_runs WHERE wallet_address = ?").all(w) as any[];
@@ -333,6 +465,6 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 const port = Number(process.env.PORT) || 3000;
-serve({ fetch: app.fetch, port }, (info) => {
-  console.log(`API server running on http://localhost:${info.port}`);
+serve({ fetch: app.fetch, port, hostname: "0.0.0.0" }, (info) => {
+  console.log(`API server running on http://0.0.0.0:${info.port}`);
 });

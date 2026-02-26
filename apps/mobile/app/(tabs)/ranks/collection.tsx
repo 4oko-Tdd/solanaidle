@@ -7,6 +7,7 @@ export default function CollectionRoute() {
     <ScreenBg>
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
+        showsVerticalScrollIndicator={false}
         className="flex-1"
         contentContainerStyle={{ paddingBottom: 32 }}
       >

@@ -35,20 +35,22 @@ export function MissionResultDialog({ result, onClose, livesRemaining }: Props) 
       visible={!!result}
       transparent
       animationType="fade"
+      statusBarTranslucent
+      navigationBarTranslucent
       onRequestClose={onClose}
     >
-      <View className="flex-1 justify-center items-center bg-black/80 px-6">
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(5,10,18,0.96)", paddingHorizontal: 16 }}>
         <Animated.View
           style={[
             {
               width: "100%",
-              maxWidth: 380,
-              borderRadius: 16,
+              maxWidth: 360,
+              borderRadius: 12,
               overflow: "hidden",
               borderWidth: 1,
               borderColor: isSuccess
-                ? "rgba(20,241,149,0.25)"
-                : "rgba(255,51,102,0.25)",
+                ? "rgba(20,241,149,0.2)"
+                : "rgba(255,51,102,0.2)",
             },
             glowStyle,
           ]}
@@ -56,12 +58,12 @@ export function MissionResultDialog({ result, onClose, livesRemaining }: Props) 
           <LinearGradient
             colors={
               isSuccess
-                ? ["#0a1a12", "#0d0f18", "#0a0c14"]
-                : ["#1a0a10", "#0d0f18", "#0a0c14"]
+                ? ["#0c1f19", "#0a1628", "#091120"]
+                : ["#241018", "#0a1628", "#091120"]
             }
             start={{ x: 0.5, y: 0 }}
             end={{ x: 0.5, y: 1 }}
-            style={{ padding: 24, gap: 16 }}
+            style={{ padding: 16, gap: 12 }}
           >
             {/* Gradient accent line at top */}
             {isSuccess && (
@@ -70,7 +72,7 @@ export function MissionResultDialog({ result, onClose, livesRemaining }: Props) 
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 style={{
-                  height: 1.5,
+                  height: 1,
                   position: "absolute",
                   top: 0,
                   left: 0,
@@ -82,9 +84,9 @@ export function MissionResultDialog({ result, onClose, livesRemaining }: Props) 
             {/* Icon */}
             <View style={{ alignItems: "center" }}>
               {isSuccess ? (
-                <Trophy size={56} color="#ffb800" />
+                <Trophy size={46} color="#ffb800" />
               ) : (
-                <Skull size={56} color="#FF3366" />
+                <Skull size={46} color="#FF3366" />
               )}
             </View>
 
@@ -93,13 +95,13 @@ export function MissionResultDialog({ result, onClose, livesRemaining }: Props) 
               {isSuccess ? (
                 <GradientText
                   colors={["#14F195", "#9945FF", "#14F195"]}
-                  className="text-xl font-display text-center"
+                  className="text-lg font-display text-center"
                 >
                   Transaction Confirmed!
                 </GradientText>
               ) : (
                 <Text
-                  className={`text-xl font-display text-center ${
+                  className={`text-lg font-display text-center ${
                     isRunOver ? "text-neon-red" : "text-white"
                   }`}
                 >
@@ -120,11 +122,11 @@ export function MissionResultDialog({ result, onClose, livesRemaining }: Props) 
               <View style={{ gap: 10 }}>
                 {/* Section header */}
                 <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6 }}>
-                  <Sparkles size={12} color="rgba(20,241,149,0.5)" />
+                  <Sparkles size={10} color="rgba(20,241,149,0.5)" />
                   <Text
                     style={{
-                      fontSize: 10,
-                      letterSpacing: 2,
+                      fontSize: 9,
+                      letterSpacing: 1.5,
                       color: "rgba(20,241,149,0.5)",
                       textTransform: "uppercase",
                       fontWeight: "700",
@@ -132,73 +134,94 @@ export function MissionResultDialog({ result, onClose, livesRemaining }: Props) 
                   >
                     Rewards Collected
                   </Text>
-                  <Sparkles size={12} color="rgba(20,241,149,0.5)" />
+                  <Sparkles size={10} color="rgba(20,241,149,0.5)" />
                 </View>
 
                 {/* Reward grid */}
-                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-                  <Animated.View style={[{ flex: 1, minWidth: "45%" }, fadeInDelays[0]]}>
-                    <RewardCard
-                      icon={<Zap size={16} color="#14F195" />}
-                      label="XP"
-                      value={`+${result.rewards.xp}`}
-                      borderColor="rgba(20,241,149,0.12)"
-                      bgColor="rgba(20,241,149,0.04)"
-                      valueColor="#14F195"
-                    />
-                  </Animated.View>
-
-                  <Animated.View style={[{ flex: 1, minWidth: "45%" }, fadeInDelays[1]]}>
-                    <RewardCard
-                      icon={
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, justifyContent: "center" }}>
+                  {[
+                    {
+                      key: "xp",
+                      icon: (
+                        <Image
+                          source={require("@/assets/icons/exp.png")}
+                          style={{ width: 20, height: 20 }}
+                        />
+                      ),
+                      label: "XP",
+                      value: `+${result.rewards.xp}`,
+                      borderColor: "rgba(20,241,149,0.12)",
+                      bgColor: "rgba(20,241,149,0.04)",
+                      valueColor: "#14F195",
+                    },
+                    {
+                      key: "scrap",
+                      icon: (
                         <Image
                           source={require("@/assets/icons/scrap.png")}
-                          style={{ width: 28, height: 28 }}
+                          style={{ width: 24, height: 24 }}
                         />
-                      }
-                      label="Scrap"
-                      value={`+${result.rewards.scrap}`}
-                      borderColor="rgba(20,241,149,0.12)"
-                      bgColor="rgba(20,241,149,0.04)"
-                      valueColor="#14F195"
-                    />
-                  </Animated.View>
-
-                  {result.rewards.crystal ? (
-                    <Animated.View style={[{ flex: 1, minWidth: "45%" }, fadeInDelays[2]]}>
-                      <RewardCard
-                        icon={
-                          <Image
-                            source={require("@/assets/icons/tokens.png")}
-                            style={{ width: 20, height: 20 }}
-                          />
-                        }
-                        label="Tokens"
-                        value={`+${result.rewards.crystal}`}
-                        borderColor="rgba(0,212,255,0.12)"
-                        bgColor="rgba(0,212,255,0.04)"
-                        valueColor="#00D4FF"
-                      />
-                    </Animated.View>
-                  ) : null}
-
-                  {result.rewards.artifact ? (
-                    <Animated.View style={[{ flex: 1, minWidth: "45%" }, fadeInDelays[3]]}>
-                      <RewardCard
-                        icon={
-                          <Image
-                            source={require("@/assets/icons/key.png")}
-                            style={{ width: 20, height: 20 }}
-                          />
-                        }
-                        label="Keys"
-                        value={`+${result.rewards.artifact}`}
-                        borderColor="rgba(255,184,0,0.12)"
-                        bgColor="rgba(255,184,0,0.04)"
-                        valueColor="#FFB800"
-                      />
-                    </Animated.View>
-                  ) : null}
+                      ),
+                      label: "Scrap",
+                      value: `+${result.rewards.scrap}`,
+                      borderColor: "rgba(20,241,149,0.12)",
+                      bgColor: "rgba(20,241,149,0.04)",
+                      valueColor: "#14F195",
+                    },
+                    ...(result.rewards.crystal
+                      ? [{
+                          key: "crystal",
+                          icon: (
+                            <Image
+                              source={require("@/assets/icons/tokens.png")}
+                              style={{ width: 18, height: 18 }}
+                            />
+                          ),
+                          label: "Tokens",
+                          value: `+${result.rewards.crystal}`,
+                          borderColor: "rgba(0,212,255,0.12)",
+                          bgColor: "rgba(0,212,255,0.04)",
+                          valueColor: "#00D4FF",
+                        }]
+                      : []),
+                    ...(result.rewards.artifact
+                      ? [{
+                          key: "artifact",
+                          icon: (
+                            <Image
+                              source={require("@/assets/icons/key.png")}
+                              style={{ width: 18, height: 18 }}
+                            />
+                          ),
+                          label: "Keys",
+                          value: `+${result.rewards.artifact}`,
+                          borderColor: "rgba(255,184,0,0.12)",
+                          bgColor: "rgba(255,184,0,0.04)",
+                          valueColor: "#FFB800",
+                        }]
+                      : []),
+                  ].map((item, idx, arr) => {
+                    const isOddLast = arr.length % 2 === 1 && idx === arr.length - 1;
+                    return (
+                      <Animated.View
+                        key={item.key}
+                        style={[
+                          { width: isOddLast ? "62%" : "48%" },
+                          isOddLast ? { alignSelf: "center" } : null,
+                          fadeInDelays[Math.min(idx, fadeInDelays.length - 1)],
+                        ]}
+                      >
+                        <RewardCard
+                          icon={item.icon}
+                          label={item.label}
+                          value={item.value}
+                          borderColor={item.borderColor}
+                          bgColor={item.bgColor}
+                          valueColor={item.valueColor}
+                        />
+                      </Animated.View>
+                    );
+                  })}
                 </View>
 
                 {/* Streak bonus */}
@@ -214,18 +237,18 @@ export function MissionResultDialog({ result, onClose, livesRemaining }: Props) 
                         borderWidth: 1,
                         borderColor: "rgba(255,184,0,0.2)",
                         backgroundColor: "rgba(255,184,0,0.06)",
-                        paddingHorizontal: 14,
-                        paddingVertical: 10,
+                        paddingHorizontal: 10,
+                        paddingVertical: 8,
                         boxShadow: "0 0 20px rgba(255,184,0,0.1), 0 0 40px rgba(255,184,0,0.04)",
                       }}
                     >
-                      <Sparkles size={16} color="#FFB800" />
+                      <Sparkles size={14} color="#FFB800" />
                       <Text
                         style={{
                           fontWeight: "800",
-                          fontSize: 14,
+                          fontSize: 13,
                           color: "#FFB800",
-                          letterSpacing: 1,
+                          letterSpacing: 0.5,
                         }}
                       >
                         {result.rewards.streakMultiplier}x Streak Bonus!
@@ -241,26 +264,35 @@ export function MissionResultDialog({ result, onClose, livesRemaining }: Props) 
               <View className="flex-row items-center justify-center gap-2">
                 {Array.from({ length: 3 }, (_, i) =>
                   i < livesRemaining ? (
-                    <Heart key={i} size={20} color="#FF3366" fill="#FF3366" />
+                    <Heart key={i} size={16} color="#FF3366" fill="#FF3366" />
                   ) : (
-                    <HeartCrack key={i} size={20} color="rgba(255,255,255,0.15)" />
+                    <HeartCrack key={i} size={16} color="rgba(255,255,255,0.15)" />
                   )
                 )}
               </View>
             )}
 
-            {/* Streak lost note */}
             {result.result === "failure" && (
-              <Text style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", textAlign: "center" }}>
-                Streak lost.
-              </Text>
-            )}
-
-            {/* Recovery note */}
-            {!isSuccess && !isRunOver && (
-              <Text style={{ fontSize: 13, color: "rgba(255,255,255,0.35)", textAlign: "center" }}>
-                Node is recovering from slash. Check back in 1 hour.
-              </Text>
+              <View
+                style={{
+                  borderRadius: 8,
+                  borderWidth: 1,
+                  borderColor: "rgba(255,255,255,0.1)",
+                  backgroundColor: "rgba(255,255,255,0.03)",
+                  paddingHorizontal: 10,
+                  paddingVertical: 8,
+                  gap: 4,
+                }}
+              >
+                <Text style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", textAlign: "center" }}>
+                  Streak lost.
+                </Text>
+                {!isRunOver ? (
+                  <Text style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", textAlign: "center" }}>
+                    Node is recovering from slash. Check back in 1 hour.
+                  </Text>
+                ) : null}
+              </View>
             )}
 
             {/* Action button */}
@@ -277,11 +309,11 @@ export function MissionResultDialog({ result, onClose, livesRemaining }: Props) 
                   }}
                 >
                   <Text
-                    style={{
+                  style={{
                       fontWeight: "800",
-                      fontSize: 14,
+                      fontSize: 13,
                       color: "#000",
-                      letterSpacing: 2,
+                      letterSpacing: 1.2,
                       textTransform: "uppercase",
                     }}
                   >
@@ -332,33 +364,38 @@ function RewardCard({
       style={{
         flexDirection: "row",
         alignItems: "center",
-        gap: 10,
-        borderRadius: 10,
+        gap: 8,
+        borderRadius: 8,
         borderWidth: 1,
         borderColor,
         backgroundColor: bgColor,
-        paddingHorizontal: 12,
-        paddingVertical: 10,
+        paddingHorizontal: 10,
+        paddingVertical: 8,
+        minHeight: 56,
       }}
     >
-      {icon}
-      <View>
+      <View style={{ width: 22, height: 22, alignItems: "center", justifyContent: "center" }}>
+        {icon}
+      </View>
+      <View style={{ justifyContent: "center", alignItems: "center", marginLeft: 2 }}>
         <Text
           style={{
             fontSize: 9,
-            letterSpacing: 1.5,
+            letterSpacing: 1.2,
             textTransform: "uppercase",
             color: "rgba(255,255,255,0.35)",
             fontWeight: "600",
+            textAlign: "center",
           }}
         >
           {label}
         </Text>
         <Text
           style={{
-            fontSize: 15,
+            fontSize: 14,
             fontWeight: "800",
             color: valueColor,
+            textAlign: "center",
           }}
         >
           {value}

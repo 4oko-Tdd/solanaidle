@@ -12,6 +12,17 @@ interface BossStatus {
   playerContribution?: number;
   hasJoined?: boolean;
   overloadUsed?: boolean;
+  skrBalance?: number;
+  reconnectUsed?: boolean;
+  overloadAmpUsed?: boolean;
+  raidLicense?: boolean;
+  destabilized?: boolean;
+  monetizationCosts?: {
+    reconnect: number;
+    overloadAmplifier: number;
+    raidLicense: number;
+    freeRecoveryMinutes: number;
+  };
 }
 
 interface BossState {
@@ -21,6 +32,17 @@ interface BossState {
   playerContribution: number;
   hasJoined: boolean;
   overloadUsed: boolean;
+  skrBalance: number;
+  reconnectUsed: boolean;
+  overloadAmpUsed: boolean;
+  raidLicense: boolean;
+  destabilized: boolean;
+  monetizationCosts: {
+    reconnect: number;
+    overloadAmplifier: number;
+    raidLicense: number;
+    freeRecoveryMinutes: number;
+  };
   loading: boolean;
   error: string | null;
 }
@@ -37,6 +59,17 @@ export function useBoss() {
     playerContribution: 0,
     hasJoined: false,
     overloadUsed: false,
+    skrBalance: 0,
+    reconnectUsed: false,
+    overloadAmpUsed: false,
+    raidLicense: false,
+    destabilized: false,
+    monetizationCosts: {
+      reconnect: 25,
+      overloadAmplifier: 18,
+      raidLicense: 35,
+      freeRecoveryMinutes: 15,
+    },
     loading: true,
     error: null,
   });
@@ -55,6 +88,17 @@ export function useBoss() {
         playerContribution: data.playerContribution ?? 0,
         hasJoined: data.hasJoined ?? false,
         overloadUsed: data.overloadUsed ?? false,
+        skrBalance: data.skrBalance ?? 0,
+        reconnectUsed: data.reconnectUsed ?? false,
+        overloadAmpUsed: data.overloadAmpUsed ?? false,
+        raidLicense: data.raidLicense ?? false,
+        destabilized: data.destabilized ?? false,
+        monetizationCosts: data.monetizationCosts ?? {
+          reconnect: 25,
+          overloadAmplifier: 18,
+          raidLicense: 35,
+          freeRecoveryMinutes: 15,
+        },
         loading: false,
         error: null,
       });
@@ -84,15 +128,34 @@ export function useBoss() {
   }, [refresh]);
 
   const overload = useCallback(async () => {
-    const playerSignature = signMessage && walletAddress
-      ? await signOverload(signMessage, walletAddress)
-      : null;
+    if (!signMessage || !walletAddress) {
+      throw new Error("Wallet signature required");
+    }
+    const playerSignature = await signOverload(signMessage, walletAddress);
+    if (!playerSignature) {
+      throw new Error("Boss OVERLOAD was cancelled in wallet");
+    }
     await api("/boss/overload", {
       method: "POST",
       body: JSON.stringify({ playerSignature }),
     });
     await refresh();
   }, [refresh, signMessage, walletAddress]);
+
+  const reconnect = useCallback(async () => {
+    await api("/boss/reconnect", { method: "POST" });
+    await refresh();
+  }, [refresh]);
+
+  const buyOverloadAmplifier = useCallback(async () => {
+    await api("/boss/overload-amplifier", { method: "POST" });
+    await refresh();
+  }, [refresh]);
+
+  const buyRaidLicense = useCallback(async () => {
+    await api("/boss/raid-license", { method: "POST" });
+    await refresh();
+  }, [refresh]);
 
   // Merge on-chain state with HTTP state when websocket is connected.
   // Only trust on-chain HP if it's a valid value (≤ maxHp). If the ER PDA
@@ -123,6 +186,9 @@ export function useBoss() {
     wsConnected: er.connected,
     join,
     overload,
+    reconnect,
+    buyOverloadAmplifier,
+    buyRaidLicense,
     refresh,
   };
 }

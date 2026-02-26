@@ -1,37 +1,78 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ScrollView, View, ActivityIndicator, Text, Pressable, Alert, Modal } from "react-native";
-import { useRouter, Tabs } from "expo-router";
+import { useNavigation, useRouter, Tabs } from "expo-router";
 import { useAuth } from "@/providers/auth-context";
 import { useGameState } from "@/hooks/use-game-state";
 import { useBoss } from "@/hooks/use-boss";
 import { useDailyLogin } from "@/hooks/use-daily-login";
-import { usePerks } from "@/hooks/use-perks";
+import { usePerks, notifyPerksChanged, setPerksPendingOptimistic } from "@/hooks/use-perks";
 import { CharacterCard } from "@/features/game/character-card";
 import { ClassPicker } from "@/features/game/class-picker";
 import { MissionPanel } from "@/features/game/mission-panel";
 import { MissionTimer } from "@/features/game/mission-timer";
 import { MissionResultDialog } from "@/features/game/mission-result-dialog";
 import { DailyLoginModal } from "@/features/game/daily-login-modal";
-import { PerkPicker } from "@/features/game/perk-picker";
 import { BossFight } from "@/features/game/boss-fight";
 import { RunLog } from "@/features/game/run-log";
 import { RunEndScreen } from "@/features/game/run-end-screen";
 import { ScreenBg } from "@/components/screen-bg";
 import { useToast } from "@/components/toast-provider";
 import { api } from "@/lib/api";
+import { useDevToolsEnabled } from "@/providers/dev-tools";
 import { Wrench, ChevronDown, ChevronUp } from "lucide-react-native";
 import type { MissionId } from "@solanaidle/shared";
 
 export default function GameScreen() {
   const router = useRouter();
+  const navigation = useNavigation();
   const { isAuthenticated, signMessage } = useAuth();
   const gameState = useGameState(isAuthenticated);
   const { toast } = useToast();
-  const { boss, join: bossJoin, overload: bossOverload, participantCount, totalDamage, playerContribution, hasJoined, overloadUsed, wsConnected, refresh: bossRefresh } = useBoss();
+  const devToolsEnabled = useDevToolsEnabled();
+  const {
+    boss,
+    join: bossJoin,
+    overload: bossOverload,
+    reconnect: bossReconnect,
+    buyOverloadAmplifier: bossBuyOverloadAmplifier,
+    buyRaidLicense: bossBuyRaidLicense,
+    participantCount,
+    totalDamage,
+    playerContribution,
+    hasJoined,
+    overloadUsed,
+    wsConnected,
+    reconnectUsed,
+    overloadAmpUsed,
+    raidLicense,
+    destabilized,
+    monetizationCosts,
+    refresh: bossRefresh,
+  } = useBoss();
   const dailyLogin = useDailyLogin(isAuthenticated);
   const perks = usePerks();
   const [devOpen, setDevOpen] = useState(false);
   const [dailyDismissed, setDailyDismissed] = useState(false);
+  const showInlineClassPicker =
+    !gameState.loading &&
+    !gameState.activeRun &&
+    !gameState.endedRun &&
+    gameState.classes.length > 0;
+
+  useEffect(() => {
+    if (!devToolsEnabled) setDevOpen(false);
+  }, [devToolsEnabled]);
+
+  useEffect(() => {
+    const parent = navigation.getParent();
+    if (!parent) return;
+    parent.setOptions({
+      tabBarStyle: showInlineClassPicker ? { display: "none" } : {},
+    });
+    return () => {
+      parent.setOptions({ tabBarStyle: {} });
+    };
+  }, [navigation, showInlineClassPicker]);
 
   // Show daily bonus modal when: loaded, unclaimed, has active run, not dismissed
   const showDaily =
@@ -52,10 +93,15 @@ export default function GameScreen() {
 
   const handleClaim = async () => {
     try {
-      await gameState.claimMission();
+      const previousLevel = gameState.character?.level ?? 0;
+      const result = await gameState.claimMission();
+      if ((result.character?.level ?? previousLevel) > previousLevel) {
+        setPerksPendingOptimistic(true);
+      }
       // Pre-fetch perks while user views the result dialog — if a level-up
       // happened, offers will be ready by the time they close it
-      perks.refresh();
+      await perks.refresh();
+      notifyPerksChanged();
     } catch (e: any) {
       toast(e?.message ?? "Failed to claim", "error");
     }
@@ -80,13 +126,14 @@ export default function GameScreen() {
   // Only show class picker when there is genuinely no run this week at all.
   // An ended run (active=0) blocks startRun on the server — fall through to
   // the main game view so dev buttons (Reset Player / New Epoch) are reachable.
-  if (!gameState.activeRun && !gameState.endedRun && gameState.classes.length > 0) {
+  if (showInlineClassPicker) {
     return (
       <ScreenBg>
         <Tabs.Screen options={{ tabBarStyle: { display: "none" } }} />
         <ClassPicker
           classes={gameState.classes}
           currentClassId={null}
+          signMessage={signMessage}
           onSelect={async (classId, sig) => {
             try {
               await gameState.startRun(classId, sig);
@@ -115,14 +162,38 @@ export default function GameScreen() {
     return (
       <ScreenBg>
         <Tabs.Screen options={{ tabBarStyle: {} }} />
-        <View className="flex-1 items-center justify-center p-6 gap-4">
-          <Text className="text-2xl font-display text-neon-green">Epoch Sealed</Text>
-          <Text className="text-base text-white/50 text-center leading-relaxed">
-            Score: {gameState.endedRun.score} — Missions: {gameState.endedRun.missionsCompleted}
-          </Text>
-          <Text className="text-sm text-white/35 text-center">
-            New epoch starts next week.
-          </Text>
+        <View className="flex-1 justify-center p-3">
+          <View
+            style={{
+              borderRadius: 12,
+              borderWidth: 1,
+              borderColor: "rgba(20,241,149,0.22)",
+              backgroundColor: "#091120",
+              padding: 16,
+              gap: 12,
+            }}
+          >
+            <View className="items-center gap-1.5">
+              <Text className="text-xs font-mono text-neon-green/65 uppercase tracking-widest">Epoch Status</Text>
+              <Text className="text-2xl font-display text-neon-green">Epoch Sealed</Text>
+              <Text className="text-sm text-white/45 text-center">Run finalized. Waiting for next weekly reset.</Text>
+            </View>
+
+            <View className="flex-row gap-2">
+              <View className="flex-1 rounded-lg border border-white/[0.08] bg-white/[0.03] p-2.5 items-center gap-1">
+                <Text className="text-xs font-mono text-white/40 uppercase tracking-wider">Score</Text>
+                <Text className="text-xl font-display text-neon-green">{gameState.endedRun.score}</Text>
+              </View>
+              <View className="flex-1 rounded-lg border border-white/[0.08] bg-white/[0.03] p-2.5 items-center gap-1">
+                <Text className="text-xs font-mono text-white/40 uppercase tracking-wider">Missions</Text>
+                <Text className="text-xl font-display text-neon-cyan">{gameState.endedRun.missionsCompleted}</Text>
+              </View>
+            </View>
+
+              <Text className="text-xs text-white/35 text-center">
+              New epoch starts next week.
+            </Text>
+
           {__DEV__ && (
             <Pressable
               onPress={async () => {
@@ -135,13 +206,14 @@ export default function GameScreen() {
                 }
               }}
               style={{
-                marginTop: 12,
-                paddingHorizontal: 16,
+                marginTop: 2,
+                paddingHorizontal: 12,
                 paddingVertical: 8,
                 borderRadius: 8,
                 borderWidth: 1,
                 borderColor: "rgba(20,241,149,0.3)",
                 backgroundColor: "rgba(20,241,149,0.06)",
+                alignItems: "center",
               }}
             >
               <Text style={{ fontSize: 13, color: "#14F195", fontWeight: "700" }}>
@@ -149,6 +221,7 @@ export default function GameScreen() {
               </Text>
             </Pressable>
           )}
+          </View>
         </View>
       </ScreenBg>
     );
@@ -160,11 +233,12 @@ export default function GameScreen() {
     <Tabs.Screen options={{ tabBarStyle: {} }} />
     <ScrollView
       contentInsetAdjustmentBehavior="automatic"
+      showsVerticalScrollIndicator={false}
       className="flex-1"
-      contentContainerStyle={{ paddingBottom: 32 }}
+      contentContainerStyle={{ paddingBottom: 12 }}
     >
-      <View className="p-4 gap-4">
-        {__DEV__ && (
+      <View className="px-3 pt-2.5 pb-1 gap-1.5">
+        {__DEV__ && devToolsEnabled && (
           <View>
             <Pressable
               onPress={() => setDevOpen((o) => !o)}
@@ -184,8 +258,14 @@ export default function GameScreen() {
                       { label: "Skip Timer", color: "#4a7a9b", onPress: async () => { try { await api("/dev/skip-timer", { method: "POST" }); toast("Timer skipped", "success"); await gameState.refresh(); } catch (e: any) { toast(e?.message ?? "Failed", "error"); } } },
                       { label: "End Epoch", color: "#ff4444", onPress: async () => { try { await api("/dev/end-epoch", { method: "POST" }); toast("Epoch ended", "warning"); await gameState.refresh(); } catch (e: any) { toast(e?.message ?? "End epoch failed", "error"); } } },
                       { label: boss ? "Kill Boss" : "Spawn Boss", color: boss ? "#ff4444" : "#9945ff", onPress: async () => { try { const r = await api<{ message: string }>("/dev/spawn-boss", { method: "POST" }); toast(r.message, boss ? "warning" : "success"); await bossRefresh(); await gameState.refresh(); } catch (e: any) { toast(e?.message ?? "Failed", "error"); } } },
+                      { label: "+100 SKR", color: "#ffb800", onPress: async () => { try { const r = await api<{ message: string }>("/dev/add-skr", { method: "POST" }); toast(r.message, "success"); await bossRefresh(); } catch (e: any) { toast(e?.message ?? "Failed", "error"); } } },
+                      { label: "Destabilize", color: "#ff3366", onPress: async () => { try { const r = await api<{ message: string }>("/dev/toggle-destabilized", { method: "POST" }); toast(r.message, "warning"); await bossRefresh(); } catch (e: any) { toast(e?.message ?? "Failed", "error"); } } },
+                      { label: "Toggle License", color: "#14F195", onPress: async () => { try { const r = await api<{ message: string }>("/dev/toggle-raid-license", { method: "POST" }); toast(r.message, "success"); await bossRefresh(); } catch (e: any) { toast(e?.message ?? "Failed", "error"); } } },
+                      { label: "Toggle Amp", color: "#9945ff", onPress: async () => { try { const r = await api<{ message: string }>("/dev/toggle-overload-amp", { method: "POST" }); toast(r.message, "success"); await bossRefresh(); } catch (e: any) { toast(e?.message ?? "Failed", "error"); } } },
+                      { label: "Reset Boss SKR", color: "#4a7a9b", onPress: async () => { try { const r = await api<{ message: string }>("/dev/reset-boss-monetization", { method: "POST" }); toast(r.message, "info"); await bossRefresh(); } catch (e: any) { toast(e?.message ?? "Failed", "error"); } } },
                     ] : [
                       { label: "New Epoch", color: "#14F195", onPress: async () => { try { const r = await api<{ message: string }>("/dev/reset-epoch", { method: "POST" }); toast(r.message, "success"); await gameState.refresh(); } catch (e: any) { toast(e?.message ?? "Failed", "error"); } } },
+                      { label: "+100 SKR", color: "#ffb800", onPress: async () => { try { const r = await api<{ message: string }>("/dev/add-skr", { method: "POST" }); toast(r.message, "success"); await bossRefresh(); } catch (e: any) { toast(e?.message ?? "Failed", "error"); } } },
                     ]),
                     { label: "Reset Daily", color: "#ffb800", onPress: async () => { try { await api("/dev/reset-daily", { method: "POST" }); toast("Daily reset — restart app", "success"); setDailyDismissed(false); } catch (e: any) { toast(e?.message ?? "Failed", "error"); } } },
                     { label: "Reset Player", color: "rgba(255,68,68,0.6)", onPress: () => Alert.alert("Wipe Data?", "Delete all player data?", [{ text: "Cancel" }, { text: "Confirm", style: "destructive", onPress: async () => { try { const r = await api<{ message: string }>("/dev/reset-player", { method: "POST" }); toast(r.message, "warning"); await gameState.refresh(); } catch (e: any) { toast(e?.message ?? "Reset failed", "error"); } } }]) },
@@ -229,8 +309,16 @@ export default function GameScreen() {
             hasJoined={hasJoined}
             overloadUsed={overloadUsed}
             wsConnected={wsConnected}
+            reconnectUsed={reconnectUsed}
+            overloadAmplifierUsed={overloadAmpUsed}
+            raidLicenseActive={raidLicense}
+            destabilized={destabilized}
+            monetizationCosts={monetizationCosts}
             onJoin={bossJoin}
             onOverload={bossOverload}
+            onReconnect={bossReconnect}
+            onBuyOverloadAmplifier={bossBuyOverloadAmplifier}
+            onBuyRaidLicense={bossBuyRaidLicense}
             onRefresh={bossRefresh}
           />
         ) : (
@@ -251,19 +339,15 @@ export default function GameScreen() {
       onClose={handleCloseResult}
       livesRemaining={gameState.activeRun?.livesRemaining}
     />
-    <PerkPicker
-      perks={{ offers: perks.offers, hasPending: perks.hasPending, loading: perks.loading }}
-      inventory={gameState.inventory}
-      onActivate={perks.choosePerk}
-    />
     <Modal
       visible={showDaily}
       transparent={true}
       animationType="fade"
       statusBarTranslucent
+      navigationBarTranslucent
       onRequestClose={() => setDailyDismissed(true)}
     >
-      <View style={{ flex: 1 }}>
+      <View style={{ flex: 1, backgroundColor: "rgba(10,22,40,0.98)" }}>
         <DailyLoginModal
           status={dailyLogin.status}
           loading={dailyLogin.loading}

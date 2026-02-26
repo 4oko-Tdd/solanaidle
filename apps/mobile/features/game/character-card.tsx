@@ -84,7 +84,7 @@ export function CharacterCard({ character, classId, run, onPickClass }: Props) {
 
   return (
     <GlassPanel
-      contentStyle={{ gap: 8 }}
+      contentStyle={{ gap: 6 }}
       glow={character.state === "idle" ? "green" : character.state === "dead" ? "red" : undefined}
       animateGlow={character.state === "dead"}
       borderColor={borderColor}
@@ -100,12 +100,12 @@ export function CharacterCard({ character, classId, run, onPickClass }: Props) {
       )}
 
       {/* Content wrapper with padding (below the strip) */}
-      <View style={{ padding: 16, gap: 10 }}>
+      <View style={{ padding: 12, gap: 8 }}>
       {/* Row 1: Class + Level + Status */}
       <View className="flex-row items-center justify-between">
         <View className="flex-row items-center gap-2.5">
           {classId ? (
-            <ClassIcon classId={classId} size={44} />
+            <ClassIcon classId={classId} size={38} />
           ) : null}
           <Text className="text-lg font-display text-white">
             {classId ? CLASS_NAMES[classId] : "Node"}
@@ -113,7 +113,7 @@ export function CharacterCard({ character, classId, run, onPickClass }: Props) {
           <View className="flex-row items-center gap-1">
             <Image
               source={require("@/assets/icons/exp.png")}
-              style={{ width: 26, height: 26 }}
+              style={{ width: 22, height: 22 }}
             />
             <GradientText className="text-sm font-display">Lv {character.level}</GradientText>
           </View>
@@ -136,9 +136,9 @@ export function CharacterCard({ character, classId, run, onPickClass }: Props) {
         <View className="flex-row items-center gap-1.5">
           {Array.from({ length: 3 }, (_, i) =>
             i < lives ? (
-              <Heart key={i} size={16} color="#FF3366" fill="#FF3366" />
+              <Heart key={i} size={14} color="#FF3366" fill="#FF3366" />
             ) : (
-              <HeartCrack key={i} size={16} color="#1a3a5c" />
+              <HeartCrack key={i} size={14} color="#1a3a5c" />
             )
           )}
           {lives === 1 && (

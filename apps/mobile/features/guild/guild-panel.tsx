@@ -57,9 +57,9 @@ export function GuildPanel({ isAuthenticated, onViewRaid }: Props) {
     return (
       <View className="gap-4">
         {/* Header */}
-        <GlassPanel contentStyle={{ padding: 20, gap: 12 }}>
+        <GlassPanel contentStyle={{ padding: 16, gap: 10 }}>
           <View className="flex-row items-center gap-2.5">
-            <Users size={26} color="#9945FF" />
+            <Users size={24} color="#9945FF" />
             <GradientText className="text-lg font-display" style={{ letterSpacing: 0.5 }}>Guild</GradientText>
           </View>
           <Text className="text-base text-[#4a7a9b] leading-relaxed">
@@ -68,9 +68,9 @@ export function GuildPanel({ isAuthenticated, onViewRaid }: Props) {
         </GlassPanel>
 
         {/* Empty state */}
-        <GlassPanel contentStyle={{ padding: 24, alignItems: "center", gap: 16 }}>
-          <View className="w-20 h-20 rounded-full bg-neon-purple/5 border border-neon-purple/10 items-center justify-center">
-            <Users size={36} color="#4a7a9b" />
+        <GlassPanel contentStyle={{ padding: 20, alignItems: "center", gap: 14 }}>
+          <View className="w-16 h-16 rounded-full bg-neon-purple/5 border border-neon-purple/10 items-center justify-center">
+            <Users size={30} color="#4a7a9b" />
           </View>
           <Text className="text-lg font-sans-bold text-[#4a7a9b]">No guild yet</Text>
           <Text className="text-base text-[#4a7a9b] text-center leading-relaxed max-w-[280px]">
@@ -83,7 +83,7 @@ export function GuildPanel({ isAuthenticated, onViewRaid }: Props) {
                 size="lg"
                 onPress={() => {
                   setShowJoin(false);
-                  setShowCreate((v) => !v);
+                  setShowCreate(true);
                 }}
               >
                 Create
@@ -95,7 +95,7 @@ export function GuildPanel({ isAuthenticated, onViewRaid }: Props) {
                 size="lg"
                 onPress={() => {
                   setShowCreate(false);
-                  setShowJoin((v) => !v);
+                  setShowJoin(true);
                 }}
               >
                 Join
@@ -118,12 +118,12 @@ export function GuildPanel({ isAuthenticated, onViewRaid }: Props) {
         />
 
         {/* Guild perks */}
-        <GlassPanel contentStyle={{ padding: 20, gap: 14 }}>
+        <GlassPanel contentStyle={{ padding: 16, gap: 12 }}>
           <Text className="text-lg font-display text-white" style={{ letterSpacing: 0.5 }}>Guild Perks</Text>
-          <View className="gap-3.5">
+          <View className="gap-3">
             <View className="flex-row items-start gap-3">
-              <View className="w-9 h-9 rounded-md bg-neon-green/10 border border-neon-green/20 items-center justify-center mt-0.5">
-                <Shield size={18} color="#14F195" />
+              <View className="w-8 h-8 rounded-md bg-neon-green/10 border border-neon-green/20 items-center justify-center mt-0.5">
+                <Shield size={16} color="#14F195" />
               </View>
               <View className="flex-1">
                 <Text className="text-base font-sans-bold text-white">Co-op Raids</Text>
@@ -133,8 +133,8 @@ export function GuildPanel({ isAuthenticated, onViewRaid }: Props) {
               </View>
             </View>
             <View className="flex-row items-start gap-3">
-              <View className="w-9 h-9 rounded-md bg-neon-amber/10 border border-neon-amber/20 items-center justify-center mt-0.5">
-                <Zap size={18} color="#FFB800" />
+              <View className="w-8 h-8 rounded-md bg-neon-amber/10 border border-neon-amber/20 items-center justify-center mt-0.5">
+                <Zap size={16} color="#FFB800" />
               </View>
               <View className="flex-1">
                 <Text className="text-base font-sans-bold text-white">Boosted Rewards</Text>
@@ -144,8 +144,8 @@ export function GuildPanel({ isAuthenticated, onViewRaid }: Props) {
               </View>
             </View>
             <View className="flex-row items-start gap-3">
-              <View className="w-9 h-9 rounded-md bg-neon-purple/10 border border-neon-purple/20 items-center justify-center mt-0.5">
-                <Gift size={18} color="#9945FF" />
+              <View className="w-8 h-8 rounded-md bg-neon-purple/10 border border-neon-purple/20 items-center justify-center mt-0.5">
+                <Gift size={16} color="#9945FF" />
               </View>
               <View className="flex-1">
                 <Text className="text-base font-sans-bold text-white">Invite Friends</Text>

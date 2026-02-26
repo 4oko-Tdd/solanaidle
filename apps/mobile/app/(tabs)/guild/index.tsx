@@ -12,6 +12,7 @@ export default function GuildScreen() {
     <ScreenBg>
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
+        showsVerticalScrollIndicator={false}
         className="flex-1"
         contentContainerStyle={{ paddingBottom: 32 }}
       >

@@ -1,5 +1,5 @@
 import { View, Text, ActivityIndicator, Modal } from "react-native";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Animated from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
 import { Sparkles, Zap, Crown } from "lucide-react-native";
@@ -26,6 +26,8 @@ interface PerkPickerProps {
   } | null;
   inventory: import("@solanaidle/shared").Inventory | null;
   onActivate: (perkId: string) => Promise<void>;
+  autoOpen?: boolean;
+  showOpenButton?: boolean;
 }
 
 type TierKey = "common" | "rare" | "legendary";
@@ -149,7 +151,15 @@ function PerkCard({
   return tier === "legendary" ? <LegendaryGlow>{card}</LegendaryGlow> : card;
 }
 
-function ModalContent({ perks, onActivate }: { perks: PerkDefinition[]; onActivate: (id: string) => Promise<void> }) {
+function ModalContent({
+  perks,
+  onActivate,
+  onClose,
+}: {
+  perks: PerkDefinition[];
+  onActivate: (id: string) => Promise<void>;
+  onClose: () => void;
+}) {
   const [choosing, setChoosing] = useState(false);
   const contentFadeIn = useFadeInUp(0, 350);
 
@@ -163,7 +173,7 @@ function ModalContent({ perks, onActivate }: { perks: PerkDefinition[]; onActiva
   };
 
   return (
-    <View className="flex-1 items-center justify-center bg-black/80 p-4">
+    <View className="flex-1 items-center justify-center bg-[#020305]/95 p-4">
       <Animated.View style={[contentFadeIn, { width: "100%", maxWidth: 400, gap: 16 }]}>
         {/* Header */}
         <View className="items-center gap-1">
@@ -194,19 +204,65 @@ function ModalContent({ perks, onActivate }: { perks: PerkDefinition[]; onActiva
             <ActivityIndicator size="small" color="#ffffff80" />
             <Text className="text-base text-white/50">Installing perk...</Text>
           </View>
-        ) : null}
+        ) : (
+          <View className="items-center">
+            <Button variant="ghost" size="sm" onPress={onClose}>
+              Later
+            </Button>
+          </View>
+        )}
       </Animated.View>
     </View>
   );
 }
 
-export function PerkPicker({ perks, onActivate }: PerkPickerProps) {
+export function PerkPicker({
+  perks,
+  onActivate,
+  autoOpen = true,
+  showOpenButton = false,
+}: PerkPickerProps) {
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (!perks?.hasPending || perks.offers.length === 0) {
+      setOpen(false);
+      return;
+    }
+    if (autoOpen) {
+      setOpen(true);
+    }
+  }, [autoOpen, perks?.hasPending, perks?.offers.length]);
+
   if (!perks || !perks.hasPending || perks.offers.length === 0) return null;
 
   if (perks.loading) {
+    if (!open) {
+      return showOpenButton ? (
+        <View
+          style={{
+            borderRadius: 10,
+            borderWidth: 1,
+            borderColor: "rgba(20,241,149,0.35)",
+            backgroundColor: "rgba(20,241,149,0.10)",
+            paddingHorizontal: 12,
+            paddingVertical: 10,
+            gap: 8,
+          }}
+        >
+          <Text className="text-sm font-mono text-white/75 uppercase tracking-wider">
+            Level Up Ready
+          </Text>
+          <View className="flex-row items-center gap-2">
+            <ActivityIndicator size="small" color="#14F195" />
+            <Text className="text-sm text-white/70">Preparing choices...</Text>
+          </View>
+        </View>
+      ) : null;
+    }
     return (
-      <Modal transparent animationType="fade" visible>
-        <View className="flex-1 items-center justify-center bg-black/80">
+      <Modal transparent animationType="fade" visible statusBarTranslucent navigationBarTranslucent>
+        <View className="flex-1 items-center justify-center bg-[#020305]/95">
           <ActivityIndicator color="#00d4ff" />
         </View>
       </Modal>
@@ -214,8 +270,40 @@ export function PerkPicker({ perks, onActivate }: PerkPickerProps) {
   }
 
   return (
-    <Modal transparent animationType="fade" visible>
-      <ModalContent perks={perks.offers} onActivate={onActivate} />
-    </Modal>
+    <>
+      {showOpenButton && !open ? (
+        <View
+          style={{
+            borderRadius: 10,
+            borderWidth: 1,
+            borderColor: "rgba(20,241,149,0.35)",
+            backgroundColor: "rgba(20,241,149,0.10)",
+            paddingHorizontal: 12,
+            paddingVertical: 10,
+            gap: 8,
+          }}
+        >
+          <Text className="text-sm font-mono text-white/75 uppercase tracking-wider">
+            Level Up Ready
+          </Text>
+          <Text className="text-sm text-white/75">
+            You have an unspent level-up choice.
+          </Text>
+          <Button size="sm" variant="gradient" onPress={() => setOpen(true)}>
+            Open Level Up
+          </Button>
+        </View>
+      ) : null}
+      <Modal
+        transparent
+        animationType="fade"
+        visible={open}
+        statusBarTranslucent
+        navigationBarTranslucent
+        onRequestClose={() => setOpen(false)}
+      >
+        <ModalContent perks={perks.offers} onActivate={onActivate} onClose={() => setOpen(false)} />
+      </Modal>
+    </>
   );
 }
