@@ -73,7 +73,7 @@ Stickiness is the hardest criterion to prove. We prove it through *mechanics*, n
 **Name:** SEEKER NODE
 **Subtitle:** *The idle roguelike built to make Solana Mobile your daily ritual.*
 **Hackathon:** Monolith · 2026
-**Stack:** Solana Mobile · MagicBlock · Metaplex Core · Jupiter
+**Stack:** Solana Mobile · MagicBlock · Metaplex Core
 
 *Don't overload it. No description. Just the name and one phrase.*
 
@@ -247,7 +247,6 @@ Protocol Leviathan is an event for the *entire* Seeker audience simultaneously. 
 | **Solana Mobile / MWA v2** | One tap — sign in. No seed phrase, no friction. Wallet = identity + loot vault. Native to Seeker, deployed on the dApp Store. |
 | **MagicBlock Ephemeral Rollups** | Real-time boss HP (WebSocket), zero-fee player progress tracking. 3 Anchor programs on devnet. |
 | **Metaplex Core** | Rare drops minted as Core assets — direct to your Seeker wallet. Server mints, zero player signatures. Rare loot lives on-chain forever. |
-| **Jupiter** | Intel tab: daily quests (Price Scout, PnL Report) and weekly quests (Micro Swap) for in-game resources. |
 
 **Caption:** *Remove any one of these — a core mechanic breaks.*
 
@@ -286,7 +285,7 @@ Epochs reset — but not everything:
 **One line below:**
 Seeker Node — idle roguelike with a weekly epoch, community world boss, and real stakes. The first game for Solana Mobile whose stickiness is built into the mechanics.
 
-**Stack:** Solana Mobile · MagicBlock ER · Metaplex Core · Jupiter
+**Stack:** Solana Mobile · MagicBlock ER · Metaplex Core
 
 ---
 
