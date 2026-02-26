@@ -475,33 +475,6 @@ All NFTs are viewable in Phantom, Magic Eden, Tensor, and any Solana wallet that
 
 ---
 
-## Jupiter Quests ("Intel" Tab)
-
-Quests powered by Jupiter API integration. Players complete real DeFi-adjacent tasks for in-game rewards.
-
-### Daily Quests (Free)
-
-| Quest | Description |
-|---|---|
-| Price Scout | Check a token price via Jupiter |
-| Token Scan | Look up token metadata |
-| Portfolio Check | Review wallet token balances |
-| PnL Report | Check profit/loss on a position |
-
-### Weekly Quests
-
-| Quest | Description |
-|---|---|
-| Micro Swap | Execute a small token swap via Jupiter |
-| Prediction Bet | Place a prediction on price movement |
-
-### Rewards
-
-- Resources (Scrap, Crystal)
-- Temporary boosts: loot chance, speed, XP gain
-
----
-
 ## Leaderboard
 
 - Weekly rankings by epoch score

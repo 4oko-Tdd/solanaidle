@@ -12,7 +12,6 @@ Built mobile-first for **Solana Mobile (Seeker)**. Players are node operators ru
 | **MagicBlock Ephemeral Rollups** | Two on-chain programs: real-time boss HP broadcast via websocket (boss-tracker), zero-fee player progress checkpointing (progress-tracker). |
 | **MagicBlock VRF** | Provably fair epoch bonus rolls — verifiable on-chain randomness for end-of-week rewards. |
 | **Metaplex Core** | Server-mints NFT artifacts and achievement badges directly to player wallets (zero player signatures). |
-| **Jupiter** | "Intel" tab quests — daily/weekly tasks powered by Jupiter price, token, and swap APIs for in-game resources. |
 
 ## Game Loop
 
@@ -49,7 +48,6 @@ No pay-to-win. No infinite farming. Time is the core resource. The boss is why y
 | Wallet | @wallet-ui/react-native-web3js + Mobile Wallet Adapter v2 (mobile), @solana/wallet-adapter-react (web) |
 | On-chain | 3 Anchor programs on MagicBlock Ephemeral Rollups |
 | NFTs | Metaplex Core (Umi + mpl-core) |
-| DeFi quests | Jupiter API |
 | Target | Android app (Seeker / Solana Mobile ecosystem) + web companion |
 
 ## Monorepo Structure

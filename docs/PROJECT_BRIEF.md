@@ -4,7 +4,7 @@
 
 Seeker Node is a wallet-native roguelike idle game built for Solana Mobile. You are a **node operator** in a decentralized cyberpunk world -- running missions, building power through the week, and rallying with other players to take down a **Protocol Leviathan** world boss every weekend. The only things that survive the weekly reset are rare boss drops and achievement badges.
 
-This is not DeFi. Not P2E. Not a casino. It is a game designed to create daily habits around Solana Mobile usage, with deep integrations across **Solana Mobile, MagicBlock, Metaplex Core, and Jupiter**.
+This is not DeFi. Not P2E. Not a casino. It is a game designed to create daily habits around Solana Mobile usage, with deep integrations across **Solana Mobile, MagicBlock, and Metaplex Core**.
 
 ---
 
@@ -135,16 +135,6 @@ Two collections:
 - **Seeker Node: Relics** -- Permanent rare boss loot (Protocol Core, Genesis Shard, etc.) and hand-crafted NFT artifacts
 - **Seeker Node: Achievements** -- Badge NFTs for milestones (Boss Slayer, Streak Legend, Deep Explorer, Raid Victor, Epoch Champion)
 
-### Jupiter
-
-The in-game **Intel tab** integrates Jupiter to bridge idle gameplay with real Solana DeFi:
-
-**Daily Quests:** Price Scout, Token Scan, Portfolio Check, PnL Report
-**Weekly Quests:** Micro Swap, Prediction Bet
-**Rewards:** Resources + temporary boosts (loot chance, speed, XP)
-
----
-
 ## Anti-Cheat
 
 All game state is **server-authoritative**:
@@ -166,7 +156,6 @@ All game state is **server-authoritative**:
 | Backend | Hono (TypeScript) on Node.js + SQLite (better-sqlite3) |
 | On-Chain | Anchor (3 programs: VRF, progress tracking, boss HP — all via MagicBlock) |
 | NFTs | Metaplex Core (Umi + mpl-core) |
-| DeFi | Jupiter API (price, swap, limit orders) |
 | Wallet | Mobile Wallet Adapter v2 + `@wallet-ui/react-native-web3js` (mobile), `@solana/wallet-adapter-react` (web) |
 | Monorepo | pnpm workspaces |
 | Shared Types | @solanaidle/shared workspace package |
@@ -178,7 +167,7 @@ All game state is **server-authoritative**:
 
 Solana Mobile needs apps that people open **every day**, not once. Seeker Node creates a weekly roguelike loop where the boss fight is the social event, the rare drop is the chase, and the wallet is not just a login button -- it is your loot vault and proof of legend.
 
-Each integration (Mobile Wallet Adapter, MagicBlock VRF, Metaplex Core NFTs, Jupiter quests) serves a real gameplay purpose -- nothing is bolted on.
+Each integration (Mobile Wallet Adapter, MagicBlock VRF, Metaplex Core NFTs) serves a real gameplay purpose -- nothing is bolted on.
 
 > "A cyberpunk roguelike idle game where your Solana wallet is your operator badge, your loot vault, and your proof of legend."
 
