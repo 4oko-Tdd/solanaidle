@@ -34,7 +34,8 @@ export function CurrencyBar({ inventory }: Props) {
       style={{
         overflow: "hidden",
         borderBottomWidth: 1,
-        borderBottomColor: "rgba(255,255,255,0.06)",
+        borderBottomColor: "rgba(20,241,149,0.12)",
+        boxShadow: "0 1px 8px rgba(20,241,149,0.06)",
       }}
     >
       <BlurView intensity={20} tint="dark">
@@ -43,9 +44,9 @@ export function CurrencyBar({ inventory }: Props) {
             flexDirection: "row",
             justifyContent: "center",
             alignItems: "center",
-            gap: 24,
-            paddingVertical: 6,
-            backgroundColor: "rgba(10,22,40,0.75)",
+            gap: 28,
+            paddingVertical: 8,
+            backgroundColor: "rgba(10,22,40,0.85)",
           }}
         >
           {RESOURCES.map((r) => (
@@ -53,11 +54,11 @@ export function CurrencyBar({ inventory }: Props) {
               key={r.key}
               style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
             >
-              <Image source={r.icon} style={{ width: 22, height: 22 }} />
+              <Image source={r.icon} style={{ width: 26, height: 26 }} />
               <Text
                 style={{
-                  fontFamily: "Rajdhani_600SemiBold",
-                  fontSize: 15,
+                  fontFamily: "Rajdhani_700Bold",
+                  fontSize: 18,
                   color: r.color,
                   fontVariant: ["tabular-nums"],
                 }}

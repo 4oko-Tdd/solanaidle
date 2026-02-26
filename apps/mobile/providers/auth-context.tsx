@@ -30,14 +30,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setAuthLoading(true);
     try {
       // Step 1: Connect wallet (opens MWA), get nonce
-      await connect();
-      const walletAddr = account?.address.toString() ?? "";
+      const connectedAccount = await connect();
+      const walletAddr = connectedAccount.address.toString();
 
       const { nonce } = await api<AuthNonceResponse>("/auth/nonce");
 
       // Step 2: Sign nonce (opens MWA again if session closed)
       const signed = await walletSignMessage(new TextEncoder().encode(nonce));
-      const signatureBase58 = bs58.encode(signed);
+      // MWA sign_messages returns message+signature concatenated;
+      // extract last 64 bytes (ed25519 detached signature)
+      const sigBytes = new Uint8Array(signed);
+      const signature64 = sigBytes.length > 64
+        ? sigBytes.slice(sigBytes.length - 64)
+        : sigBytes;
+      const signatureBase58 = bs58.encode(signature64);
 
       // Step 3: Verify with backend
       const res = await api<AuthVerifyResponse>("/auth/verify", {
@@ -58,7 +64,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setAuthLoading(false);
     }
-  }, [isAuthenticated, authLoading, connect, account, walletSignMessage]);
+  }, [isAuthenticated, authLoading, connect, walletSignMessage]);
 
   const logout = useCallback(async () => {
     clearAuthToken();

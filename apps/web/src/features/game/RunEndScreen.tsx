@@ -83,7 +83,7 @@ export function RunEndScreen({ run, signMessage, onFinalized }: Props) {
     setPhase("rolling");
 
     try {
-      // Step 1: Request VRF randomness (player signs one Solana tx)
+      // Step 1: Request VRF randomness (player signs one MagicBlock tx)
       let vrfAccount: string | null = null;
       try {
         vrfAccount = await requestRoll();

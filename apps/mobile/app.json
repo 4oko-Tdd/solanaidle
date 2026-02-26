@@ -7,6 +7,11 @@
     "scheme": "seekernode",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
+    "androidStatusBar": {
+      "barStyle": "light-content",
+      "backgroundColor": "#00000000",
+      "translucent": true
+    },
     "android": {
       "package": "com.seekernode.app",
       "adaptiveIcon": {

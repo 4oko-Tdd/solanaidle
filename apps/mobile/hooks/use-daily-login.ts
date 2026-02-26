@@ -10,7 +10,7 @@ interface UseDailyLoginReturn {
 
 export function useDailyLogin(isAuthenticated: boolean): UseDailyLoginReturn {
   const [status, setStatus] = useState<DailyLoginStatus | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(isAuthenticated);
 
   const fetchStatus = useCallback(async () => {
     if (!isAuthenticated) return;

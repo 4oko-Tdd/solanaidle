@@ -1,4 +1,4 @@
-import { usePerks } from "@/hooks/usePerks";
+import type { usePerks } from "@/hooks/usePerks";
 import { Button } from "@/components/ui/button";
 import type { PerkDefinition } from "@solanaidle/shared";
 import { useState } from "react";
@@ -110,8 +110,12 @@ function PerkCard({
   );
 }
 
-export function PerkPicker() {
-  const { offers, hasPending, choosePerk, loading } = usePerks();
+interface Props {
+  perks: ReturnType<typeof usePerks>;
+}
+
+export function PerkPicker({ perks }: Props) {
+  const { offers, hasPending, choosePerk, loading } = perks;
   const [choosing, setChoosing] = useState(false);
 
   if (!hasPending || offers.length === 0) return null;

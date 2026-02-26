@@ -1,6 +1,6 @@
 import { View, Text, Pressable, ImageBackground } from "react-native";
 import { Tabs } from "expo-router";
-import { Swords, Search, Wrench, Users, Trophy } from "lucide-react-native";
+import { Swords, Wrench, Users, Trophy } from "lucide-react-native";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -45,7 +45,7 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
             const icon = options.tabBarIcon?.({
               focused: isFocused,
               color: isFocused ? "#14F195" : "#4a7a9b",
-              size: 20,
+              size: 24,
             });
 
             const label = ((options.title ?? route.name) as string).toUpperCase();
@@ -72,11 +72,17 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
                   position: "relative",
                 }}
               >
-                {/* Icon — scale up + brighter when active */}
+                {/* Icon — scale up + glow when active */}
                 <View
                   style={
                     isFocused
-                      ? { transform: [{ scale: 1.12 }] }
+                      ? {
+                          transform: [{ scale: 1.12 }],
+                          shadowColor: "#14F195",
+                          shadowOffset: { width: 0, height: 0 },
+                          shadowOpacity: 0.4,
+                          shadowRadius: 6,
+                        }
                       : { opacity: 0.75 }
                   }
                 >
@@ -124,6 +130,7 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
 export default function TabLayout() {
   const { isAuthenticated } = useAuth();
   const inventory = useInventory(isAuthenticated);
+  const insets = useSafeAreaInsets();
 
   return (
     <ImageBackground
@@ -131,7 +138,7 @@ export default function TabLayout() {
       style={{ flex: 1 }}
       resizeMode="cover"
     >
-      <View style={{ flex: 1 }}>
+      <View style={{ flex: 1, paddingTop: insets.top }}>
         {isAuthenticated && inventory && <CurrencyBar inventory={inventory} />}
         <Tabs
           tabBar={(props) => <CustomTabBar {...props} />}
@@ -145,16 +152,7 @@ export default function TabLayout() {
             options={{
               title: "NODE",
               tabBarIcon: ({ color }) => (
-                <Swords size={20} color={color} strokeWidth={1.5} />
-              ),
-            }}
-          />
-          <Tabs.Screen
-            name="ops"
-            options={{
-              title: "OPS",
-              tabBarIcon: ({ color }) => (
-                <Search size={20} color={color} strokeWidth={1.5} />
+                <Swords size={24} color={color} strokeWidth={1.5} />
               ),
             }}
           />
@@ -163,7 +161,7 @@ export default function TabLayout() {
             options={{
               title: "BASE",
               tabBarIcon: ({ color }) => (
-                <Wrench size={20} color={color} strokeWidth={1.5} />
+                <Wrench size={24} color={color} strokeWidth={1.5} />
               ),
             }}
           />
@@ -172,7 +170,7 @@ export default function TabLayout() {
             options={{
               title: "GUILD",
               tabBarIcon: ({ color }) => (
-                <Users size={20} color={color} strokeWidth={1.5} />
+                <Users size={24} color={color} strokeWidth={1.5} />
               ),
             }}
           />
@@ -181,7 +179,7 @@ export default function TabLayout() {
             options={{
               title: "RANKS",
               tabBarIcon: ({ color }) => (
-                <Trophy size={20} color={color} strokeWidth={1.5} />
+                <Trophy size={24} color={color} strokeWidth={1.5} />
               ),
             }}
           />

@@ -95,7 +95,7 @@ export function RunEndScreen({ run, signMessage, onClose }: Props) {
     setPhase("rolling");
 
     try {
-      // Step 1: Request VRF randomness
+      // Step 1: Request VRF randomness (player signs one MagicBlock tx)
       let vrfAccount: string | null = null;
       try {
         vrfAccount = await requestRoll();
@@ -116,7 +116,7 @@ export function RunEndScreen({ run, signMessage, onClose }: Props) {
         }
       }
 
-      // Step 3: Finalize with backend
+      // Step 3: Finalize with backend (includes VRF account for bonus calc)
       const result = await api<EpochFinalizeResponse>(`/runs/${run.id}/finalize`, {
         method: "POST",
         body: JSON.stringify({
@@ -259,8 +259,8 @@ export function RunEndScreen({ run, signMessage, onClose }: Props) {
             <Text className="text-2xl font-display text-neon-amber">Epoch Bonus!</Text>
             {bonus.vrfVerified && (
               <View className="flex-row items-center gap-1.5 rounded-full bg-neon-cyan/10 border border-neon-cyan/20 px-3 py-1">
-                <ShieldCheck size={12} color="#00d4ff" />
-                <Text className="text-xs text-neon-cyan font-sans-semibold">Verified by MagicBlock</Text>
+                <ShieldCheck size={14} color="#00d4ff" />
+                <Text className="text-sm text-neon-cyan font-sans-semibold">Verified by MagicBlock</Text>
               </View>
             )}
           </View>
@@ -360,7 +360,7 @@ export function RunEndScreen({ run, signMessage, onClose }: Props) {
 
             {/* Class + score */}
             <View>
-              <Text className={`text-xs font-sans-semibold ${classTextColor}`}>
+              <Text className={`text-sm font-sans-semibold ${classTextColor}`}>
                 {CLASS_NAMES[run.classId]}
               </Text>
               <Text className="text-4xl font-sans-bold text-neon-green leading-none mt-0.5">

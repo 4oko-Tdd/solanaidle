@@ -20,7 +20,6 @@ import { addScore, incrementMissions, useLife, incrementStreak, resetStreak } fr
 import { insertEvent } from "./event-service.js";
 import type { ActiveMission, MissionClaimResponse, MissionId, MissionRewards } from "@solanaidle/shared";
 import { updateProgressOnER } from "./er-service.js";
-import { getActiveBoostPercent } from "./quest-service.js";
 import { checkAndGrantAchievements } from "./achievement-service.js";
 
 interface MissionRow {
@@ -102,14 +101,6 @@ export function startMission(
     const engineReduction = getEngineReduction(runRow?.engine_level ?? 0);
     if (engineReduction > 0) {
       duration = Math.floor(duration * (1 - engineReduction));
-    }
-  }
-
-  // Apply quest speed boost
-  if (walletAddress) {
-    const speedBoost = getActiveBoostPercent(walletAddress, "speed");
-    if (speedBoost > 0) {
-      duration = Math.max(1, Math.floor(duration * (1 - speedBoost / 100)));
     }
   }
 
@@ -271,14 +262,6 @@ export async function claimMission(
     const charClass = getClass(classId);
     if (charClass && charClass.xpModifier !== 1.0) {
       rewards.xp = Math.floor(rewards.xp * charClass.xpModifier);
-    }
-  }
-
-  // Apply quest XP boost
-  if (walletAddress) {
-    const xpBoost = getActiveBoostPercent(walletAddress, "xp");
-    if (xpBoost > 0) {
-      rewards.xp = Math.floor(rewards.xp * (1 + xpBoost / 100));
     }
   }
 

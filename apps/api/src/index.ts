@@ -13,7 +13,6 @@ import guilds from "./routes/guilds.js";
 import raids from "./routes/raids.js";
 import runs from "./routes/runs.js";
 import daily from "./routes/daily.js";
-import quests from "./routes/quests.js";
 import nfts from "./routes/nft-routes.js";
 import boss from "./routes/boss-routes.js";
 import perks from "./routes/perk-routes.js";
@@ -42,7 +41,6 @@ app.route("/guilds", guilds);
 app.route("/raids", raids);
 app.route("/runs", runs);
 app.route("/daily", daily);
-app.route("/quests", quests);
 app.route("/nfts", nfts);
 app.route("/boss", boss);
 app.route("/perks", perks);
@@ -180,6 +178,14 @@ if (process.env.NODE_ENV !== "production") {
     if (!run) {
       return c.json({ error: "NO_ACTIVE_RUN", message: "No active run" }, 400);
     }
+    // Cancel any active mission so the run can end cleanly
+    const db = (await import("./db/database.js")).default;
+    const { getCharacter } = await import("./services/character-service.js");
+    const char = getCharacter(payload.wallet);
+    if (char) {
+      db.prepare("DELETE FROM active_missions WHERE character_id = ?").run(char.id);
+      db.prepare("UPDATE characters SET state = 'idle' WHERE id = ?").run(char.id);
+    }
     endRun(run.id);
     return c.json({ message: "Epoch ended" });
   });
@@ -226,24 +232,6 @@ if (process.env.NODE_ENV !== "production") {
     return c.json({ message: "No epoch to reset." });
   });
 
-  // Dev: Reset quests -- clear all quest completions and boosts
-  app.post("/dev/reset-quests", async (c) => {
-    const header = c.req.header("Authorization");
-    if (!header?.startsWith("Bearer ")) {
-      return c.json({ error: "UNAUTHORIZED", message: "Missing token" }, 401);
-    }
-    const { verifyToken } = await import("./services/auth-service.js");
-    const payload = verifyToken(header.slice(7));
-    if (!payload) {
-      return c.json({ error: "UNAUTHORIZED", message: "Invalid token" }, 401);
-    }
-
-    const db = (await import("./db/database.js")).default;
-    db.prepare("DELETE FROM quest_completions WHERE wallet_address = ?").run(payload.wallet);
-    db.prepare("DELETE FROM quest_boosts WHERE wallet_address = ?").run(payload.wallet);
-    return c.json({ message: "Quests reset" });
-  });
-
   // Dev: Force-spawn boss (bypasses weekend check)
   app.post("/dev/spawn-boss", async (c) => {
     const { randomUUID } = await import("crypto");
@@ -278,6 +266,22 @@ if (process.env.NODE_ENV !== "production") {
     return c.json({ message: `Boss spawned: ${BOSS_NAME} (${maxHp} HP)`, spawned: true });
   });
 
+  // Dev: Reset daily login claim (for testing daily modal)
+  app.post("/dev/reset-daily", async (c) => {
+    const header = c.req.header("Authorization");
+    if (!header?.startsWith("Bearer ")) {
+      return c.json({ error: "UNAUTHORIZED", message: "Missing token" }, 401);
+    }
+    const { verifyToken } = await import("./services/auth-service.js");
+    const payload = verifyToken(header.slice(7));
+    if (!payload) {
+      return c.json({ error: "UNAUTHORIZED", message: "Invalid token" }, 401);
+    }
+    const db = (await import("./db/database.js")).default;
+    db.prepare("DELETE FROM daily_logins WHERE wallet_address = ?").run(payload.wallet);
+    return c.json({ message: "Daily login reset" });
+  });
+
   // Dev: Reset DB -- wipe everything for this player
   app.post("/dev/reset-player", async (c) => {
     const header = c.req.header("Authorization");
@@ -298,8 +302,6 @@ if (process.env.NODE_ENV !== "production") {
     db.pragma("foreign_keys = OFF");
     try {
       // Wallet-level data
-      db.prepare("DELETE FROM quest_completions WHERE wallet_address = ?").run(w);
-      db.prepare("DELETE FROM quest_boosts WHERE wallet_address = ?").run(w);
       db.prepare("DELETE FROM boss_participants WHERE wallet_address = ?").run(w);
       db.prepare("DELETE FROM permanent_loot WHERE wallet_address = ?").run(w);
       db.prepare("DELETE FROM weekly_buffs WHERE wallet_address = ?").run(w);
