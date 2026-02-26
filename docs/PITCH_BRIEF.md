@@ -259,7 +259,7 @@ Protocol Leviathan is an event for the *entire* Seeker audience simultaneously. 
 
 **Architecture (top):**
 
-- **Frontend:** React 19 + Vite + Tailwind + shadcn/ui → PWA → Bubblewrap → APK
+- **Frontend:** Expo React Native Android app (primary Seeker client) + React/Vite web companion
 - **Backend:** Hono (TypeScript) + SQLite — server-authoritative, all timers on the server
 - **On-chain:** 3 Anchor programs via MagicBlock ER (progress-tracker, boss-tracker, vrf-roller)
 - **Resilience:** if ER is unavailable → SQLite + HTTP polling. The game doesn't go down.
@@ -294,7 +294,7 @@ Seeker Node — idle roguelike with a weekly epoch, community world boss, and re
 
 **Order (2–3 minutes):**
 
-1. Open the app on Android / PWA
+1. Open the Android Expo app on Seeker
 2. Connect wallet via MWA v2 — one tap, show the speed
 3. Pick a class, launch a mission — show the timer (server-side)
 4. Go to the Boss screen → **HP bar LIVE** — updating in real time

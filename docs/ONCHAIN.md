@@ -226,7 +226,7 @@ Boss dies or weekend ends
 
 ### Frontend Subscription
 
-`apps/web/src/hooks/useBossER.ts` subscribes to the boss PDA via `connection.onAccountChange()` on the ER validator URL. All clients see HP updates in real-time via websocket.
+`apps/web/src/hooks/useBossER.ts` and `apps/mobile/hooks/use-boss-er.ts` subscribe to the boss PDA via `connection.onAccountChange()` on the ER validator URL. All clients see HP updates in real-time via websocket.
 
 Fallback: if websocket disconnects, frontend uses 30s HTTP polling to `/boss`.
 
@@ -302,10 +302,10 @@ Server authority: `HLjsjniaFyDJSHs2wKkdbc2W3dqR6coqmRz5YHWYUsV3`
 
 ```bash
 # Boss PDA only
-pnpm --filter api exec tsx ../../scripts/verify-er.ts
+pnpm --filter @solanaidle/api exec tsx ../../scripts/verify-er.ts
 
 # Boss + player progress
-pnpm --filter api exec tsx ../../scripts/verify-er.ts <PLAYER_WALLET>
+pnpm --filter @solanaidle/api exec tsx ../../scripts/verify-er.ts <PLAYER_WALLET>
 ```
 
 ### Manual Verification
