@@ -48,6 +48,7 @@ const solanaConnection = new Connection(SOLANA_RPC_URL, "confirmed");
 const erConnection = new Connection(ER_VALIDATOR_URL, "confirmed");
 const erConnectionCache = new Map<string, Connection>();
 erConnectionCache.set(ER_VALIDATOR_URL, erConnection);
+const resolvedErEndpoints = new Map<string, string>(); // pdaBase58 -> fqdn URL
 
 let erRpcRequestId = 0;
 
@@ -56,6 +57,16 @@ let erRpcRequestId = 0;
  */
 async function resolveErConnection(accountPda: PublicKey): Promise<Connection> {
   try {
+    const pdaBase58 = accountPda.toBase58();
+    const cachedEndpoint = resolvedErEndpoints.get(pdaBase58);
+    if (cachedEndpoint) {
+      const cachedConn = erConnectionCache.get(cachedEndpoint);
+      if (cachedConn) return cachedConn;
+      const conn = new Connection(cachedEndpoint, "confirmed");
+      erConnectionCache.set(cachedEndpoint, conn);
+      return conn;
+    }
+
     const resp = await fetch(ER_ROUTER_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -63,12 +74,16 @@ async function resolveErConnection(accountPda: PublicKey): Promise<Connection> {
         jsonrpc: "2.0",
         id: ++erRpcRequestId,
         method: "getDelegationStatus",
-        params: [accountPda.toBase58()],
+        params: [pdaBase58],
       }),
     });
     const json = await resp.json() as { result?: { isDelegated: boolean; fqdn?: string } };
     if (json.result?.isDelegated && json.result.fqdn) {
       const url = json.result.fqdn.replace(/\/$/, "");
+      resolvedErEndpoints.set(pdaBase58, url);
+      if (url !== ER_VALIDATOR_URL) {
+        console.log(`[BossER] PDA delegated to ${url} (not default ${ER_VALIDATOR_URL})`);
+      }
       const existing = erConnectionCache.get(url);
       if (existing) return existing;
       const conn = new Connection(url, "confirmed");
@@ -87,6 +102,24 @@ const delegatedBossPdas = new Set<string>();
 // ── Track last on-chain damage to compute deltas ──
 
 const lastOnChainDamage = new Map<string, number>();
+const BOSS_TOTAL_DAMAGE_OFFSET = 64; // discriminator(8) + authority(32) + week_start(8) + max_hp(8) + current_hp(8)
+
+/**
+ * Read the current total_damage from the boss PDA on ER.
+ * Used to sync in-memory state after server restart.
+ */
+async function readTotalDamageFromER(bossPda: PublicKey): Promise<number> {
+  try {
+    const targetEr = await resolveErConnection(bossPda);
+    const accountInfo = await targetEr.getAccountInfo(bossPda);
+    if (!accountInfo?.data || accountInfo.data.length < BOSS_TOTAL_DAMAGE_OFFSET + 8) {
+      return 0;
+    }
+    return Number(accountInfo.data.readBigUInt64LE(BOSS_TOTAL_DAMAGE_OFFSET));
+  } catch {
+    return 0;
+  }
+}
 
 // ── PDA Derivation ──
 
@@ -363,12 +396,24 @@ export async function applyDamageOnER(
 ): Promise<void> {
   try {
     const key = weekStart.toString();
+    const [bossPda] = deriveBossPda(weekStart);
+
+    // Lazy sync: if server restarted and in-memory map is empty,
+    // read current ER total_damage to avoid re-sending stale deltas.
+    if (!lastOnChainDamage.has(key)) {
+      const onChainDamage = await readTotalDamageFromER(bossPda);
+      lastOnChainDamage.set(key, onChainDamage);
+      if (onChainDamage > 0) {
+        console.log(
+          `[BossER] Synced lastOnChainDamage from ER after restart: week=${weekStart}, total_damage=${onChainDamage}`
+        );
+      }
+    }
+
     const lastDamage = lastOnChainDamage.get(key) ?? 0;
     const delta = totalDamageSoFar - lastDamage;
 
     if (delta <= 0) return; // No new damage to push
-
-    const [bossPda] = deriveBossPda(weekStart);
 
     // Auto-init+delegate if not yet done this session
     if (!delegatedBossPdas.has(bossPda.toBase58())) {
@@ -480,8 +525,11 @@ export async function buildPartiallySignedApplyDamageTx(
     // Server partial-signs as authority
     tx.partialSign(serverKeypair);
 
-    // Update lastOnChainDamage now so passive ticks don't re-send the same delta
-    lastOnChainDamage.set(key, totalDamageSoFar);
+    // NOTE: Do NOT update lastOnChainDamage here.
+    // The caller must call applyDamageOnER() after tx confirmation,
+    // or update lastOnChainDamage in a confirmed callback.
+    // Updating here before confirmation can permanently skip damage
+    // if the player never broadcasts the transaction.
 
     const serialized = tx.serialize({ requireAllSignatures: false });
     return {

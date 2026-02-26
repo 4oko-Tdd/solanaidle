@@ -346,8 +346,8 @@ export async function claimMission(
   // Update on-chain progress via ER (server-side, fire-and-forget)
   if (runId) {
     const runRow = db.prepare(
-      "SELECT wallet_address, week_start, score, missions_completed, boss_defeated FROM weekly_runs WHERE id = ?"
-    ).get(runId) as { wallet_address: string; week_start: string; score: number; missions_completed: number; boss_defeated: number } | undefined;
+      "SELECT wallet_address, week_start, score, missions_completed, boss_defeated, class_id FROM weekly_runs WHERE id = ?"
+    ).get(runId) as { wallet_address: string; week_start: string; score: number; missions_completed: number; boss_defeated: number; class_id: string } | undefined;
     if (runRow) {
       const deathCount = db.prepare(
         "SELECT COUNT(*) as cnt FROM run_events WHERE run_id = ? AND event_type = 'mission_fail'"
@@ -359,7 +359,8 @@ export async function claimMission(
         runRow.score,
         runRow.missions_completed,
         deathCount?.cnt ?? 0,
-        runRow.boss_defeated === 1
+        runRow.boss_defeated === 1,
+        runRow.class_id
       ).catch(() => {});
     }
   }
