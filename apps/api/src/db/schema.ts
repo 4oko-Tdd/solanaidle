@@ -156,6 +156,42 @@ export function initSchema() {
       PRIMARY KEY (boss_id, wallet_address)
     );
 
+    CREATE TABLE IF NOT EXISTS skr_wallets (
+      wallet_address TEXT PRIMARY KEY,
+      balance INTEGER NOT NULL DEFAULT 0
+    );
+
+    CREATE TABLE IF NOT EXISTS skr_distribution (
+      id INTEGER PRIMARY KEY CHECK (id = 1),
+      burned INTEGER NOT NULL DEFAULT 0,
+      treasury INTEGER NOT NULL DEFAULT 0,
+      reserve INTEGER NOT NULL DEFAULT 0
+    );
+
+    CREATE TABLE IF NOT EXISTS skr_spends (
+      id TEXT PRIMARY KEY,
+      wallet_address TEXT NOT NULL,
+      week_start TEXT NOT NULL,
+      action TEXT NOT NULL,
+      amount INTEGER NOT NULL,
+      burned INTEGER NOT NULL,
+      treasury INTEGER NOT NULL,
+      reserve INTEGER NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS boss_epoch_state (
+      wallet_address TEXT NOT NULL,
+      week_start TEXT NOT NULL,
+      reconnect_used INTEGER NOT NULL DEFAULT 0,
+      overload_amp_used INTEGER NOT NULL DEFAULT 0,
+      raid_license INTEGER NOT NULL DEFAULT 0,
+      destabilized INTEGER NOT NULL DEFAULT 0,
+      destabilized_at TEXT,
+      last_roll_at TEXT,
+      PRIMARY KEY (wallet_address, week_start)
+    );
+
     CREATE TABLE IF NOT EXISTS inventory_capacity (
       wallet_address TEXT PRIMARY KEY,
       max_slots INTEGER NOT NULL DEFAULT 3
@@ -237,6 +273,15 @@ export function initSchema() {
   if (!bossPartCols.map(c => c.name).includes("overload_signature")) {
     db.exec("ALTER TABLE boss_participants ADD COLUMN overload_signature TEXT");
   }
+
+  const spendCols = db.prepare("PRAGMA table_info(skr_spends)").all() as { name: string }[];
+  if (!spendCols.map((c) => c.name).includes("week_start")) {
+    db.exec("ALTER TABLE skr_spends ADD COLUMN week_start TEXT NOT NULL DEFAULT ''");
+  }
+
+  db.prepare(
+    "INSERT OR IGNORE INTO skr_distribution (id, burned, treasury, reserve) VALUES (1, 0, 0, 0)"
+  ).run();
 
   // Migrations — nft_claims: mint_address column
   const claimCols = db.prepare("PRAGMA table_info(nft_claims)").all() as { name: string }[];

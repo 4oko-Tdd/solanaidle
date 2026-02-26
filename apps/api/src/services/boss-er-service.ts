@@ -49,6 +49,8 @@ const erConnection = new Connection(ER_VALIDATOR_URL, "confirmed");
 const erConnectionCache = new Map<string, Connection>();
 erConnectionCache.set(ER_VALIDATOR_URL, erConnection);
 
+let erRpcRequestId = 0;
+
 /**
  * Resolve the ER endpoint for a delegated account via the router.
  */
@@ -59,7 +61,7 @@ async function resolveErConnection(accountPda: PublicKey): Promise<Connection> {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         jsonrpc: "2.0",
-        id: 1,
+        id: ++erRpcRequestId,
         method: "getDelegationStatus",
         params: [accountPda.toBase58()],
       }),

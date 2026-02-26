@@ -7,6 +7,9 @@ import {
   getBossStatus,
   joinBossFight,
   useOverload,
+  useReconnectProtocol,
+  purchaseOverloadAmplifier,
+  purchaseRaidLicense,
   updateAllPassiveDamage,
   resolveBoss,
 } from "../services/boss-service.js";
@@ -76,8 +79,49 @@ app.post("/overload", async (c) => {
   if (!boss) {
     return c.json({ error: "BOSS_NOT_ACTIVE" }, 400);
   }
-  const { playerSignature } = await c.req.json<{ playerSignature?: string }>().catch(() => ({} as { playerSignature?: string }));
+  const { playerSignature } = await c.req
+    .json<{ playerSignature?: string }>()
+    .catch(() => ({} as { playerSignature?: string }));
+  if (!playerSignature || !playerSignature.trim()) {
+    return c.json(
+      {
+        error: "SIGNATURE_REQUIRED",
+        message: "Boss OVERLOAD requires wallet signature",
+      },
+      400
+    );
+  }
   const result = await useOverload(wallet, boss.id, playerSignature);
+  if (!result.success) {
+    return c.json({ error: result.error }, 400);
+  }
+  return c.json(result);
+});
+
+// POST /boss/reconnect
+app.post("/reconnect", (c) => {
+  const wallet = c.get("wallet");
+  const result = useReconnectProtocol(wallet);
+  if (!result.success) {
+    return c.json({ error: result.error }, 400);
+  }
+  return c.json(result);
+});
+
+// POST /boss/overload-amplifier
+app.post("/overload-amplifier", (c) => {
+  const wallet = c.get("wallet");
+  const result = purchaseOverloadAmplifier(wallet);
+  if (!result.success) {
+    return c.json({ error: result.error }, 400);
+  }
+  return c.json(result);
+});
+
+// POST /boss/raid-license
+app.post("/raid-license", (c) => {
+  const wallet = c.get("wallet");
+  const result = purchaseRaidLicense(wallet);
   if (!result.success) {
     return c.json({ error: result.error }, 400);
   }

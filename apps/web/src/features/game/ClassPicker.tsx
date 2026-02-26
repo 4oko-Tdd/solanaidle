@@ -47,7 +47,10 @@ export function ClassPicker({ classes, onSelect, signMessage }: Props) {
     try {
       const msg = `BEGIN_RUN:week${weekNum}:${selected}:${Date.now()}`;
       const signature = await signMessage(msg);
-      await onSelect(selected, signature ?? undefined);
+      if (!signature) {
+        throw new Error("Run start was cancelled in wallet");
+      }
+      await onSelect(selected, signature);
     } finally {
       setSigning(false);
       setConfirming(false);

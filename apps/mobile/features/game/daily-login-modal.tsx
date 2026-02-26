@@ -1,20 +1,39 @@
 import { useState } from "react";
-import { View, Text, Image, ActivityIndicator, ScrollView } from "react-native";
+import { View, Text, Image, ActivityIndicator, Pressable, ScrollView, TouchableWithoutFeedback } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { Gift, Check } from "lucide-react-native";
 import { Button } from "@/components/ui";
+import { GradientText } from "@/components/gradient-text";
 import type { DailyLoginStatus } from "@solanaidle/shared";
 
 interface Props {
   status: DailyLoginStatus | null;
+  loading?: boolean;
   onClaim: () => Promise<void>;
   onClose: () => void;
 }
 
-export function DailyLoginModal({ status, onClaim, onClose }: Props) {
+export function DailyLoginModal({ status, loading, onClaim, onClose }: Props) {
   const [claiming, setClaiming] = useState(false);
   const [claimed, setClaimed] = useState(false);
 
-  if (!status) return null;
+  // Still loading or no data yet — show spinner with skip option
+  if (!status) {
+    return (
+      <View style={{ flex: 1, backgroundColor: "rgba(10,22,40,0.98)", justifyContent: "center", alignItems: "center", gap: 16 }}>
+        {loading ? (
+          <ActivityIndicator size="large" color="#ffb800" />
+        ) : (
+          <>
+            <Text style={{ fontSize: 14, color: "rgba(255,255,255,0.5)" }}>Could not load daily bonus</Text>
+            <Button variant="outline" size="md" onPress={onClose}>
+              Skip
+            </Button>
+          </>
+        )}
+      </View>
+    );
+  }
 
   const handleClaim = async () => {
     setClaiming(true);
@@ -29,107 +48,179 @@ export function DailyLoginModal({ status, onClaim, onClose }: Props) {
   const reward = status.todayReward;
 
   return (
-    <View className="flex-1">
-      <ScrollView
-        contentContainerStyle={{ padding: 16, paddingBottom: 32, gap: 16 }}
-      >
-        {/* Header */}
-        <View className="items-center gap-2">
-          <Gift size={32} color="#ffb800" />
-          <Text className="text-xl font-display text-white">
-            {claimed ? "Claimed!" : "Daily Bonus"}
-          </Text>
-          <Text className="text-sm text-white/50 text-center">
-            {claimed
-              ? `Day ${status.streakDay} reward collected!`
-              : `Day ${status.streakDay} of 7 — claim your daily reward!`}
-          </Text>
-        </View>
-
-        {/* 7-day calendar strip */}
-        <View className="flex-row gap-1">
-          {status.rewards.map((r) => {
-            const isPast = r.day < status.streakDay;
-            const isCurrent = r.day === status.streakDay;
-            return (
+    <TouchableWithoutFeedback onPress={onClose}>
+      <View style={{ flex: 1, backgroundColor: "rgba(10,22,40,0.98)" }}>
+        <ScrollView
+          style={{ flex: 1 }}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ padding: 20, paddingBottom: 32, flexGrow: 1, justifyContent: "center" }}
+        >
+          <TouchableWithoutFeedback>
+            <View>
+              {/* Main card */}
               <View
-                key={r.day}
-                className={`flex-1 flex-col items-center rounded-lg px-1 py-1.5 ${
-                  isCurrent
-                    ? "bg-neon-amber/20 border border-neon-amber/40"
-                    : isPast
-                    ? "bg-white/[0.03] opacity-50"
-                    : "bg-white/[0.03]"
-                }`}
+                style={{
+                  borderRadius: 20,
+                  overflow: "hidden",
+                  borderWidth: 1,
+                  borderColor: "rgba(255,184,0,0.25)",
+                  boxShadow: "0 0 30px rgba(255,184,0,0.12), 0 0 60px rgba(255,184,0,0.04)",
+                }}
               >
-                <Text className="font-mono text-xs text-white/40">D{r.day}</Text>
-                {isPast ? (
-                  <Check size={14} color="#14F195" />
-                ) : (
-                  <Gift
-                    size={16}
-                    color={isCurrent ? "#ffb800" : "rgba(255,255,255,0.2)"}
-                  />
-                )}
-              </View>
-            );
-          })}
-        </View>
+                <LinearGradient
+                  colors={["#1a1400", "#0d0f18", "#0a0c14"]}
+                  start={{ x: 0.5, y: 0 }}
+                  end={{ x: 0.5, y: 1 }}
+                  style={{ padding: 24, gap: 20 }}
+                >
+                  {/* Header */}
+                  <View style={{ alignItems: "center", gap: 8 }}>
+                    <View
+                      style={{
+                        width: 60,
+                        height: 60,
+                        borderRadius: 30,
+                        backgroundColor: "rgba(255,184,0,0.1)",
+                        borderWidth: 1.5,
+                        borderColor: "rgba(255,184,0,0.35)",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        boxShadow: "0 0 20px rgba(255,184,0,0.15)",
+                      }}
+                    >
+                      <Gift size={28} color="#ffb800" />
+                    </View>
+                    <GradientText
+                      colors={["#ffb800", "#fbbf24"]}
+                      className="text-2xl font-display"
+                    >
+                      {claimed ? "Claimed!" : "Daily Bonus"}
+                    </GradientText>
+                    <Text style={{ fontSize: 14, color: "rgba(255,255,255,0.45)", textAlign: "center" }}>
+                      {claimed
+                        ? `Day ${status.streakDay} reward collected!`
+                        : `Day ${status.streakDay} of 7 — claim your daily reward!`}
+                    </Text>
+                  </View>
 
-        {/* Today's reward */}
-        <View className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-3 gap-3">
-          <Text className="text-xs text-white/40 text-center uppercase tracking-wider">
-            Today's Reward
-          </Text>
-          <View className="flex-row items-center justify-center gap-4">
-            {reward.scrap > 0 && (
-              <View className="flex-row items-center gap-1">
-                <Image
-                  source={require("@/assets/icons/scrap.png")}
-                  style={{ width: 40, height: 40 }}
-                />
-                <Text className="font-display text-neon-green">+{reward.scrap}</Text>
-              </View>
-            )}
-            {reward.crystal > 0 && (
-              <View className="flex-row items-center gap-1">
-                <Image
-                  source={require("@/assets/icons/tokens.png")}
-                  style={{ width: 40, height: 40 }}
-                />
-                <Text className="font-display text-neon-green">+{reward.crystal}</Text>
-              </View>
-            )}
-            {reward.artifact > 0 && (
-              <View className="flex-row items-center gap-1">
-                <Image
-                  source={require("@/assets/icons/key.png")}
-                  style={{ width: 40, height: 40 }}
-                />
-                <Text className="font-display text-neon-green">+{reward.artifact}</Text>
-              </View>
-            )}
-          </View>
-        </View>
+                  {/* 7-day calendar strip */}
+                  <View style={{ flexDirection: "row", gap: 6 }}>
+                    {status.rewards.map((r) => {
+                      const isPast = r.day < status.streakDay;
+                      const isCurrent = r.day === status.streakDay;
+                      return (
+                        <View
+                          key={r.day}
+                          style={[
+                            {
+                              flex: 1,
+                              alignItems: "center",
+                              borderRadius: 10,
+                              paddingVertical: 8,
+                              gap: 4,
+                            },
+                            isCurrent
+                              ? {
+                                  backgroundColor: "rgba(255,184,0,0.12)",
+                                  borderWidth: 1,
+                                  borderColor: "rgba(255,184,0,0.4)",
+                                  boxShadow: "0 0 12px rgba(255,184,0,0.15)",
+                                }
+                              : isPast
+                              ? { backgroundColor: "rgba(20,241,149,0.05)", borderWidth: 1, borderColor: "rgba(20,241,149,0.15)" }
+                              : { backgroundColor: "rgba(255,255,255,0.03)", borderWidth: 1, borderColor: "rgba(255,255,255,0.06)" },
+                          ]}
+                        >
+                          <Text
+                            style={{
+                              fontFamily: "RobotoMono_400Regular",
+                              fontSize: 10,
+                              color: isCurrent ? "#ffb800" : isPast ? "#14F195" : "rgba(255,255,255,0.3)",
+                              letterSpacing: 0.5,
+                            }}
+                          >
+                            D{r.day}
+                          </Text>
+                          {isPast ? (
+                            <Check size={14} color="#14F195" />
+                          ) : (
+                            <Gift
+                              size={14}
+                              color={isCurrent ? "#ffb800" : "rgba(255,255,255,0.15)"}
+                            />
+                          )}
+                        </View>
+                      );
+                    })}
+                  </View>
 
-        {/* Action button */}
-        {claimed ? (
-          <Button onPress={onClose} size="lg" className="w-full">
-            <Text className="text-base font-display text-neon-green">Continue</Text>
-          </Button>
-        ) : (
-          <Button onPress={handleClaim} disabled={claiming} size="lg" className="w-full">
-            {claiming ? (
-              <View className="flex-row items-center gap-2">
-                <ActivityIndicator size="small" color="#14F195" />
-                <Text className="text-base font-display text-neon-green">Claiming...</Text>
+                  {/* Today's reward */}
+                  <View style={{ alignItems: "center", gap: 6, paddingVertical: 4 }}>
+                    <Text
+                      style={{
+                        fontFamily: "RobotoMono_400Regular",
+                        fontSize: 12,
+                        color: "rgba(255,255,255,0.3)",
+                        textTransform: "uppercase",
+                        letterSpacing: 2,
+                      }}
+                    >
+                      Today's Reward
+                    </Text>
+                    <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 16 }}>
+                      {reward.scrap > 0 && (
+                        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                          <Image
+                            source={require("@/assets/icons/scrap.png")}
+                            style={{ width: 40, height: 40 }}
+                          />
+                          <Text style={{ fontSize: 18, fontFamily: "Rajdhani_700Bold", color: "#14F195" }}>+{reward.scrap}</Text>
+                        </View>
+                      )}
+                      {reward.crystal > 0 && (
+                        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                          <Image
+                            source={require("@/assets/icons/tokens.png")}
+                            style={{ width: 40, height: 40 }}
+                          />
+                          <Text style={{ fontSize: 18, fontFamily: "Rajdhani_700Bold", color: "#14F195" }}>+{reward.crystal}</Text>
+                        </View>
+                      )}
+                      {reward.artifact > 0 && (
+                        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                          <Image
+                            source={require("@/assets/icons/key.png")}
+                            style={{ width: 40, height: 40 }}
+                          />
+                          <Text style={{ fontSize: 18, fontFamily: "Rajdhani_700Bold", color: "#14F195" }}>+{reward.artifact}</Text>
+                        </View>
+                      )}
+                    </View>
+                  </View>
+
+                  {/* Action button */}
+                  {claimed ? (
+                    <Button onPress={onClose} variant="gradient" size="lg" className="w-full">
+                      Continue
+                    </Button>
+                  ) : (
+                    <Button onPress={handleClaim} disabled={claiming} variant="gradient" size="lg" className="w-full">
+                      {claiming ? (
+                        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                          <ActivityIndicator size="small" color="#ffffff" />
+                          <Text style={{ fontSize: 16, fontFamily: "RobotoMono_700Bold", color: "#ffffff" }}>Claiming...</Text>
+                        </View>
+                      ) : (
+                        "Claim Reward"
+                      )}
+                    </Button>
+                  )}
+                </LinearGradient>
               </View>
-            ) : (
-              <Text className="text-base font-display text-neon-green">Claim Reward</Text>
-            )}
-          </Button>
-        )}
-      </ScrollView>
-    </View>
+            </View>
+          </TouchableWithoutFeedback>
+        </ScrollView>
+      </View>
+    </TouchableWithoutFeedback>
   );
 }

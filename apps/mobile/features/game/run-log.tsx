@@ -13,6 +13,7 @@ import {
   Skull,
 } from "lucide-react-native";
 import { api } from "@/lib/api";
+import { GlassPanel } from "@/components/glass-panel";
 import type { RunEvent, RunEventType, WeeklyRun } from "@solanaidle/shared";
 
 interface Props {
@@ -38,7 +39,7 @@ function getEventIcon(eventType: RunEventType): React.ReactNode {
       return (
         <Image
           source={require("@/assets/icons/exp.png")}
-          style={{ width: 18, height: 18 }}
+          style={{ width: 20, height: 20 }}
         />
       );
     case "perk_pick":
@@ -118,7 +119,7 @@ export function RunLog({ run }: Props) {
   if (!run) return null;
 
   return (
-    <View className="rounded-lg border border-white/[0.06] bg-white/[0.03]">
+    <GlassPanel contentStyle={{ padding: 0 }}>
       <Pressable
         onPress={() => setExpanded(!expanded)}
         className="flex-row items-center justify-between p-3"
@@ -127,9 +128,9 @@ export function RunLog({ run }: Props) {
           Epoch Log
         </Text>
         {expanded ? (
-          <ChevronUp size={16} color="rgba(255,255,255,0.6)" />
+          <ChevronUp size={14} color="rgba(255,255,255,0.6)" />
         ) : (
-          <ChevronDown size={16} color="rgba(255,255,255,0.6)" />
+          <ChevronDown size={14} color="rgba(255,255,255,0.6)" />
         )}
       </Pressable>
 
@@ -148,6 +149,7 @@ export function RunLog({ run }: Props) {
               data={events}
               keyExtractor={(item) => item.id}
               scrollEnabled={false}
+              showsVerticalScrollIndicator={false}
               ItemSeparatorComponent={() => <View className="h-1.5" />}
               renderItem={({ item: event }) => (
                 <View className="flex-row items-start gap-2">
@@ -168,6 +170,6 @@ export function RunLog({ run }: Props) {
           )}
         </View>
       )}
-    </View>
+    </GlassPanel>
   );
 }

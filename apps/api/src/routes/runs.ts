@@ -28,11 +28,15 @@ runs.post("/start", async (c) => {
   if (!validClassIds.includes(body.classId as ClassId)) {
     return c.json({ error: "INVALID_INPUT", message: "Invalid class" }, 400);
   }
+  if (!body.signature || !body.signature.trim() || body.signature === "unsigned") {
+    return c.json(
+      { error: "SIGNATURE_REQUIRED", message: "Run start requires wallet signature" },
+      400
+    );
+  }
   try {
     const run = startRun(wallet, body.classId as ClassId);
-    if (body.signature) {
-      storeStartSignature(run.id, body.signature);
-    }
+    storeStartSignature(run.id, body.signature);
 
     // Initialize progress PDA and reset to zero (handles same-week re-runs in dev)
     const { weekStart } = getWeekBounds();
@@ -77,6 +81,12 @@ runs.post("/:id/finalize", async (c) => {
   const wallet = c.get("wallet");
   const runId = c.req.param("id");
   const body = await c.req.json<{ signature: string; vrfAccount?: string }>();
+  if (!body.signature || !body.signature.trim() || body.signature === "unsigned") {
+    return c.json(
+      { error: "SIGNATURE_REQUIRED", message: "Run finalization requires wallet signature" },
+      400
+    );
+  }
 
   // End the run if still active
   const run = getActiveRun(wallet);

@@ -8,13 +8,16 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { ShieldCheck } from "lucide-react-native";
+import bs58 from "bs58";
 import { Button, Card, Badge } from "@/components/ui";
 import { ClassIcon } from "@/components/class-icon";
+import { GuidancePanel } from "@/components/guidance-panel";
 import type { CharacterClass, ClassId } from "@solanaidle/shared";
 
 interface Props {
   classes: CharacterClass[];
   currentClassId?: ClassId | null;
+  signMessage?: ((msg: Uint8Array) => Promise<Uint8Array>) | null;
   onSelect: (classId: ClassId, signature?: string) => Promise<void>;
 }
 
@@ -35,7 +38,7 @@ function formatModifier(value: number, isMultiplier: boolean): string | null {
   return value > 0 ? `+${value}%` : `${value}%`;
 }
 
-export function ClassPicker({ classes, currentClassId, onSelect }: Props) {
+export function ClassPicker({ classes, currentClassId, signMessage, onSelect }: Props) {
   const [selected, setSelected] = useState<ClassId | null>(null);
   const [confirming, setConfirming] = useState(false);
   const [signing, setSigning] = useState(false);
@@ -52,9 +55,14 @@ export function ClassPicker({ classes, currentClassId, onSelect }: Props) {
     if (!selected) return;
     setSigning(true);
     try {
-      // Signature is optional — the mobile flow skips signMessage to keep UX simple
-      // The server accepts "unsigned" as a valid nonce for class selection
-      await onSelect(selected, undefined);
+      if (!signMessage) {
+        throw new Error("Wallet signature required");
+      }
+      const msg = `BEGIN_RUN:week${weekNum}:${selected}:${Date.now()}`;
+      const msgBytes = new TextEncoder().encode(msg);
+      const sigBytes = await signMessage(msgBytes);
+      const signature = bs58.encode(sigBytes);
+      await onSelect(selected, signature);
     } finally {
       setSigning(false);
       setConfirming(false);
@@ -70,6 +78,7 @@ export function ClassPicker({ classes, currentClassId, onSelect }: Props) {
   return (
     <View className="flex-1">
       <ScrollView
+        showsVerticalScrollIndicator={false}
         contentContainerStyle={{ padding: 16, paddingBottom: 32, gap: 16 }}
       >
         {/* Header */}
@@ -79,6 +88,15 @@ export function ClassPicker({ classes, currentClassId, onSelect }: Props) {
             Choose your node type. Each has unique strengths and trade-offs.
           </Text>
         </View>
+
+        <GuidancePanel
+          title="Quick Start"
+          lines={[
+            "Pick one class for this epoch.",
+            "Run missions to earn resources and score.",
+            "You have 3 lives. Lose all and the run ends.",
+          ]}
+        />
 
         {/* Class cards */}
         <View className="gap-3">
@@ -93,7 +111,9 @@ export function ClassPicker({ classes, currentClassId, onSelect }: Props) {
               <Pressable
                 key={cls.id}
                 onPress={() => handleClassPress(cls.id)}
-                className="active:opacity-80"
+                style={({ pressed }) => ({
+                  transform: [{ scale: pressed ? 0.985 : 1 }],
+                })}
               >
                 <Card highlight={isCurrent}>
                   {/* Title row */}
@@ -107,7 +127,7 @@ export function ClassPicker({ classes, currentClassId, onSelect }: Props) {
                     </View>
                   </View>
 
-                  <Text className="text-sm text-white/50">{cls.description}</Text>
+                  <Text className="text-sm text-white/70">{cls.description}</Text>
 
                   {/* Modifier badges */}
                   <View className="flex-row flex-wrap gap-1">
@@ -132,6 +152,7 @@ export function ClassPicker({ classes, currentClassId, onSelect }: Props) {
                       </Badge>
                     )}
                   </View>
+
                 </Card>
               </Pressable>
             );
@@ -144,10 +165,12 @@ export function ClassPicker({ classes, currentClassId, onSelect }: Props) {
         visible={confirming}
         transparent
         animationType="slide"
+        statusBarTranslucent
+        navigationBarTranslucent
         onRequestClose={handleCancel}
       >
-        <View className="flex-1 justify-end bg-black/60">
-          <View className="bg-[#0a1628] rounded-t-2xl border-t border-[#1a3a5c]/60 p-6 gap-4">
+        <View className="flex-1 justify-end" style={{ backgroundColor: "rgba(0,0,0,0.72)" }}>
+          <View className="bg-[#0a1628] rounded-t-2xl p-6 gap-4">
             {/* Class icon */}
             {selected && (
               <View className="items-center">
