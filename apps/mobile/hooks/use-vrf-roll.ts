@@ -1,6 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import { transact } from "@solana-mobile/mobile-wallet-adapter-protocol-web3js";
-import bs58 from "bs58";
 import {
   PublicKey,
   Transaction,
@@ -39,16 +38,8 @@ export type VrfStatus =
   | "fulfilled"
   | "error";
 
-interface VrfRollResult {
-  /** VRF PDA address, or null if oracle timed out */
-  vrfAccount: string | null;
-  /** Extra message signature (bs58), if a message was provided */
-  messageSig?: string;
-}
-
 interface UseVrfRollReturn {
-  /** Pass an optional message to sign in the same MWA session as the VRF tx */
-  requestRoll: (messageToSign?: Uint8Array) => Promise<VrfRollResult | null>;
+  requestRoll: () => Promise<string | null>;
   vrfAccount: string | null;
   status: VrfStatus;
   error: string | null;
@@ -76,7 +67,7 @@ export function useVrfRoll(): UseVrfRollReturn {
     setVrfAccount(null);
   }, []);
 
-  const requestRoll = useCallback(async (messageToSign?: Uint8Array): Promise<VrfRollResult | null> => {
+  const requestRoll = useCallback(async (): Promise<string | null> => {
     cancelledRef.current = false;
     try {
       setStatus("requesting");
@@ -87,8 +78,8 @@ export function useVrfRoll(): UseVrfRollReturn {
 
       const { blockhash } = await connection.getLatestBlockhash();
 
-      // transact() opens a SINGLE MWA session for both VRF tx + optional message signing
-      const result = await transact(async (wallet) => {
+      // transact() opens the MWA session and gives us the authorized wallet
+      const signature = await transact(async (wallet) => {
         // Authorize the session (re-uses existing session if active)
         const authResult = await wallet.authorize({
           cluster: "devnet",
@@ -128,6 +119,15 @@ export function useVrfRoll(): UseVrfRollReturn {
         data.set(discriminator);
         data[discriminator.length] = clientSeed;
 
+        // Account keys for request_randomness context
+        // The #[vrf] macro adds extra accounts. Based on the SDK, the accounts are:
+        // 1. payer (signer, mut)
+        // 2. vrf_result (mut)
+        // 3. oracle_queue (mut)
+        // 4. system_program
+        // 5. vrf_program (the MagicBlock VRF program)
+        // 6. vrf_program_identity
+        // 7. slot_hashes sysvar
         const ix = new TransactionInstruction({
           programId: VRF_ROLLER_PROGRAM_ID,
           keys: [
@@ -146,34 +146,21 @@ export function useVrfRoll(): UseVrfRollReturn {
         tx.feePayer = publicKey;
         tx.recentBlockhash = blockhash;
 
-        // Sign and send VRF tx via MWA
+        // Sign and send via MWA
         const signedTxs = await wallet.signAndSendTransactions({
           transactions: [tx],
         });
 
-        // Sign the extra message in the SAME session (no second wallet popup)
-        let messageSig: string | undefined;
-        if (messageToSign) {
-          const signed = await wallet.signMessages({
-            addresses: [authResult.accounts[0].address],
-            payloads: [messageToSign],
-          });
-          // MWA sign_messages returns message+signature; extract last 64 bytes (ed25519)
-          const sigBytes = new Uint8Array(signed[0]);
-          const sig64 = sigBytes.length > 64
-            ? sigBytes.slice(sigBytes.length - 64)
-            : sigBytes;
-          messageSig = bs58.encode(sig64);
-        }
-
+        // Store vrfResultPda on outer scope so we can poll after transact() resolves
         const [vrfPda] = PublicKey.findProgramAddressSync(
           [VRF_RESULT_SEED, publicKey.toBytes()],
           VRF_ROLLER_PROGRAM_ID
         );
-        return { sig: signedTxs[0] as string, pdaAddress: vrfPda.toBase58(), messageSig };
+        // Return both signature and pda address
+        return { sig: signedTxs[0] as string, pdaAddress: vrfPda.toBase58() };
       });
 
-      const { sig, pdaAddress, messageSig } = result as { sig: string; pdaAddress: string; messageSig?: string };
+      const { sig, pdaAddress } = signature as { sig: string; pdaAddress: string };
       await connection.confirmTransaction(sig, "confirmed");
 
       if (!cancelledRef.current) {
@@ -194,12 +181,11 @@ export function useVrfRoll(): UseVrfRollReturn {
 
       if (fulfilled) {
         setStatus("fulfilled");
-        return { vrfAccount: pdaAddress, messageSig };
+        return pdaAddress;
       } else {
-        // Oracle timed out but we still have the message signature — return it
         setError("Oracle timeout — randomness not fulfilled in time");
         setStatus("error");
-        return { vrfAccount: null, messageSig };
+        return null;
       }
     } catch (e) {
       if (cancelledRef.current) return null;
