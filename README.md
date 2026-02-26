@@ -8,7 +8,7 @@ Built mobile-first for **Solana Mobile (Seeker)**. Players are node operators ru
 
 | Integration | How It's Used |
 |-------------|--------------|
-| **Solana Mobile + MWA** | Wallet-native PWA → APK for Solana dApp Store. Sign-in via Mobile Wallet Adapter v2. |
+| **Solana Mobile + MWA** | Expo React Native Android client for Seeker devices. Sign-in via Mobile Wallet Adapter v2 + Wallet UI for React Native. |
 | **MagicBlock Ephemeral Rollups** | Two on-chain programs: real-time boss HP broadcast via websocket (boss-tracker), zero-fee player progress checkpointing (progress-tracker). |
 | **MagicBlock VRF** | Provably fair epoch bonus rolls — verifiable on-chain randomness for end-of-week rewards. |
 | **Metaplex Core** | Server-mints NFT artifacts and achievement badges directly to player wallets (zero player signatures). |
@@ -43,17 +43,19 @@ No pay-to-win. No infinite farming. Time is the core resource. The boss is why y
 
 | Layer | Technology |
 |-------|-----------|
-| Frontend | React 19 + Vite + TypeScript + Tailwind CSS + shadcn/ui |
+| Mobile Client | Expo SDK 53 + React Native + Expo Router + TypeScript |
+| Web Client | React 19 + Vite + TypeScript + Tailwind CSS + shadcn/ui |
 | Backend | Hono (TypeScript) + SQLite via better-sqlite3 |
-| Wallet | @solana/wallet-adapter-react + Mobile Wallet Adapter v2 |
+| Wallet | @wallet-ui/react-native-web3js + Mobile Wallet Adapter v2 (mobile), @solana/wallet-adapter-react (web) |
 | On-chain | 3 Anchor programs on MagicBlock Ephemeral Rollups |
 | NFTs | Metaplex Core (Umi + mpl-core) |
 | DeFi quests | Jupiter API |
-| Target | PWA → Bubblewrap → APK for Solana dApp Store |
+| Target | Android app (Seeker / Solana Mobile ecosystem) + web companion |
 
 ## Monorepo Structure
 
 ```
+apps/mobile/            → Expo React Native app (primary Seeker client)
 apps/web/               → React SPA (frontend)
 apps/api/               → Hono REST API (backend, game logic, timers)
 packages/shared/        → TypeScript types shared between FE and BE
@@ -70,7 +72,20 @@ pnpm install
 pnpm dev
 ```
 
-Frontend: `http://localhost:5173` | API: `http://localhost:3000`
+This starts web + API:
+- Web: `http://localhost:5173`
+- API: `http://localhost:3000`
+
+For Android (Expo mobile app), run separately:
+
+```bash
+pnpm --filter @solanaidle/mobile start
+pnpm --filter @solanaidle/mobile android
+```
+
+If you run on a physical Seeker/Android device, set:
+- `EXPO_PUBLIC_API_URL=http://<YOUR_LAN_IP>:3000/api`
+- Keep API running on the same LAN (`pnpm --filter @solanaidle/api dev`)
 
 See [Setup Guide](docs/SETUP.md) for full environment setup including server keypair and program deployment.
 

@@ -1,6 +1,6 @@
 # API Reference — Seeker Node
 
-Base URL: `http://localhost:3000/api` (local development — run `pnpm dev` to start both frontend and API)
+Base URL: `http://localhost:3000/api` (local development — web uses `pnpm dev`; Expo mobile app should use `EXPO_PUBLIC_API_URL=http://<LAN_IP>:3000/api` on physical Seeker/Android devices)
 
 ## Authentication
 

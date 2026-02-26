@@ -111,7 +111,7 @@ No infinite farming. Time is the core limiter. Lives are finite. Decisions have 
 
 ### Solana Mobile
 
-The game is built mobile-first as a **PWA packaged via Bubblewrap into an APK** for the Solana dApp Store. Wallet authentication uses **Mobile Wallet Adapter v2**. Browser wallets (Phantom, etc.) self-register via Wallet Standard.
+The primary client is an **Android app built with Expo React Native (Expo Router)** for Solana Seeker devices. Wallet authentication uses **Mobile Wallet Adapter v2** via Wallet UI React Native integration.
 
 Wallet serves three roles:
 - **Identity** -- sign-in via signMessage nonce challenge
@@ -161,15 +161,16 @@ All game state is **server-authoritative**:
 
 | Layer | Technology |
 |---|---|
-| Frontend | React 19 + Vite + TypeScript + Tailwind CSS + shadcn/ui |
+| Mobile Client | Expo SDK 53 + React Native + Expo Router + TypeScript |
+| Web Client | React 19 + Vite + TypeScript + Tailwind CSS + shadcn/ui |
 | Backend | Hono (TypeScript) on Node.js + SQLite (better-sqlite3) |
 | On-Chain | Anchor (3 programs: VRF, progress tracking, boss HP — all via MagicBlock) |
 | NFTs | Metaplex Core (Umi + mpl-core) |
 | DeFi | Jupiter API (price, swap, limit orders) |
-| Wallet | @solana/wallet-adapter-react + Mobile Wallet Adapter v2 |
+| Wallet | Mobile Wallet Adapter v2 + `@wallet-ui/react-native-web3js` (mobile), `@solana/wallet-adapter-react` (web) |
 | Monorepo | pnpm workspaces |
 | Shared Types | @solanaidle/shared workspace package |
-| Target | PWA → Bubblewrap → APK for Solana dApp Store |
+| Target | Android app (Seeker / Solana Mobile ecosystem) + web companion |
 
 ---
 

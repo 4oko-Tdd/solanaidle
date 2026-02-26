@@ -8,6 +8,7 @@ How to get Seeker Node running locally, configure the server keypair, and deploy
 |------|---------|---------|
 | Node.js | >= 20 | [nodejs.org](https://nodejs.org) |
 | pnpm | >= 8 | `npm install -g pnpm` |
+| Expo / Android | Expo SDK 53 runtime | Seeker device or Android emulator |
 | Rust | 1.85+ | [rustup.rs](https://rustup.rs) |
 | Solana CLI | 2.3+ | `sh -c "$(curl -sSfL https://release.anza.xyz/stable/install)"` |
 | Anchor | 0.32.1 | `cargo install --git https://github.com/coral-xyz/anchor anchor-cli --tag v0.32.1` |
@@ -21,14 +22,36 @@ pnpm install
 pnpm dev
 ```
 
-This starts both the frontend (`http://localhost:5173`) and API (`http://localhost:3000`).
-
-To run them separately:
+This starts web (`http://localhost:5173`) and API (`http://localhost:3000`).
+For the Android Expo app, run mobile separately:
 
 ```bash
-pnpm --filter web dev   # frontend only
-pnpm --filter api dev   # backend only
+pnpm --filter @solanaidle/mobile start
+pnpm --filter @solanaidle/mobile android
 ```
+
+To run services separately:
+
+```bash
+pnpm --filter @solanaidle/web dev   # web client only
+pnpm --filter @solanaidle/api dev   # backend only
+pnpm --filter @solanaidle/mobile start   # Expo dev server
+```
+
+## Mobile (Expo RN) Networking
+
+Mobile API base is resolved in this order:
+1. `EXPO_PUBLIC_API_URL` (explicit override)
+2. Expo host IP auto-detection (`http://<host>:3000/api`)
+3. Fallback `http://localhost:3000/api`
+
+For physical Seeker/Android device, explicitly set:
+
+```bash
+EXPO_PUBLIC_API_URL=http://<YOUR_LAN_IP>:3000/api pnpm --filter @solanaidle/mobile start
+```
+
+If you see `TypeError: Network request failed` during wallet auth, the app cannot reach API from the device. Use your LAN IP (not `localhost`) and ensure API is running (`pnpm --filter @solanaidle/api dev`) on the same network.
 
 ## Environment Variables
 
@@ -122,10 +145,10 @@ A verification script reads live PDA data from the ER:
 
 ```bash
 # Boss PDA only
-pnpm --filter api exec tsx ../../scripts/verify-er.ts
+pnpm --filter @solanaidle/api exec tsx ../../scripts/verify-er.ts
 
 # Boss + specific player's progress
-pnpm --filter api exec tsx ../../scripts/verify-er.ts <PLAYER_WALLET_ADDRESS>
+pnpm --filter @solanaidle/api exec tsx ../../scripts/verify-er.ts <PLAYER_WALLET_ADDRESS>
 ```
 
 Output shows delegation status, ER endpoint, and decoded on-chain data (HP, damage, score, etc.).
@@ -134,6 +157,10 @@ Output shows delegation status, ER endpoint, and decoded on-chain data (HP, dama
 
 ```
 apps/
+  mobile/                 → Expo React Native Android app (primary Seeker client)
+    app/                  → Expo Router routes
+    features/             → Mobile gameplay UI modules
+    hooks/                → Mobile hooks (auth, boss, VRF, missions)
   web/                    → React SPA (Vite + Tailwind + shadcn/ui)
     src/
       components/         → Reusable UI components

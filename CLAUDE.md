@@ -8,17 +8,19 @@ Player sends a character on timed missions (7h/12h/24h/48h), waits real time, cl
 ## Tech Stack
 
 - **Monorepo:** pnpm workspaces
-- **Frontend:** React 19 + Vite + TypeScript + Tailwind CSS + shadcn/ui (`apps/web`)
+- **Mobile client:** Expo SDK 53 + React Native + Expo Router (`apps/mobile`)
+- **Web client:** React 19 + Vite + TypeScript + Tailwind CSS + shadcn/ui (`apps/web`)
 - **Backend:** Hono (TypeScript) on Node.js (`apps/api`)
 - **Database:** SQLite via better-sqlite3
-- **Wallet:** @solana/wallet-adapter-react + @solana-mobile/wallet-adapter-mobile (MWA)
+- **Wallet:** `@wallet-ui/react-native-web3js` + Mobile Wallet Adapter v2 (mobile), `@solana/wallet-adapter-react` (web)
 - **Shared types:** `packages/shared`
-- **Target:** PWA → Bubblewrap → APK for Solana dApp Store
+- **Target:** Android app for Seeker / Solana Mobile ecosystem + web companion
 
 ## Architecture
 
 ```
-apps/web              → React SPA, communicates with API
+apps/mobile           → Expo React Native app, primary Seeker client
+apps/web              → React SPA, companion client
 apps/api              → Hono REST API, manages game state + timers
 packages/shared       → TypeScript types shared between FE and BE
 programs/progress-tracker → Anchor program: per-player-per-epoch progress PDA on MagicBlock ER
@@ -30,9 +32,11 @@ programs/boss-tracker     → Anchor program: global boss HP PDA on MagicBlock E
 
 ```bash
 pnpm install          # Install all dependencies
-pnpm dev              # Run both frontend + backend in dev mode
-pnpm --filter web dev # Frontend only
-pnpm --filter api dev # Backend only
+pnpm dev              # Run web + backend in dev mode
+pnpm --filter @solanaidle/mobile start   # Expo mobile dev server
+pnpm --filter @solanaidle/mobile android # Run on Android
+pnpm --filter @solanaidle/web dev # Web client only
+pnpm --filter @solanaidle/api dev # Backend only
 pnpm build            # Build all packages
 ```
 
@@ -42,9 +46,10 @@ pnpm build            # Build all packages
 - Shared types in `packages/shared/src/types.ts` — import from `@solanaidle/shared`
 - API routes go in `apps/api/src/routes/` — one file per resource
 - Game logic (timers, RNG, mission resolution) in `apps/api/src/services/`
-- React components in `apps/web/src/components/`
-- Feature-specific code in `apps/web/src/features/{game,wallet,inventory}/`
-- Custom hooks in `apps/web/src/hooks/`
+- Mobile routes in `apps/mobile/app/`, mobile features in `apps/mobile/features/`, mobile hooks in `apps/mobile/hooks/`
+- Web components in `apps/web/src/components/`
+- Web feature code in `apps/web/src/features/{game,wallet,inventory}/`
+- Web hooks in `apps/web/src/hooks/`
 - Use shadcn/ui components — don't hand-build standard UI elements
 - Tailwind for all styling, no CSS modules
 
@@ -97,7 +102,7 @@ Three separate Anchor programs, each with a distinct PDA lifecycle:
 **Key services:**
 - `apps/api/src/services/er-service.ts` — Player progress ER operations
 - `apps/api/src/services/boss-er-service.ts` — Boss HP ER operations
-- `apps/web/src/hooks/useBossER.ts` — Websocket subscription to boss PDA
+- `apps/web/src/hooks/useBossER.ts` + `apps/mobile/hooks/use-boss-er.ts` — websocket subscription to boss PDA
 
 **Resilience:** All ER calls are wrapped in try/catch. If ER is unavailable, the game continues via SQLite with 30s HTTP polling fallback.
 
@@ -105,9 +110,9 @@ Three separate Anchor programs, each with a distinct PDA lifecycle:
 
 - All timers are SERVER-side (prevent client manipulation)
 - RNG is server-side (can upgrade to commit-reveal later)
-- Wallet interactions use `useWallet()` from `@solana/wallet-adapter-react`
-- Mobile Wallet Adapter (MWA) is provided via `SolanaMobileWalletAdapter` in the wallets array
-- Browser wallets (Phantom, etc.) self-register via Wallet Standard — no explicit adapter needed
+- Mobile auth uses Wallet UI RN (`useMobileWallet`) and MWA `signMessage` + backend nonce verify
+- Web wallet flow remains wallet-adapter based
+- For physical Android/Seeker testing, set `EXPO_PUBLIC_API_URL=http://<LAN_IP>:3000/api` for API reachability
 - SQLite DB file lives at `apps/api/data/game.db` (gitignored)
 - Anchor programs live in `programs/` — build with `anchor build`, deploy with `anchor deploy`
 - Program IDs in `boss-tracker` are placeholder until first deploy — update in both `lib.rs` and `boss-er-service.ts`
