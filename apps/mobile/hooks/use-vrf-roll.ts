@@ -40,7 +40,8 @@ export type VrfStatus =
   | "error";
 
 interface VrfRollResult {
-  vrfAccount: string;
+  /** VRF PDA address, or null if oracle timed out */
+  vrfAccount: string | null;
   /** Extra message signature (bs58), if a message was provided */
   messageSig?: string;
 }
@@ -195,9 +196,10 @@ export function useVrfRoll(): UseVrfRollReturn {
         setStatus("fulfilled");
         return { vrfAccount: pdaAddress, messageSig };
       } else {
+        // Oracle timed out but we still have the message signature — return it
         setError("Oracle timeout — randomness not fulfilled in time");
         setStatus("error");
-        return null;
+        return { vrfAccount: null, messageSig };
       }
     } catch (e) {
       if (cancelledRef.current) return null;
