@@ -151,13 +151,8 @@ export function useVrfRoll(): UseVrfRollReturn {
           transactions: [tx],
         });
 
-        // Store vrfResultPda on outer scope so we can poll after transact() resolves
-        const [vrfPda] = PublicKey.findProgramAddressSync(
-          [VRF_RESULT_SEED, publicKey.toBytes()],
-          VRF_ROLLER_PROGRAM_ID
-        );
-        // Return both signature and pda address
-        return { sig: signedTxs[0] as string, pdaAddress: vrfPda.toBase58() };
+        // Return both signature and PDA address (already derived above)
+        return { sig: signedTxs[0] as string, pdaAddress: vrfResultPda.toBase58() };
       });
 
       const { sig, pdaAddress } = signature as { sig: string; pdaAddress: string };

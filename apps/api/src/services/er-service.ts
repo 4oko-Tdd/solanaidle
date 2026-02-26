@@ -54,6 +54,7 @@ const solanaConnection = new Connection(SOLANA_RPC_URL, "confirmed");
 const erConnection = new Connection(ER_VALIDATOR_URL, "confirmed");
 const erConnectionCache = new Map<string, Connection>();
 erConnectionCache.set(ER_VALIDATOR_URL, erConnection);
+const resolvedErEndpoints = new Map<string, string>(); // pdaBase58 -> fqdn URL
 
 /**
  * Resolve the ER endpoint for a delegated account via the router.
@@ -61,6 +62,16 @@ erConnectionCache.set(ER_VALIDATOR_URL, erConnection);
  */
 async function resolveErConnection(accountPda: PublicKey): Promise<Connection> {
   try {
+    const pdaBase58 = accountPda.toBase58();
+    const cachedEndpoint = resolvedErEndpoints.get(pdaBase58);
+    if (cachedEndpoint) {
+      const cachedConn = erConnectionCache.get(cachedEndpoint);
+      if (cachedConn) return cachedConn;
+      const conn = new Connection(cachedEndpoint, "confirmed");
+      erConnectionCache.set(cachedEndpoint, conn);
+      return conn;
+    }
+
     const resp = await fetch(ER_ROUTER_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -68,12 +79,13 @@ async function resolveErConnection(accountPda: PublicKey): Promise<Connection> {
         jsonrpc: "2.0",
         id: 1,
         method: "getDelegationStatus",
-        params: [accountPda.toBase58()],
+        params: [pdaBase58],
       }),
     });
     const json = await resp.json() as { result?: { isDelegated: boolean; fqdn?: string } };
     if (json.result?.isDelegated && json.result.fqdn) {
       const url = json.result.fqdn.replace(/\/$/, "");
+      resolvedErEndpoints.set(pdaBase58, url);
       if (url !== ER_VALIDATOR_URL) {
         console.log(`[ER] PDA delegated to ${url} (not default ${ER_VALIDATOR_URL})`);
       }
@@ -403,7 +415,8 @@ export async function updateProgressOnER(
   score: number,
   missionsCompleted: number,
   deaths: number,
-  bossDefeated: boolean
+  bossDefeated: boolean,
+  classId = "scout"
 ): Promise<void> {
   try {
     const playerPubkey = new PublicKey(playerWallet);
@@ -412,7 +425,7 @@ export async function updateProgressOnER(
     // Auto-init+delegate if not yet done this session
     if (!delegatedPdas.has(progressPda.toBase58())) {
       console.log("[ER] PDA not yet delegated, initializing first...");
-      await initializeProgressOnChain(playerWallet, weekStart, "scout");
+      await initializeProgressOnChain(playerWallet, weekStart, classId);
       if (!delegatedPdas.has(progressPda.toBase58())) {
         console.warn("[ER] Init+delegate failed, skipping ER update");
         return;
@@ -483,7 +496,8 @@ export async function buildPartiallySignedUpdateProgressTx(
   score: number,
   missionsCompleted: number,
   deaths: number,
-  bossDefeated: boolean
+  bossDefeated: boolean,
+  classId = "scout"
 ): Promise<{ tx: string; erValidatorUrl: string } | null> {
   try {
     const playerPubkey = new PublicKey(playerWallet);
@@ -492,7 +506,7 @@ export async function buildPartiallySignedUpdateProgressTx(
     // Auto-init+delegate if not yet done this session
     if (!delegatedPdas.has(progressPda.toBase58())) {
       console.log("[ER] PDA not yet delegated, initializing first...");
-      await initializeProgressOnChain(playerWallet, weekStart, "scout");
+      await initializeProgressOnChain(playerWallet, weekStart, classId);
       if (!delegatedPdas.has(progressPda.toBase58())) {
         console.warn("[ER] Init+delegate failed, cannot build partial tx");
         return null;

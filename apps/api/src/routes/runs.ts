@@ -42,7 +42,7 @@ runs.post("/start", async (c) => {
     const { weekStart } = getWeekBounds();
     const weekStartTs = Math.floor(new Date(weekStart).getTime() / 1000);
     initializeProgressOnChain(wallet, weekStartTs, body.classId)
-      .then(() => updateProgressOnER(wallet, weekStartTs, 0, 0, 0, false))
+      .then(() => updateProgressOnER(wallet, weekStartTs, 0, 0, 0, false, body.classId))
       .catch((err) => {
         console.warn("[ER] Background progress init failed:", err);
       });
