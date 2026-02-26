@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seeker Node — MagicBlock Hackathon 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+/* ===========================================
+   THEME — CYBER LATTICE
+   Dark navy · neon green · purple · cyan
+   Orbitron (display) · Rajdhani (body) · JetBrains Mono (code)
+   =========================================== */
+:root {
+  --bg:          #050d1a;
+  --bg-card:     rgba(10,22,40,0.80);
+  --border:      rgba(26,58,92,0.6);
+  --green:       #14F195;
+  --purple:      #9945FF;
+  --cyan:        #00D4FF;
+  --white:       #ffffff;
+  --muted:       rgba(255,255,255,0.45);
+  --muted-light: rgba(255,255,255,0.25);
+
+  --font-display: 'Orbitron', monospace;
+  --font-body:    'Rajdhani', sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+
+  /* All sizes use clamp() — viewport-safe at any screen size */
+  --sz-hero:  clamp(2.8rem, 9vw, 7rem);
+  --sz-h1:    clamp(1.6rem, 4.5vw, 3.4rem);
+  --sz-body:  clamp(0.8rem, 1.5vw, 1.05rem);
+  --sz-small: clamp(0.65rem, 1.1vw, 0.8rem);
+  --sz-tag:   clamp(0.5rem, 0.9vw, 0.65rem);
+
+  --pad:    clamp(1.5rem, 4vw, 4rem);
+  --gap:    clamp(0.75rem, 1.8vw, 1.5rem);
+  --gap-sm: clamp(0.4rem, 0.9vw, 0.75rem);
+
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ===========================================
+   RESET + BASE
+   =========================================== */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+html {
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
+  height: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  background: var(--bg);
+  color: var(--white);
+  font-family: var(--font-body);
+  height: 100%;
+  overflow-x: hidden;
+}
+
+/* ===========================================
+   SLIDE CONTAINER — MANDATORY VIEWPORT FIT
+   Each slide is exactly one screen height. No scrolling.
+   =========================================== */
+.slide {
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  padding: var(--pad);
+}
+
+/* ===========================================
+   SHARED BACKGROUND ELEMENTS
+   =========================================== */
+.bg-grid {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(20,241,149,0.08) 1px, transparent 1px);
+  background-size: 32px 32px;
+  pointer-events: none;
+}
+
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px);
+  pointer-events: none;
+  will-change: transform;
+}
+.blob-tl { width: 45vw; height: 45vw; background: rgba(153,69,255,0.14); top: -15%; left: -15%; }
+.blob-br { width: 35vw; height: 35vw; background: rgba(20,241,149,0.09); bottom: -8%; right: 5%; }
+.blob-tr { width: 25vw; height: 25vw; background: rgba(0,212,255,0.07); top: 5%; right: -5%; }
+
+.brackets::before, .brackets::after {
+  content: '';
+  position: absolute;
+  width: clamp(28px, 4vw, 56px);
+  height: clamp(28px, 4vw, 56px);
+}
+.brackets::before {
+  top: clamp(0.75rem, 2vw, 2rem);
+  left: clamp(0.75rem, 2vw, 2rem);
+  border-top: 1.5px solid var(--green);
+  border-left: 1.5px solid var(--green);
+}
+.brackets::after {
+  bottom: clamp(0.75rem, 2vw, 2rem);
+  right: clamp(0.75rem, 2vw, 2rem);
+  border-bottom: 1.5px solid var(--green);
+  border-right: 1.5px solid var(--green);
+}
+
+.slide-num {
+  position: absolute;
+  top: clamp(0.75rem, 2vw, 2rem);
+  right: clamp(0.75rem, 2vw, 2rem);
+  font-family: var(--font-mono);
+  font-size: clamp(0.45rem, 0.9vw, 0.6rem);
+  letter-spacing: 0.2em;
+  color: var(--muted-light);
+}
+
+/* ===========================================
+   ANIMATION SYSTEM
+   .reveal elements fade + slide up when slide gets .visible
+   =========================================== */
+.reveal {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity 0.65s var(--ease), transform 0.65s var(--ease);
+}
+
+.slide.visible .reveal { opacity: 1; transform: translateY(0); }
+
+/* Explicit delay classes — override nth-child defaults */
+.d1 { transition-delay: 0.10s !important; }
+.d2 { transition-delay: 0.22s !important; }
+.d3 { transition-delay: 0.34s !important; }
+.d4 { transition-delay: 0.46s !important; }
+.d5 { transition-delay: 0.58s !important; }
+.d6 { transition-delay: 0.70s !important; }
+
+/* ===========================================
+   COMMON COMPONENTS
+   =========================================== */
+
+/* Small uppercase label above headings */
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--sz-tag);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--green);
+  margin-bottom: clamp(0.5rem, 1.5vw, 1.2rem);
+}
+.eyebrow .sep { color: var(--muted-light); margin: 0 0.5em; }
+
+/* Gradient headline */
+.grad-text {
+  background: linear-gradient(90deg, var(--purple), var(--green));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.grad-text-rv {
+  background: linear-gradient(90deg, var(--green), var(--cyan));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.section-h {
+  font-family: var(--font-display);
+  font-size: var(--sz-h1);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: 0.03em;
+  margin-bottom: var(--gap);
+}
+
+/* Color utilities */
+.c-g { color: var(--green); }
+.c-p { color: var(--purple); }
+.c-c { color: var(--cyan); }
+.c-m { color: var(--muted); }
+
+/* ===========================================
+   NAVIGATION — Progress bar + dots
+   =========================================== */
+#progress-bar {
+  position: fixed;
+  top: 0; left: 0;
+  height: 2px;
+  width: 0%;
+  background: linear-gradient(90deg, var(--purple), var(--green));
+  z-index: 100;
+  transition: width 0.35s var(--ease);
+}
+
+#nav-dots {
+  position: fixed;
+  right: clamp(0.75rem, 1.5vw, 1.5rem);
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 100;
+}
+
+.dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  cursor: pointer;
+  transition: all 0.3s var(--ease);
+  border: none; padding: 0;
+}
+.dot.active {
+  background: var(--green);
+  box-shadow: 0 0 10px rgba(20,241,149,0.5);
+  transform: scale(1.4);
+}
+
+#kb-hint {
+  position: fixed;
+  bottom: clamp(0.75rem, 1.5vw, 1.25rem);
+  left: clamp(0.75rem, 2vw, 2rem);
+  font-family: var(--font-mono);
+  font-size: clamp(0.45rem, 0.9vw, 0.6rem);
+  letter-spacing: 0.15em;
+  color: rgba(255,255,255,0.15);
+  z-index: 100;
+  pointer-events: none;
+}
+
+/* ===========================================
+   SLIDE 1 — WHAT IS SEEKER NODE
+   Title + 4 boss event bullets + truth statement
+   =========================================== */
+.slide-title {
+  align-items: center;
+  text-align: center;
+}
+
+.title-hero {
+  font-family: var(--font-display);
+  font-size: var(--sz-hero);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  margin-bottom: clamp(0.25rem, 0.8vw, 0.6rem);
+}
+
+.title-tagline {
+  font-size: clamp(0.85rem, 2vw, 1.3rem);
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  max-width: 50ch;
+  line-height: 1.4;
+  margin-bottom: var(--gap);
+}
+
+/* Four boss mechanic event items */
+.event-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-sm);
+  max-width: 44ch;
+  width: 100%;
+  margin-bottom: var(--gap);
+}
+
+.event-item {
+  display: flex;
+  align-items: center;
+  gap: 0.8em;
+  font-size: var(--sz-body);
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.event-tag {
+  font-family: var(--font-mono);
+  font-size: var(--sz-tag);
+  min-width: 3em;
+  text-align: center;
+  padding: 0.2em 0.5em;
+  border-radius: 2px;
+  letter-spacing: 0.08em;
+  flex-shrink: 0;
+}
+.et-sat  { background: rgba(153,69,255,0.12); border: 1px solid rgba(153,69,255,0.3); color: var(--purple); }
+.et-atk  { background: rgba(0,212,255,0.08);  border: 1px solid rgba(0,212,255,0.25); color: var(--cyan); }
+.et-win  { background: rgba(20,241,149,0.1);   border: 1px solid rgba(20,241,149,0.3); color: var(--green); }
+.et-fail { background: rgba(255,51,102,0.08);  border: 1px solid rgba(255,51,102,0.25); color: #ff4466; }
+
+/* "There is one shared on-chain truth." */
+.truth-stmt {
+  font-family: var(--font-display);
+  font-size: clamp(0.85rem, 2vw, 1.25rem);
+  font-weight: 700;
+  color: var(--green);
+  letter-spacing: 0.05em;
+  padding: clamp(0.5rem, 1.2vw, 0.9rem) clamp(1rem, 2.5vw, 2rem);
+  border: 1px solid rgba(20,241,149,0.3);
+  background: rgba(20,241,149,0.04);
+  border-radius: 4px;
+  text-shadow: 0 0 30px rgba(20,241,149,0.25);
+}
+
+/* Blinking live dot used on slide 1 */
+@keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.2;} }
+
+/* ===========================================
+   SLIDE 2 — THE BOSS HP IS A SOLANA ACCOUNT
+   Two-column: PDA description left / OVERLOAD steps right
+   =========================================== */
+.pda-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(2rem, 4vw, 3.5rem);
+  align-items: start;
+  margin-top: var(--gap-sm);
+  width: 100%;
+}
+
+/* Left: BossState PDA bullets */
+.pda-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-sm);
+}
+
+.pda-code {
+  font-family: var(--font-mono);
+  font-size: clamp(0.8rem, 1.6vw, 1.05rem);
+  color: var(--green);
+  background: rgba(20,241,149,0.06);
+  border: 1px solid rgba(20,241,149,0.2);
+  border-radius: 4px;
+  padding: 0.35em 0.75em;
+  display: inline-block;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--gap-sm);
+}
+
+.pda-bullet {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75em;
+  font-size: var(--sz-body);
+  color: var(--muted);
+  font-weight: 600;
+  line-height: 1.4;
+  padding: clamp(0.5rem, 1vw, 0.75rem) clamp(0.75rem, 1.5vw, 1.1rem);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  border-radius: 5px;
+  backdrop-filter: blur(8px);
+}
+.pda-bullet::before {
+  content: '→';
+  font-family: var(--font-mono);
+  font-size: var(--sz-tag);
+  color: var(--green);
+  margin-top: 0.15em;
+  flex-shrink: 0;
+}
+
+/* Right: numbered OVERLOAD steps */
+.overload-label {
+  font-family: var(--font-mono);
+  font-size: var(--sz-tag);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted-light);
+  margin-bottom: var(--gap-sm);
+}
+
+.overload-steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-sm);
+}
+
+.os-step {
+  display: flex;
+  gap: 0.85em;
+  padding: clamp(0.6rem, 1.2vw, 0.9rem);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  border-radius: 5px;
+  backdrop-filter: blur(8px);
+  position: relative;
+  overflow: hidden;
+}
+.os-step::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 10%; bottom: 10%;
+  width: 2px;
+  border-radius: 0 2px 2px 0;
+}
+.os-1::before { background: var(--purple); }
+.os-2::before { background: var(--green); }
+.os-3::before { background: var(--cyan); }
+
+.os-num {
+  font-family: var(--font-mono);
+  font-size: var(--sz-tag);
+  color: var(--muted-light);
+  min-width: 1.5em;
+  padding-top: 0.1em;
+  flex-shrink: 0;
+}
+.os-body { flex: 1; }
+.os-title {
+  font-family: var(--font-display);
+  font-size: var(--sz-small);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.2em;
+}
+.os-1 .os-title { color: var(--purple); }
+.os-2 .os-title { color: var(--green); }
+.os-3 .os-title { color: var(--cyan); }
+.os-text {
+  font-size: clamp(0.6rem, 1.1vw, 0.75rem);
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+/* "One account. Many players. Live." */
+.verdict-row {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.75rem, 2vw, 1.5rem);
+  justify-content: center;
+  margin-top: var(--gap);
+  padding: clamp(0.6rem, 1.5vw, 1rem) clamp(1rem, 2vw, 1.5rem);
+  border: 1px solid rgba(20,241,149,0.2);
+  background: rgba(20,241,149,0.03);
+  border-radius: 4px;
+}
+.verdict-word {
+  font-family: var(--font-display);
+  font-size: clamp(0.85rem, 2vw, 1.3rem);
+  font-weight: 700;
+  color: var(--green);
+  letter-spacing: 0.06em;
+}
+.verdict-sep {
+  font-family: var(--font-mono);
+  font-size: var(--sz-tag);
+  color: var(--muted-light);
+}
+
+/* ===========================================
+   SLIDE 3 — WHY MAGICBLOCK IS ESSENTIAL
+   Two-column without / with comparison
+   =========================================== */
+.compare-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(1.5rem, 3vw, 2.5rem);
+  margin-top: var(--gap-sm);
+  width: 100%;
+}
+
+.compare-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-sm);
+}
+
+.compare-header {
+  font-family: var(--font-display);
+  font-size: clamp(0.65rem, 1.4vw, 0.9rem);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  padding: 0.4em 0.8em;
+  border-radius: 3px;
+  text-align: center;
+  margin-bottom: var(--gap-sm);
+}
+.ch-bad  { background: rgba(255,51,102,0.1);  border: 1px solid rgba(255,51,102,0.3); color: #ff4466; }
+.ch-good { background: rgba(20,241,149,0.1);   border: 1px solid rgba(20,241,149,0.3); color: var(--green); }
+
+.compare-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6em;
+  font-size: var(--sz-small);
+  color: var(--muted);
+  font-weight: 600;
+  line-height: 1.45;
+  padding: clamp(0.45rem, 1vw, 0.7rem) clamp(0.6rem, 1.2vw, 0.9rem);
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  backdrop-filter: blur(8px);
+}
+.ci-bad::before  { content: '✕'; font-family: var(--font-mono); color: #ff4466;      font-size: 0.8em; flex-shrink: 0; margin-top: 0.1em; }
+.ci-good::before { content: '✓'; font-family: var(--font-mono); color: var(--green); font-size: 0.8em; flex-shrink: 0; margin-top: 0.1em; }
+
+/* Bottom contrast statement */
+.contrast-bar {
+  margin-top: var(--gap);
+  padding: clamp(0.6rem, 1.5vw, 1rem) clamp(1rem, 2vw, 1.5rem);
+  border: 1px solid rgba(20,241,149,0.2);
+  background: rgba(20,241,149,0.03);
+  border-radius: 4px;
+  text-align: center;
+}
+.contrast-bar p {
+  font-size: var(--sz-small);
+  color: var(--muted);
+  line-height: 1.7;
+  font-weight: 600;
+}
+.contrast-bar strong { color: var(--white); }
+.contrast-bar em { color: var(--green); font-style: normal; }
+
+/* ===========================================
+   SLIDE 4 — ARCHITECTURE
+   Centered ASCII flow + 4-column steps + mechanic quote
+   =========================================== */
+.arch-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--gap);
+  margin-top: var(--gap-sm);
+  width: 100%;
+}
+
+/* Simple ASCII flow diagram */
+.flow-box {
+  background: rgba(0,0,0,0.4);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: clamp(0.75rem, 2vw, 1.5rem) clamp(2rem, 4vw, 3.5rem);
+  backdrop-filter: blur(8px);
+  font-family: var(--font-mono);
+  font-size: clamp(0.7rem, 1.4vw, 0.95rem);
+  line-height: 2.1;
+  text-align: center;
+  color: var(--muted);
+}
+
+/* 4-column numbered flow steps */
+.flow-steps {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--gap-sm);
+  width: 100%;
+}
+
+.flow-step {
+  padding: clamp(0.5rem, 1.2vw, 0.9rem);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  border-radius: 5px;
+  backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: column;
+  gap: 0.3em;
+  position: relative;
+  overflow: hidden;
+}
+.flow-step::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 10%; right: 10%;
+  height: 1px;
+}
+.fs-1::before { background: linear-gradient(90deg, transparent, var(--purple), transparent); }
+.fs-2::before { background: linear-gradient(90deg, transparent, var(--green),  transparent); }
+.fs-3::before { background: linear-gradient(90deg, transparent, var(--cyan),   transparent); }
+.fs-4::before { background: linear-gradient(90deg, transparent, var(--green),  transparent); }
+
+.fs-num {
+  font-family: var(--font-mono);
+  font-size: var(--sz-tag);
+  letter-spacing: 0.15em;
+  color: var(--muted-light);
+}
+.fs-text {
+  font-size: var(--sz-small);
+  color: var(--muted);
+  line-height: 1.45;
+  font-weight: 600;
+}
+.fs-text strong { color: var(--white); }
+
+/* "The blockchain is not a feature. It is the gameplay mechanic." */
+.mechanic-quote {
+  padding: clamp(0.6rem, 1.5vw, 1rem) clamp(1.5rem, 3vw, 2rem);
+  border: 1px solid rgba(153,69,255,0.25);
+  background: rgba(153,69,255,0.04);
+  border-radius: 4px;
+  text-align: center;
+  width: 100%;
+}
+.mq-1 {
+  font-family: var(--font-display);
+  font-size: clamp(0.75rem, 1.8vw, 1.2rem);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+.mq-2 {
+  font-family: var(--font-display);
+  font-size: clamp(0.75rem, 1.8vw, 1.2rem);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--purple);
+  margin-top: 0.15em;
+}
+
+/* ===========================================
+   SLIDE 5 — DEMO MOMENT + CLOSING
+   Two-column: numbered steps left / quote + closing right
+   =========================================== */
+.demo-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(2rem, 4vw, 3rem);
+  align-items: start;
+  margin-top: var(--gap-sm);
+  width: 100%;
+}
+
+/* Left: 5 numbered demo steps */
+.demo-steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-sm);
+}
+
+.demo-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75em;
+  padding: clamp(0.45rem, 1vw, 0.7rem) clamp(0.6rem, 1.2vw, 0.9rem);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  border-radius: 4px;
+  backdrop-filter: blur(8px);
+}
+.ds-num {
+  font-family: var(--font-mono);
+  font-size: var(--sz-tag);
+  color: var(--green);
+  min-width: 1.8em;
+  flex-shrink: 0;
+  padding-top: 0.15em;
+  letter-spacing: 0.05em;
+}
+.ds-text {
+  font-size: var(--sz-small);
+  color: var(--muted);
+  line-height: 1.45;
+  font-weight: 600;
+}
+.ds-text strong { color: var(--white); }
+.ds-text code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  color: var(--cyan);
+}
+
+/* Right: "what just happened" label + quote + closing */
+.demo-right {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+.what-happened {
+  font-family: var(--font-mono);
+  font-size: var(--sz-tag);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted-light);
+  margin-bottom: calc(-1 * var(--gap-sm));
+}
+
+.demo-quote {
+  padding: clamp(0.6rem, 1.5vw, 1rem) clamp(0.75rem, 1.5vw, 1.2rem);
+  border-left: 2px solid var(--purple);
+  background: rgba(153,69,255,0.04);
+  border-radius: 0 4px 4px 0;
+}
+.demo-quote p {
+  font-size: var(--sz-small);
+  color: var(--muted);
+  line-height: 1.6;
+  font-weight: 600;
+}
+.demo-quote p + p { margin-top: 0.4em; }
+.demo-quote em { color: var(--green); font-style: normal; }
+
+/* Closing statement */
+.closing-stmt {
+  padding: clamp(0.6rem, 1.5vw, 1rem) clamp(0.75rem, 1.5vw, 1.2rem);
+  border: 1px solid rgba(20,241,149,0.2);
+  background: rgba(20,241,149,0.03);
+  border-radius: 4px;
+}
+.cs-label {
+  font-family: var(--font-mono);
+  font-size: var(--sz-tag);
+  color: var(--green);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 0.5em;
+  display: block;
+}
+.closing-stmt p {
+  font-size: var(--sz-small);
+  color: var(--muted);
+  line-height: 1.7;
+  font-weight: 600;
+}
+.closing-stmt em { color: var(--green); font-style: normal; }
+.closing-stmt strong { color: var(--white); }
+
+/* ===========================================
+   RESPONSIVE BREAKPOINTS
+   =========================================== */
+@media (max-height: 700px) {
+  :root {
+    --pad:    clamp(1rem, 3vw, 2rem);
+    --gap:    clamp(0.5rem, 1.2vw, 1rem);
+    --gap-sm: clamp(0.3rem, 0.7vw, 0.6rem);
+    --sz-hero: clamp(2.2rem, 7vw, 4.5rem);
+    --sz-h1:   clamp(1.3rem, 3.5vw, 2.2rem);
+  }
+}
+
+@media (max-height: 600px) {
+  :root {
+    --pad:    clamp(0.75rem, 2.5vw, 1.5rem);
+    --gap:    clamp(0.4rem, 1vw, 0.75rem);
+    --sz-hero: clamp(1.8rem, 6vw, 3.5rem);
+  }
+  #kb-hint, .brackets::before, .brackets::after { display: none; }
+}
+
+@media (max-width: 768px) {
+  .pda-layout    { grid-template-columns: 1fr; }
+  .compare-layout { grid-template-columns: 1fr; }
+  .flow-steps    { grid-template-columns: repeat(2, 1fr); }
+  .demo-layout   { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 600px) {
+  :root {
+    --sz-hero: clamp(2.2rem, 10vw, 4rem);
+    --sz-h1:   clamp(1.2rem, 5vw, 2rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal { transition-duration: 0.1ms !important; }
+  html { scroll-behavior: auto; }
+}
+</style>
+</head>
+<body>
+
+<!-- Progress bar -->
+<div id="progress-bar" role="progressbar" aria-label="Presentation progress"></div>
+
+<!-- Navigation dots -->
+<nav id="nav-dots" aria-label="Slide navigation"></nav>
+
+<!-- Keyboard hint -->
+<p id="kb-hint">← → / ↑ ↓ / Space to navigate</p>
+
+
+<!-- ================================================
+     SLIDE 1 — WHAT IS SEEKER NODE
+     ================================================ -->
+<section class="slide slide-title brackets" id="slide-1" aria-label="What is Seeker Node">
+  <div class="bg-grid"></div>
+  <div class="blob blob-tl"></div>
+  <div class="blob blob-br"></div>
+  <span class="slide-num">01 / 05</span>
+
+  <p class="eyebrow reveal d1">
+    MagicBlock Hackathon<span class="sep">·</span>February 2026
+  </p>
+
+  <h1 class="title-hero reveal d2">
+    <span class="grad-text">SEEKER</span><br>
+    <span style="color:var(--white)">NODE</span>
+  </h1>
+
+  <p class="title-tagline reveal d3">
+    A week-long roguelike where the entire world fights one boss together.
+  </p>
+
+  <div class="event-list reveal d4">
+    <div class="event-item">
+      <span class="event-tag et-sat">SAT</span>
+      A global boss spawns
+    </div>
+    <div class="event-item">
+      <span class="event-tag et-atk">ATK</span>
+      Every player attacks the same HP bar
+    </div>
+    <div class="event-item">
+      <span class="event-tag et-win">WIN</span>
+      Boss dies → everyone gets rewards
+    </div>
+    <div class="event-item">
+      <span class="event-tag et-fail">FAIL</span>
+      It survives → nobody wins
+    </div>
+  </div>
+
+  <div class="truth-stmt reveal d5">
+    There is one shared on-chain truth.
+  </div>
+</section>
+
+
+<!-- ================================================
+     SLIDE 2 — THE BOSS HP IS A SOLANA ACCOUNT
+     ================================================ -->
+<section class="slide brackets" id="slide-2" aria-label="The Boss HP is a Solana account">
+  <div class="bg-grid"></div>
+  <div class="blob blob-tl"></div>
+  <div class="blob blob-tr"></div>
+  <span class="slide-num">02 / 05</span>
+
+  <p class="eyebrow reveal d1">The Core Idea</p>
+  <h2 class="section-h reveal d2">
+    The Boss HP Is a <span class="grad-text">Solana Account</span>
+  </h2>
+
+  <div class="pda-layout">
+
+    <!-- Left: BossState PDA description -->
+    <div class="pda-info">
+      <div class="reveal d2">
+        <span class="pda-code">BossState PDA</span>
+      </div>
+      <div class="pda-bullet reveal d3">
+        Delegated to MagicBlock's Ephemeral Rollup
+      </div>
+      <div class="pda-bullet reveal d4">
+        Updated in real-time
+      </div>
+      <div class="pda-bullet reveal d5">
+        Subscribed to via WebSocket by every client
+      </div>
+    </div>
+
+    <!-- Right: 3-step OVERLOAD flow -->
+    <div>
+      <p class="overload-label reveal d2">
+        When one player presses <span class="c-g">OVERLOAD</span>
+      </p>
+      <div class="overload-steps">
+        <div class="os-step os-1 reveal d3">
+          <span class="os-num">01</span>
+          <div class="os-body">
+            <p class="os-title">Transaction hits the Ephemeral Rollup</p>
+            <p class="os-text">Server-signed tx — instant, free, no wallet popup</p>
+          </div>
+        </div>
+        <div class="os-step os-2 reveal d4">
+          <span class="os-num">02</span>
+          <div class="os-body">
+            <p class="os-title">The PDA updates</p>
+            <p class="os-text">BossState HP decrements on-chain — real account data</p>
+          </div>
+        </div>
+        <div class="os-step os-3 reveal d5">
+          <span class="os-num">03</span>
+          <div class="os-body">
+            <p class="os-title">Every connected client re-renders instantly</p>
+            <p class="os-text">WebSocket account change fires — every screen shows the drop</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="verdict-row reveal d6">
+    <span class="verdict-word">One account.</span>
+    <span class="verdict-sep">·</span>
+    <span class="verdict-word">Many players.</span>
+    <span class="verdict-sep">·</span>
+    <span class="verdict-word" style="color:var(--cyan)">Live.</span>
+  </div>
+</section>
+
+
+<!-- ================================================
+     SLIDE 3 — WHY MAGICBLOCK IS ESSENTIAL
+     ================================================ -->
+<section class="slide brackets" id="slide-3" aria-label="Why MagicBlock is essential">
+  <div class="bg-grid"></div>
+  <div class="blob blob-tl"></div>
+  <div class="blob blob-br"></div>
+  <span class="slide-num">03 / 05</span>
+
+  <p class="eyebrow reveal d1">Why MagicBlock</p>
+  <h2 class="section-h reveal d2">
+    Without ER vs <span class="grad-text-rv">With ER</span>
+  </h2>
+
+  <div class="compare-layout">
+
+    <!-- WITHOUT MAGICBLOCK -->
+    <div class="compare-col">
+      <p class="compare-header ch-bad reveal d2">WITHOUT MAGICBLOCK</p>
+      <div class="compare-item ci-bad reveal d3">Every damage tick costs SOL</div>
+      <div class="compare-item ci-bad reveal d3">400–800ms confirmation times</div>
+      <div class="compare-item ci-bad reveal d4">The game feels delayed</div>
+      <div class="compare-item ci-bad reveal d4">Real-time shared gameplay becomes too expensive</div>
+    </div>
+
+    <!-- WITH MAGICBLOCK ER -->
+    <div class="compare-col">
+      <p class="compare-header ch-good reveal d2">WITH MAGICBLOCK ER</p>
+      <div class="compare-item ci-good reveal d3">Free writes</div>
+      <div class="compare-item ci-good reveal d3">Instant confirmation</div>
+      <div class="compare-item ci-good reveal d4">WebSocket account updates</div>
+      <div class="compare-item ci-good reveal d4">Settlement to Solana at weekend end</div>
+    </div>
+
+  </div>
+
+  <div class="contrast-bar reveal d5">
+    <p>
+      <strong>Remove ER</strong> → the boss fight becomes a refresh-to-check leaderboard.<br>
+      <em>With ER</em> → it's a live global event.
+    </p>
+  </div>
+</section>
+
+
+<!-- ================================================
+     SLIDE 4 — ARCHITECTURE
+     ================================================ -->
+<section class="slide brackets" id="slide-4" aria-label="Architecture">
+  <div class="bg-grid"></div>
+  <div class="blob blob-tl"></div>
+  <div class="blob blob-tr"></div>
+  <span class="slide-num">04 / 05</span>
+
+  <p class="eyebrow reveal d1">Architecture</p>
+  <h2 class="section-h reveal d2" style="margin-bottom: var(--gap-sm);">
+    Simple Flow. <span class="grad-text">Real Consequences.</span>
+  </h2>
+
+  <div class="arch-center">
+
+    <!-- ASCII flow -->
+    <div class="flow-box reveal d2">
+      <span class="c-c">Players (Android Expo App)</span><br>
+      <span class="c-m">↓ WebSocket</span><br>
+      <span class="c-p">MagicBlock Ephemeral Rollup</span><br>
+      <span class="c-m">↓ finalize</span><br>
+      <span class="c-g">Solana Base Layer</span>
+    </div>
+
+    <!-- 4 numbered steps -->
+    <div class="flow-steps">
+      <div class="flow-step fs-1 reveal d3">
+        <span class="fs-num">01</span>
+        <p class="fs-text"><strong>Boss initialized</strong> on Solana</p>
+      </div>
+      <div class="flow-step fs-2 reveal d3">
+        <span class="fs-num">02</span>
+        <p class="fs-text"><strong>PDA delegated</strong> to ER</p>
+      </div>
+      <div class="flow-step fs-3 reveal d4">
+        <span class="fs-num">03</span>
+        <p class="fs-text"><strong>Damage applied</strong> on ER (instant + free)</p>
+      </div>
+      <div class="flow-step fs-4 reveal d4">
+        <span class="fs-num">04</span>
+        <p class="fs-text">Weekend ends → <strong>state committed</strong> to Solana permanently</p>
+      </div>
+    </div>
+
+    <!-- Mechanic quote -->
+    <div class="mechanic-quote reveal d5">
+      <p class="mq-1">The blockchain is not a feature.</p>
+      <p class="mq-2">It is the gameplay mechanic.</p>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ================================================
+     SLIDE 5 — DEMO MOMENT + CLOSING
+     ================================================ -->
+<section class="slide brackets" id="slide-5" aria-label="Demo moment and closing statement">
+  <div class="bg-grid"></div>
+  <div class="blob blob-tl"></div>
+  <div class="blob blob-br"></div>
+  <span class="slide-num">05 / 05</span>
+
+  <p class="eyebrow reveal d1">Demo Moment</p>
+  <h2 class="section-h reveal d2" style="margin-bottom: var(--gap-sm);">
+    What You Will <span class="grad-text">See Live</span>
+  </h2>
+
+  <div class="demo-layout">
+
+    <!-- Left: 5 numbered demo steps -->
+    <div class="demo-steps">
+      <div class="demo-step reveal d2">
+        <span class="ds-num">01</span>
+        <p class="ds-text">Open the app → Boss HP visible with <code>[ER]</code> indicator</p>
+      </div>
+      <div class="demo-step reveal d3">
+        <span class="ds-num">02</span>
+        <p class="ds-text">Press <strong>OVERLOAD</strong></p>
+      </div>
+      <div class="demo-step reveal d3">
+        <span class="ds-num">03</span>
+        <p class="ds-text">HP drops instantly</p>
+      </div>
+      <div class="demo-step reveal d4">
+        <span class="ds-num">04</span>
+        <p class="ds-text">Open ER endpoint → account data updated</p>
+      </div>
+      <div class="demo-step reveal d5">
+        <span class="ds-num">05</span>
+        <p class="ds-text">Open Solana Explorer → same PDA committed after finalize</p>
+      </div>
+    </div>
+
+    <!-- Right: quote + closing statement -->
+    <div class="demo-right">
+      <p class="what-happened reveal d2">What just happened</p>
+
+      <div class="demo-quote reveal d3">
+        <p>That HP drop was not a backend integer.</p>
+        <p>It was a <em>Solana account updated on MagicBlock's Ephemeral Rollup</em>.</p>
+        <p>Every player on Earth was subscribed to the same account.</p>
+      </div>
+
+      <div class="closing-stmt reveal d5">
+        <span class="cs-label">MagicBlock enables something Solana couldn't do before</span>
+        <p>
+          <em>Shared, real-time on-chain state</em><br>
+          <strong>that feels like multiplayer</strong><br>
+          and still settles permanently.
+        </p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ================================================
+     PRESENTATION CONTROLLER
+     Keyboard nav · scroll snap · progress · dots · touch
+     ================================================ -->
+<script>
+/* ===========================================
+   SLIDE PRESENTATION CONTROLLER
+   Manages keyboard nav, scroll snap, progress bar,
+   navigation dots, and Intersection Observer animations.
+   =========================================== */
+class SeekerPresentation {
+  constructor() {
+    this.slides = Array.from(document.querySelectorAll('.slide'));
+    this.total = this.slides.length;
+    this.current = 0;
+    this.isScrolling = false;
+
+    this.progressBar = document.getElementById('progress-bar');
+    this.navDots = document.getElementById('nav-dots');
+
+    this.buildDots();
+    this.setupObserver();
+    this.setupKeyboard();
+    this.setupWheel();
+    this.setupTouch();
+    this.updateProgress(0);
+  }
+
+  /* Build navigation dots for each slide */
+  buildDots() {
+    this.slides.forEach((slide, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'dot' + (i === 0 ? ' active' : '');
+      btn.setAttribute('aria-label', `Go to slide ${i + 1}`);
+      btn.addEventListener('click', () => this.goTo(i));
+      this.navDots.appendChild(btn);
+    });
+  }
+
+  /* Intersection Observer — triggers .reveal animations when slides enter viewport */
+  setupObserver() {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          const idx = this.slides.indexOf(entry.target);
+          if (idx !== -1) {
+            this.current = idx;
+            this.updateProgress(idx);
+          }
+        }
+      });
+    }, { threshold: 0.5 });
+
+    this.slides.forEach(slide => observer.observe(slide));
+  }
+
+  /* Update progress bar width and active dot */
+  updateProgress(index) {
+    const pct = ((index + 1) / this.total) * 100;
+    this.progressBar.style.width = pct + '%';
+    const dots = this.navDots.querySelectorAll('.dot');
+    dots.forEach((dot, i) => dot.classList.toggle('active', i === index));
+  }
+
+  /* Navigate to a specific slide index */
+  goTo(index) {
+    if (index < 0 || index >= this.total) return;
+    this.slides[index].scrollIntoView({ behavior: 'smooth' });
+  }
+
+  /* Keyboard navigation — arrows, space, home/end */
+  setupKeyboard() {
+    document.addEventListener('keydown', (e) => {
+      switch (e.key) {
+        case 'ArrowDown': case 'ArrowRight': case ' ':
+          e.preventDefault();
+          this.goTo(this.current + 1);
+          break;
+        case 'ArrowUp': case 'ArrowLeft':
+          e.preventDefault();
+          this.goTo(this.current - 1);
+          break;
+        case 'Home':
+          e.preventDefault();
+          this.goTo(0);
+          break;
+        case 'End':
+          e.preventDefault();
+          this.goTo(this.total - 1);
+          break;
+      }
+    });
+  }
+
+  /* Mouse wheel — navigate one slide at a time */
+  setupWheel() {
+    let wheelTimeout;
+    document.addEventListener('wheel', (e) => {
+      if (this.isScrolling) return;
+      this.isScrolling = true;
+      if (e.deltaY > 30)       this.goTo(this.current + 1);
+      else if (e.deltaY < -30) this.goTo(this.current - 1);
+      clearTimeout(wheelTimeout);
+      wheelTimeout = setTimeout(() => { this.isScrolling = false; }, 700);
+    }, { passive: true });
+  }
+
+  /* Touch/swipe navigation */
+  setupTouch() {
+    let touchStartY = 0;
+    document.addEventListener('touchstart', (e) => {
+      touchStartY = e.touches[0].clientY;
+    }, { passive: true });
+
+    document.addEventListener('touchend', (e) => {
+      const delta = touchStartY - e.changedTouches[0].clientY;
+      if (Math.abs(delta) > 50) {
+        if (delta > 0) this.goTo(this.current + 1);
+        else           this.goTo(this.current - 1);
+      }
+    }, { passive: true });
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  new SeekerPresentation();
+});
+</script>
+
+</body>
+</html>

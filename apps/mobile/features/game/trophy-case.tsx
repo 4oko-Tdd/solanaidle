@@ -37,12 +37,12 @@ export function TrophyCase({ run, onViewCollection }: Props) {
 
   if (badges.length === 0 && relics.length === 0) {
     return (
-      <GlassPanel contentStyle={{ padding: 16, alignItems: "center", gap: 8 }}>
-        <View className="flex-row items-center gap-2 mb-1">
-          <Award size={20} color="rgba(153,69,255,0.4)" />
-          <Text className="text-sm font-sans-bold text-white/50">Trophy Case</Text>
+      <GlassPanel contentStyle={{ padding: 20, alignItems: "center", gap: 10 }}>
+        <View className="flex-row items-center gap-2.5 mb-1">
+          <Award size={24} color="rgba(153,69,255,0.4)" />
+          <Text className="text-lg font-sans-bold text-white/50">Trophy Case</Text>
         </View>
-        <Text className="text-sm text-white/40 text-center">
+        <Text className="text-lg text-white/40 text-center">
           Complete missions to earn permanent on-chain trophies
         </Text>
       </GlassPanel>
@@ -50,30 +50,30 @@ export function TrophyCase({ run, onViewCollection }: Props) {
   }
 
   return (
-    <GlassPanel contentStyle={{ padding: 16, gap: 12 }}>
-      <View className="flex-row items-center gap-2">
-        <Award size={16} color="#9945ff" />
-        <Text className="text-sm font-sans-bold text-white">Trophy Case</Text>
-        <Text className="ml-auto text-sm text-white/50 font-mono">
+    <GlassPanel contentStyle={{ padding: 20, gap: 14 }}>
+      <View className="flex-row items-center gap-2.5">
+        <Award size={22} color="#9945ff" />
+        <Text className="text-lg font-sans-bold text-white">Trophy Case</Text>
+        <Text className="ml-auto text-base text-white/50 font-mono">
           {badges.length + relics.length} items
         </Text>
       </View>
 
       {/* Badges */}
       {badges.length > 0 && (
-        <View className="gap-1.5">
-          <Text className="text-xs font-mono text-white/40 uppercase tracking-wider">Achievements</Text>
-          <View className="flex-row flex-wrap gap-2">
+        <View className="gap-2">
+          <Text className="text-sm font-mono text-white/40 uppercase tracking-wider">Achievements</Text>
+          <View className="flex-row flex-wrap gap-2.5">
             {badges.map((badge) => (
               <View
                 key={badge.id}
-                className="flex-row items-center gap-1.5 rounded-lg border border-[#9945FF]/20 bg-[#9945FF]/5 px-2.5 py-1.5"
+                className="flex-row items-center gap-2 rounded-lg border border-[#9945FF]/20 bg-[#9945FF]/5 px-3 py-2"
               >
-                <Text style={{ fontSize: 14 }}>
+                <Text style={{ fontSize: 18 }}>
                   {ACHIEVEMENT_ICONS[badge.achievementId] ?? "🏅"}
                 </Text>
                 <View className="min-w-0">
-                  <Text className="text-xs font-sans-bold text-white" numberOfLines={1}>
+                  <Text className="text-base font-sans-bold text-white" numberOfLines={1}>
                     {badge.name}
                   </Text>
                   <Text className="text-xs text-white/40">
@@ -87,7 +87,7 @@ export function TrophyCase({ run, onViewCollection }: Props) {
                       Linking.openURL(`${EXPLORER_URL}/${badge.mintAddress}${CLUSTER}`)
                     }
                   >
-                    <ExternalLink size={11} color="rgba(0,212,255,0.6)" />
+                    <ExternalLink size={14} color="rgba(0,212,255,0.6)" />
                   </Text>
                 )}
               </View>
@@ -98,17 +98,17 @@ export function TrophyCase({ run, onViewCollection }: Props) {
 
       {/* Relics */}
       {relics.length > 0 && (
-        <View className="gap-1.5">
-          <Text className="text-xs font-mono text-white/40 uppercase tracking-wider">Relics</Text>
-          <View className="flex-row flex-wrap gap-2">
+        <View className="gap-2">
+          <Text className="text-sm font-mono text-white/40 uppercase tracking-wider">Relics</Text>
+          <View className="flex-row flex-wrap gap-2.5">
             {relics.map((relic) => (
               <View
                 key={relic.id}
-                className="flex-row items-center gap-1.5 rounded-lg border border-[#ffb800]/20 bg-[#ffb800]/5 px-2.5 py-1.5"
+                className="flex-row items-center gap-2 rounded-lg border border-[#ffb800]/20 bg-[#ffb800]/5 px-3 py-2"
               >
-                <Gem size={13} color="#ffb800" />
+                <Gem size={15} color="#ffb800" />
                 <View className="min-w-0">
-                  <Text className="text-xs font-sans-bold text-white" numberOfLines={1}>
+                  <Text className="text-base font-sans-bold text-white" numberOfLines={1}>
                     {relic.name}
                   </Text>
                   <Text className="text-xs text-white/40">
@@ -122,7 +122,7 @@ export function TrophyCase({ run, onViewCollection }: Props) {
                       Linking.openURL(`${EXPLORER_URL}/${relic.mintAddress}${CLUSTER}`)
                     }
                   >
-                    <ExternalLink size={11} color="rgba(0,212,255,0.6)" />
+                    <ExternalLink size={14} color="rgba(0,212,255,0.6)" />
                   </Text>
                 )}
               </View>

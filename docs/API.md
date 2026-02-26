@@ -193,7 +193,8 @@ Get player's resources.
 {
   "scrap": 142,
   "crystal": 23,
-  "artifact": 1
+  "artifact": 1,
+  "skr": 120
 }
 ```
 
@@ -281,7 +282,18 @@ Get current world boss status. Includes player contribution if authenticated. Tr
   "totalDamage": 152770,
   "hasJoined": true,
   "overloadUsed": false,
-  "playerContribution": 0.15
+  "playerContribution": 0.15,
+  "skrBalance": 120,
+  "reconnectUsed": false,
+  "overloadAmpUsed": false,
+  "raidLicense": true,
+  "destabilized": false,
+  "monetizationCosts": {
+    "reconnect": 25,
+    "overloadAmplifier": 18,
+    "raidLicense": 35,
+    "freeRecoveryMinutes": 15
+  }
 }
 ```
 
@@ -313,6 +325,39 @@ Use OVERLOAD — burns all resources for critical damage. Once per boss fight.
 {
   "success": true,
   "damage": 4250
+}
+```
+
+#### `POST /boss/reconnect` (auth required)
+Use paid instant recovery from `destabilized` state (epoch-capped).
+
+**Response:**
+```json
+{
+  "success": true,
+  "skrBalance": 95
+}
+```
+
+#### `POST /boss/overload-amplifier` (auth required)
+Purchase +10% OVERLOAD amplifier for current epoch (once per epoch).
+
+**Response:**
+```json
+{
+  "success": true,
+  "skrBalance": 102
+}
+```
+
+#### `POST /boss/raid-license` (auth required)
+Purchase +5% passive contribution efficiency for current epoch (once per epoch).
+
+**Response:**
+```json
+{
+  "success": true,
+  "skrBalance": 85
 }
 ```
 
@@ -425,3 +470,31 @@ Common error codes:
 - `CHARACTER_BUSY` — character not idle
 - `NOT_IN_FIGHT` — player not in boss fight (overload)
 - `OVERLOAD_ALREADY_USED` — already used overload this fight
+- `INSUFFICIENT_SKR` — insufficient SKR balance for action
+- `NODE_NOT_DESTABILIZED` — reconnect requested while node is stable
+- `RECONNECT_ALREADY_USED` — reconnect already used this epoch
+- `OVERLOAD_AMP_ALREADY_ACTIVE` — overload amplifier already purchased this epoch
+- `RAID_LICENSE_ALREADY_ACTIVE` — raid license already purchased this epoch
+
+---
+
+## Dev Endpoints (Non-production)
+
+These routes are only available when API runs with `NODE_ENV !== "production"`.
+
+### Economy / SKR testing
+
+#### `POST /dev/add-skr` (auth required)
+Add `+100 SKR` to current wallet.
+
+#### `POST /dev/toggle-destabilized` (auth required)
+Toggle current epoch `destabilized` flag for current wallet.
+
+#### `POST /dev/toggle-raid-license` (auth required)
+Toggle current epoch raid license state.
+
+#### `POST /dev/toggle-overload-amp` (auth required)
+Toggle current epoch overload amplifier state.
+
+#### `POST /dev/reset-boss-monetization` (auth required)
+Reset current epoch boss monetization state for current wallet.

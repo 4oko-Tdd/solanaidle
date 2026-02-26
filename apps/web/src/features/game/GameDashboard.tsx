@@ -15,7 +15,6 @@ import { RunLog } from "./RunLog";
 import { RunEndScreen } from "./RunEndScreen";
 import { LeaderboardPanel } from "./LeaderboardPanel";
 import { DailyLoginModal } from "./DailyLoginModal";
-import { QuestPanel } from "./QuestPanel";
 import { api } from "@/lib/api";
 import type { DailyLoginStatus, ClassId } from "@solanaidle/shared";
 import { useWalletSign } from "@/hooks/useWalletSign";
@@ -29,7 +28,6 @@ import {
   ChevronDown,
   ChevronUp,
   Wrench,
-  Search,
   Skull,
   Crown,
   Heart,
@@ -41,8 +39,9 @@ import { ClassIcon } from "@/components/ClassIcon";
 import magicblockLogo from "@/assets/icons/MagicBlock-Logo-Black.png";
 import { TrophyCase } from "./TrophyCase";
 import { useBoss } from "@/hooks/useBoss";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { Inventory } from "@solanaidle/shared";
+import { usePerks } from "@/hooks/usePerks";
 
 const CLASS_NAMES: Record<ClassId, string> = {
   scout: "Validator",
@@ -70,11 +69,10 @@ function getGrade(score: number, missions: number, bossDefeated: boolean): { let
   return { letter: "D", color: "text-muted-foreground" };
 }
 
-type Tab = "game" | "ops" | "base" | "guild" | "ranks";
+type Tab = "game" | "base" | "guild" | "ranks";
 
 const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: "game", label: "Game", icon: <Swords className="h-5 w-5" /> },
-  { id: "ops", label: "Ops", icon: <Search className="h-5 w-5" /> },
   { id: "base", label: "Base", icon: <Wrench className="h-5 w-5" /> },
   { id: "guild", label: "Guild", icon: <Users className="h-5 w-5" /> },
   { id: "ranks", label: "Ranks", icon: <Trophy className="h-5 w-5" /> },
@@ -109,6 +107,8 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
   const { signMessage } = useWalletSign();
   const { addToast } = useToast();
   const { boss, participantCount, totalDamage, playerContribution, hasJoined, overloadUsed, wsConnected, join: bossJoin, overload: bossOverload, refresh: bossRefresh } = useBoss();
+  const perks = usePerks();
+  const prevClaimRef = useRef(lastClaimResult);
   const [activeTab, setActiveTab] = useState<Tab>("game");
   const [dailyStatus, setDailyStatus] = useState<DailyLoginStatus | null>(null);
   const [showDailyModal, setShowDailyModal] = useState(false);
@@ -141,6 +141,14 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
     setShowDailyModal(false);
     await refresh();
   };
+
+  // Pre-fetch perks when a claim result arrives (level-up may grant perk offers)
+  useEffect(() => {
+    if (lastClaimResult && lastClaimResult !== prevClaimRef.current) {
+      perks.refresh();
+    }
+    prevClaimRef.current = lastClaimResult;
+  }, [lastClaimResult]);
 
   useEffect(() => {
     if (!lastClaimResult) return;
@@ -225,12 +233,6 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
                     addToast(res.message, "success");
                     await refresh();
                   }}>+XP</Button>
-                  <Button variant="ghost" size="sm" className="h-6 text-xs px-2" onClick={async () => {
-                    const res = await api<{ message: string }>("/dev/reset-quests", { method: "POST" });
-                    addToast(res.message, "success");
-                    await refresh();
-                  }}>Reset Quests</Button>
-
                   {activeRun && (
                     <>
                       <Button variant="ghost" size="sm" className="h-6 text-xs px-2" onClick={async () => {
@@ -453,13 +455,6 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
             </div>
           )}
 
-          {/* ─── OPS TAB ─── */}
-          {activeTab === "ops" && (
-            <div className="animate-tab-in space-y-3">
-              <QuestPanel />
-            </div>
-          )}
-
           {/* ─── BASE TAB ─── */}
           {activeTab === "base" && (
             <div className="animate-tab-in space-y-3">
@@ -543,7 +538,7 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
         />
       )}
 
-      {activeRun && <PerkPicker />}
+      {activeRun && <PerkPicker perks={perks} />}
     </>
   );
 }

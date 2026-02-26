@@ -135,9 +135,13 @@ export function useGameState(isAuthenticated: boolean) {
   );
 
   const claimMission = useCallback(async () => {
-    const playerSignature = signMessage && publicKey
-      ? await signClaim(signMessage, publicKey.toBase58())
-      : null;
+    if (!signMessage || !publicKey) {
+      throw new Error("Wallet signature required");
+    }
+    const playerSignature = await signClaim(signMessage, publicKey.toBase58());
+    if (!playerSignature) {
+      throw new Error("Mission claim was cancelled in wallet");
+    }
     const result = await api<MissionClaimResponse>("/missions/claim", {
       method: "POST",
       body: JSON.stringify({ playerSignature }),

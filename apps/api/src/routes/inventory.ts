@@ -30,6 +30,15 @@ inventory.get("/", (c) => {
     crystal: row.crystal,
     artifact: row.artifact,
   };
+
+  db.prepare(
+    "INSERT OR IGNORE INTO skr_wallets (wallet_address, balance) VALUES (?, 0)"
+  ).run(wallet);
+  const skrRow = db
+    .prepare("SELECT balance FROM skr_wallets WHERE wallet_address = ?")
+    .get(wallet) as { balance: number } | undefined;
+  inv.skr = skrRow?.balance ?? 0;
+
   return c.json(inv);
 });
 

@@ -102,7 +102,18 @@ missions.post("/claim", async (c) => {
     );
   }
 
-  const { playerSignature } = await c.req.json<{ playerSignature?: string }>().catch(() => ({} as { playerSignature?: string }));
+  const { playerSignature } = await c.req
+    .json<{ playerSignature?: string }>()
+    .catch(() => ({} as { playerSignature?: string }));
+  if (!playerSignature || !playerSignature.trim()) {
+    return c.json(
+      {
+        error: "SIGNATURE_REQUIRED",
+        message: "Mission claim requires wallet signature",
+      },
+      400
+    );
+  }
   const run = getActiveRun(wallet);
   const result = await claimMission(char.id, run?.classId, run?.id, wallet, playerSignature);
   return c.json(result);

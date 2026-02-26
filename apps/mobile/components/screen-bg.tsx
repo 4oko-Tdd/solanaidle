@@ -13,7 +13,7 @@ export function ScreenBg({ children }: { children: ReactNode }) {
       style={{ flex: 1 }}
       resizeMode="cover"
     >
-      <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.72)" }}>
+      <View style={{ flex: 1, backgroundColor: "rgba(10,22,40,0.45)" }}>
         {children}
       </View>
     </ImageBackground>

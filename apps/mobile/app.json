@@ -7,6 +7,15 @@
     "scheme": "seekernode",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
+    "androidStatusBar": {
+      "barStyle": "light-content",
+      "backgroundColor": "#0a1628",
+      "translucent": false
+    },
+    "androidNavigationBar": {
+      "barStyle": "light-content",
+      "backgroundColor": "#0a1628"
+    },
     "android": {
       "package": "com.seekernode.app",
       "adaptiveIcon": {
@@ -32,11 +41,13 @@
     "plugins": [
       "expo-router",
       "expo-secure-store",
+      "./plugins/fix-build-gradle",
       [
         "expo-build-properties",
         {
           "android": {
-            "minSdkVersion": 26
+            "minSdkVersion": 26,
+            "kotlinVersion": "2.0.21"
           }
         }
       ]

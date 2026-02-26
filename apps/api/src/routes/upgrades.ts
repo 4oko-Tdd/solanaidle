@@ -19,11 +19,7 @@ upgrades.get("/", (c) => {
 
   const run = getActiveRun(wallet);
   if (!run) {
-    return c.json({
-      armor: { level: 0, maxLevel: 5, effectLabel: "No bonus", next: null },
-      engine: { level: 0, maxLevel: 5, effectLabel: "No bonus", next: null },
-      scanner: { level: 0, maxLevel: 5, effectLabel: "No bonus", next: null },
-    });
+    return c.json(null);
   }
 
   const info = getUpgradeInfo(char.id, run.id);

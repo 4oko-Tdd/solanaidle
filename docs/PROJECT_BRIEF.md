@@ -32,7 +32,8 @@ Each week is an **epoch** -- a self-contained roguelike run. Monday you start fr
 | 2 | Liquidity Run | Medium duration, balanced risk/reward |
 | 3 | Deep Farm | Long, high-resource deep dive |
 
-Missions reward **XP + resources only** (Scrap, Crystal, Keys). No loot drops from missions -- all rare loot comes from the world boss.
+Missions reward **XP + epoch resources only** (Scrap, Crystal, Keys). No loot drops from missions -- all rare loot comes from the world boss.
+`SKR` is a separate wallet token shown in the Resource Bar and used only for optional boss utilities.
 
 ### Roguelike Perk System
 
@@ -53,6 +54,15 @@ Resources serve two competing purposes:
 
 This is the core economic decision every epoch. There is no correct answer.
 
+### SKR Utility Layer (Optional)
+
+Weekend boss flow also includes optional SKR actions:
+
+- **Reconnect Protocol** -- instant recovery from `destabilized` (25 SKR, max 1 per epoch)
+- **Overload Amplifier** -- +10% OVERLOAD damage (18 SKR, max 1 per epoch)
+- **Raid License** -- +5% passive contribution efficiency (35 SKR, max 1 per epoch)
+- `destabilized` state still has a **free timed auto-recovery** path (no SKR required)
+
 ### World Boss -- Protocol Leviathan
 
 The endgame. A community event every weekend.
@@ -61,6 +71,7 @@ The endgame. A community event every weekend.
 - **Shared HP pool** scaled to active player count that week, tracked on-chain via MagicBlock ER for **real-time visibility** across all clients
 - Players **"Join the Hunt"** -- locks character into the fight. Earlier join = more passive damage = more contribution.
 - **OVERLOAD** -- dump remaining resources into one critical strike burst (HP drop visible instantly to all players via websocket)
+- Optional SKR utility actions can be purchased during the fight (epoch-capped, no guaranteed win)
 - **Sunday 23:59 UTC:** If the community kills the boss, drop rolls happen based on contribution %. If the boss survives, nobody gets drops.
 
 ### Boss Drop Table
@@ -78,6 +89,7 @@ The endgame. A community event every weekend.
 |---|---|
 | Level, resources, upgrades, perks, streak, lives | Permanent rare loot (boss drops) |
 | Weekly buffs (1 epoch only) | NFT artifacts, achievement badges, inventory capacity |
+| Boss monetization flags (reconnect/amp/license) | SKR wallet balance (on-chain token) |
 
 ---
 
@@ -87,6 +99,7 @@ The endgame. A community event every weekend.
 Monday    → Pick class, start fresh (Level 1, 3 lives, zero resources)
 Mon-Fri   → Run missions → earn XP + resources → buy upgrades → choose perks on level-up
 Saturday  → World Boss spawns → all missions lock → Join the Hunt
+Weekend   → Optional SKR utilities (Reconnect / Amp / License) if needed
 Sun 23:59 → Epoch ends → boss drops roll → full reset → repeat
 ```
 
@@ -104,6 +117,7 @@ Wallet serves three roles:
 - **Identity** -- sign-in via signMessage nonce challenge
 - **Ownership** -- permanent boss loot and achievement NFTs live in your wallet
 - **Ritual** -- confirm meaningful on-chain actions (epoch start, VRF roll)
+- **Utility** -- shows SKR balance in Resource Bar for optional boss actions
 
 ### MagicBlock
 

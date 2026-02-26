@@ -83,28 +83,21 @@ export function RunEndScreen({ run, signMessage, onFinalized }: Props) {
     setPhase("rolling");
 
     try {
-      // Step 1: Request VRF randomness (player signs one Solana tx)
-      let vrfAccount: string | null = null;
-      try {
-        vrfAccount = await requestRoll();
-      } catch (e) {
-        console.warn("[RunEndScreen] VRF request failed, continuing without:", e);
-      }
+      // Step 1: Request VRF randomness (player signs one MagicBlock tx)
+      const vrfAccount = await requestRoll();
 
       // Step 2: Sign the epoch end message
       const msg = `END_RUN:week${weekNum}:score:${run.score}:${Date.now()}`;
-      let signature: string | null = null;
-      try {
-        signature = await signMessage(msg);
-      } catch (e) {
-        console.warn("[RunEndScreen] signMessage failed, using fallback:", e);
+      const signature = await signMessage(msg);
+      if (!signature) {
+        throw new Error("Finalization signature was cancelled in wallet");
       }
 
       // Step 3: Finalize with backend (includes VRF account for bonus calc)
       const result = await api<EpochFinalizeResponse>(`/runs/${run.id}/finalize`, {
         method: "POST",
         body: JSON.stringify({
-          signature: signature ?? "unsigned",
+          signature,
           vrfAccount,
         }),
       });

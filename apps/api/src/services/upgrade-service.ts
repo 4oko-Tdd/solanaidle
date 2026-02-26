@@ -10,14 +10,14 @@ const TRACK_CONFIGS = {
   armor: {
     upgrades: ARMOR_UPGRADES,
     column: "armor_level",
-    effectLabel: (level: number) => level > 0 ? `-${getArmorReduction(level)}% fail rate` : "No bonus",
-    nextEffectLabel: (level: number) => `-${getArmorReduction(level)}% fail rate`,
+    effectLabel: (level: number) => level > 0 ? `-${getArmorReduction(level)}% fail` : "No bonus",
+    nextEffectLabel: (level: number) => `-${getArmorReduction(level)}% fail`,
   },
   engine: {
     upgrades: ENGINE_UPGRADES,
     column: "engine_level",
-    effectLabel: (level: number) => level > 0 ? `-${Math.round(getEngineReduction(level) * 100)}% duration` : "No bonus",
-    nextEffectLabel: (level: number) => `-${Math.round(getEngineReduction(level) * 100)}% duration`,
+    effectLabel: (level: number) => level > 0 ? `-${Math.round(getEngineReduction(level) * 100)}% time` : "No bonus",
+    nextEffectLabel: (level: number) => `-${Math.round(getEngineReduction(level) * 100)}% time`,
   },
   scanner: {
     upgrades: SCANNER_UPGRADES,

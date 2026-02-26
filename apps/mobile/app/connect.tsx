@@ -1,12 +1,14 @@
 import { View, Text, Pressable } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "@/providers/auth-context";
 import { useRouter } from "expo-router";
 import { ScreenBg } from "@/components/screen-bg";
 import { useEffect } from "react";
 
 export default function ConnectScreen() {
-  const { authenticate, isAuthenticated, authLoading } = useAuth();
+  const { authenticate, isAuthenticated, authLoading, authError } = useAuth();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     if (isAuthenticated) router.replace("/(tabs)/game");
@@ -14,7 +16,7 @@ export default function ConnectScreen() {
 
   return (
     <ScreenBg>
-    <View className="flex-1 items-center justify-center px-8 gap-8">
+    <View className="flex-1 items-center justify-center px-8 gap-8" style={{ paddingTop: insets.top }}>
       <View className="items-center gap-4">
         <Text className="text-neon-green font-mono-bold text-4xl tracking-widest">
           SEEKER
@@ -40,6 +42,11 @@ export default function ConnectScreen() {
       <Text className="text-white/20 font-mono text-xs text-center">
         Requires a Solana wallet app installed on this device
       </Text>
+      {authError ? (
+        <Text className="text-red-400/90 font-mono text-xs text-center">
+          {authError}
+        </Text>
+      ) : null}
     </View>
     </ScreenBg>
   );
