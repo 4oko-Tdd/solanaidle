@@ -3,25 +3,41 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    container_name: solanaidle-api
     restart: unless-stopped
     env_file: .env.production
     volumes:
       - api_data:/app/data
     networks:
+      - solanaidle-network
       - traefik
-      - internal
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.solanaidle-api.rule=Host(`api.yourdomain.com`)"
+
+      - "traefik.http.middlewares.solanaidle-redirect-https.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.solanaidle-redirect-https.redirectscheme.permanent=true"
+
+      - "traefik.http.routers.solanaidle-api.rule=Host(`solanaidle.findparty.online`)"
       - "traefik.http.routers.solanaidle-api.entrypoints=websecure"
-      - "traefik.http.routers.solanaidle-api.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.solanaidle-api.tls.certresolver=le"
+      - "traefik.http.routers.solanaidle-api.service=solanaidle-api"
       - "traefik.http.services.solanaidle-api.loadbalancer.server.port=3000"
+
+      - "traefik.http.routers.solanaidle-api-redirect.rule=Host(`solanaidle.findparty.online`)"
+      - "traefik.http.routers.solanaidle-api-redirect.entrypoints=web"
+      - "traefik.http.routers.solanaidle-api-redirect.middlewares=solanaidle-redirect-https"
 
 volumes:
   api_data:
 
 networks:
+  solanaidle-network:
+    driver: bridge
   traefik:
     external: true
-  internal:
-    driver: bridge
