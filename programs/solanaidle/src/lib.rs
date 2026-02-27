@@ -8,7 +8,7 @@ use instructions::boss::*;
 use instructions::progress::*;
 use instructions::vrf::*;
 
-declare_id!("11111111111111111111111111111111");
+declare_id!("2bDsZj9EiF81YYqQbXhxU8rQ6HAqRfTQXJH4BT5qHFtK");
 
 #[ephemeral]
 #[program]
