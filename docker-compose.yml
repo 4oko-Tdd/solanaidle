@@ -1,4 +1,32 @@
 services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    container_name: solanaidle-web
+    restart: unless-stopped
+    networks:
+      - solanaidle-network
+      - traefik
+    labels:
+      - "traefik.enable=true"
+
+      - "traefik.http.middlewares.solanaidle-redirect-https.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.solanaidle-redirect-https.redirectscheme.permanent=true"
+
+      # HTTPS — serve web app (catch-all for the domain)
+      - "traefik.http.routers.solanaidle-web.rule=Host(`solanaidle.findparty.online`)"
+      - "traefik.http.routers.solanaidle-web.entrypoints=websecure"
+      - "traefik.http.routers.solanaidle-web.tls.certresolver=le"
+      - "traefik.http.routers.solanaidle-web.service=solanaidle-web"
+      - "traefik.http.routers.solanaidle-web.priority=1"
+      - "traefik.http.services.solanaidle-web.loadbalancer.server.port=80"
+
+      # HTTP → HTTPS redirect
+      - "traefik.http.routers.solanaidle-web-redirect.rule=Host(`solanaidle.findparty.online`)"
+      - "traefik.http.routers.solanaidle-web-redirect.entrypoints=web"
+      - "traefik.http.routers.solanaidle-web-redirect.middlewares=solanaidle-redirect-https"
+
   api:
     build:
       context: .
@@ -20,16 +48,16 @@ services:
     labels:
       - "traefik.enable=true"
 
-      - "traefik.http.middlewares.solanaidle-redirect-https.redirectscheme.scheme=https"
-      - "traefik.http.middlewares.solanaidle-redirect-https.redirectscheme.permanent=true"
-
-      - "traefik.http.routers.solanaidle-api.rule=Host(`solanaidle.findparty.online`)"
+      # HTTPS — route /api/* to backend (higher priority than web catch-all)
+      - "traefik.http.routers.solanaidle-api.rule=Host(`solanaidle.findparty.online`) && PathPrefix(`/api`)"
       - "traefik.http.routers.solanaidle-api.entrypoints=websecure"
       - "traefik.http.routers.solanaidle-api.tls.certresolver=le"
       - "traefik.http.routers.solanaidle-api.service=solanaidle-api"
+      - "traefik.http.routers.solanaidle-api.priority=10"
       - "traefik.http.services.solanaidle-api.loadbalancer.server.port=3000"
 
-      - "traefik.http.routers.solanaidle-api-redirect.rule=Host(`solanaidle.findparty.online`)"
+      # HTTP → HTTPS redirect for /api
+      - "traefik.http.routers.solanaidle-api-redirect.rule=Host(`solanaidle.findparty.online`) && PathPrefix(`/api`)"
       - "traefik.http.routers.solanaidle-api-redirect.entrypoints=web"
       - "traefik.http.routers.solanaidle-api-redirect.middlewares=solanaidle-redirect-https"
 
