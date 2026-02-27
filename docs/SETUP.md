@@ -170,42 +170,33 @@ SQLite database is auto-created at `apps/api/data/game.db` on first run. No setu
 
 To reset: delete the file and restart the API.
 
-## On-Chain Programs
+## On-Chain Program
 
-Three Anchor programs live in `programs/`. They're already deployed to devnet — you only need to redeploy if you modify them.
+A single unified Anchor program `solanaidle` lives in `programs/solanaidle/`. Already deployed to devnet — only redeploy if you modify it.
 
-| Program | ID | Purpose |
-|---------|----|---------|
-| `progress-tracker` | `8umphbZnJMMVNqR5QnaMurNCf6TcpbgQV5CWKKbChzcL` | Per-player progress PDA |
-| `boss-tracker` | `AeMcgM2YYj4fFrMGEUvPeS3YcHiaDaUeSXYXjz5382up` | Global boss HP PDA |
-| `vrf-roller` | See `programs/vrf-roller/src/lib.rs` | VRF randomness |
+| Program | ID | Network |
+|---------|-----|---------|
+| `solanaidle` | `2bDsZj9EiF81YYqQbXhxU8rQ6HAqRfTQXJH4BT5qHFtK` | Devnet |
 
-### Building Programs
+### Building the Program
 
 ```bash
-# Build all programs
 anchor build
-
-# Note: `anchor build -p <name>` may fail with overflow-checks quirk on 0.32.1
-# Use `anchor build` (all programs) as a workaround
 ```
 
-### Deploying Programs
+### Deploying the Program
 
 ```bash
-# Set your deploy wallet
-solana config set --keypair ~/.config/solana/solana-idle.json
+solana config set --keypair ./keys/dev.json
 solana config set --url devnet
 
-# Deploy (costs ~3 SOL per program)
-anchor deploy -p progress-tracker --provider.cluster devnet
-anchor deploy -p boss-tracker --provider.cluster devnet
+anchor deploy --provider.cluster devnet
 ```
 
 After deploying, update the program ID in:
-- `programs/<name>/src/lib.rs` (`declare_id!`)
-- `apps/api/src/services/er-service.ts` or `boss-er-service.ts`
-- Any frontend hooks that reference the program ID
+- `programs/solanaidle/src/lib.rs` (`declare_id!`)
+- `Anchor.toml`
+- `apps/api/src/services/er-service.ts`, `boss-er-service.ts`, `vrf-service.ts`
 
 ### Verifying ER State
 
@@ -220,6 +211,57 @@ pnpm --filter @solanaidle/api exec tsx ../../scripts/verify-er.ts <PLAYER_WALLET
 ```
 
 Output shows delegation status, ER endpoint, and decoded on-chain data (HP, damage, score, etc.).
+
+## Deployment
+
+### API (VPS + Docker + Traefik)
+
+The API runs on a VPS at `solanaidle.findparty.online` via Docker Compose + Traefik.
+
+**Config files:** `Dockerfile`, `docker-compose.yml`
+
+**Environment:** `/srv/apps/solanaidle/.env.production` on the server (not in git)
+
+To deploy a new version:
+
+```bash
+# On the server
+cd /srv/apps/solanaidle
+git pull
+docker compose up -d --build
+```
+
+**Required env vars in `.env.production`:**
+
+| Variable | Description |
+|----------|-------------|
+| `NODE_ENV` | `production` |
+| `PORT` | `3000` |
+| `JWT_SECRET` | Long random string for JWT signing |
+| `SERVER_KEYPAIR` | JSON byte array of the Solana keypair (contents of `keys/dev.json`) |
+| `CORS_ORIGIN` | Frontend origin e.g. `https://solanaidle.vercel.app` |
+| `SOLANA_RPC_URL` | Defaults to `https://api.devnet.solana.com` |
+| `ER_VALIDATOR_URL` | Defaults to `https://devnet-us.magicblock.app` |
+
+SQLite data persists in Docker named volume `solanaidle_api_data`.
+
+### Web Client (Vercel)
+
+The web client deploys automatically via Vercel CLI or can be triggered manually:
+
+```bash
+vercel --prod --yes --archive=tgz
+```
+
+**Vercel environment variable:**
+
+| Variable | Value |
+|----------|-------|
+| `VITE_API_URL` | `https://solanaidle.findparty.online/api` |
+
+Set via: `vercel env add VITE_API_URL production`
+
+**Config:** `vercel.json` — builds only `@solanaidle/web`, outputs `apps/web/dist`.
 
 ## Project Structure
 
@@ -245,9 +287,7 @@ packages/
   shared/                 → TypeScript types (@solanaidle/shared)
 
 programs/
-  progress-tracker/       → Anchor: player progress ER
-  boss-tracker/           → Anchor: boss HP ER
-  vrf-roller/             → Anchor: VRF randomness
+  solanaidle/             → Unified Anchor program: progress + boss HP + VRF
 
 scripts/
   verify-er.ts            → ER PDA verification tool
