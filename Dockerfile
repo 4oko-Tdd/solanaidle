@@ -22,7 +22,7 @@ COPY apps/api/ ./apps/api/
 RUN pnpm --filter @solanaidle/api build
 
 # Create self-contained production bundle (resolves workspace deps)
-RUN pnpm --filter @solanaidle/api deploy --prod /deploy
+RUN pnpm --filter @solanaidle/api deploy --prod --legacy /deploy
 
 # ---- Production stage ----
 FROM node:22-alpine AS production
