@@ -33,7 +33,7 @@ WORKDIR /app
 COPY --from=build /deploy .
 
 # SQLite data lives here — mount a named volume to persist across restarts
-RUN mkdir -p /app/data
+RUN apk add --no-cache curl && mkdir -p /app/data
 
 ENV NODE_ENV=production
 EXPOSE 3000
