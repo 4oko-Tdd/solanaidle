@@ -1,5 +1,5 @@
 {
-  "buildCommand": "pnpm build",
+  "buildCommand": "pnpm --filter @solanaidle/web build",
   "outputDirectory": "apps/web/dist",
   "installCommand": "pnpm install",
   "framework": "vite"
