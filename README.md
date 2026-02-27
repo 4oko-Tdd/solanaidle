@@ -9,7 +9,7 @@ Built mobile-first for **Solana Mobile (Seeker)**. Players are node operators ru
 | Integration | How It's Used |
 |-------------|--------------|
 | **Solana Mobile + MWA** | Expo React Native Android client for Seeker devices. Sign-in via Mobile Wallet Adapter v2 + Wallet UI for React Native. |
-| **MagicBlock Ephemeral Rollups** | Two on-chain programs: real-time boss HP broadcast via websocket (boss-tracker), zero-fee player progress checkpointing (progress-tracker). |
+| **MagicBlock Ephemeral Rollups** | Unified on-chain program: real-time boss HP broadcast via websocket, zero-fee player progress checkpointing. |
 | **MagicBlock VRF** | Provably fair epoch bonus rolls — verifiable on-chain randomness for end-of-week rewards. |
 | **Metaplex Core** | Server-mints NFT artifacts and achievement badges directly to player wallets (zero player signatures). |
 
@@ -53,14 +53,12 @@ No pay-to-win. No infinite farming. Time is the core resource. The boss is why y
 ## Monorepo Structure
 
 ```
-apps/mobile/            → Expo React Native app (primary Seeker client)
-apps/web/               → React SPA (frontend)
-apps/api/               → Hono REST API (backend, game logic, timers)
-packages/shared/        → TypeScript types shared between FE and BE
-programs/progress-tracker/ → Per-player progress PDA on MagicBlock ER
-programs/boss-tracker/     → Global boss HP PDA on MagicBlock ER
-programs/vrf-roller/       → VRF randomness for epoch bonus rolls
-scripts/                → Utility scripts (verify-er.ts, etc.)
+apps/mobile/        → Expo React Native app (primary Seeker client)
+apps/web/           → React SPA (web companion) — deployed on Vercel
+apps/api/           → Hono REST API (backend, game logic, timers) — deployed on VPS
+packages/shared/    → TypeScript types shared between FE and BE
+programs/solanaidle/   → Unified Anchor program: progress + boss HP + VRF on MagicBlock ER
+scripts/            → Utility scripts (verify-er.ts, etc.)
 ```
 
 ## Quick Start
@@ -88,6 +86,16 @@ If you run on a physical Seeker/Android device, set:
 See [Setup Guide](docs/SETUP.md) for full environment setup including server keypair, devnet SKR mock token setup, and program deployment.
 
 Android action notifications are documented in the Setup Guide (`Android Action Notifications`): mission complete, boss active, epoch finished, and new epoch started.
+
+## Live Deployments
+
+| Service | URL |
+|---------|-----|
+| Web client | https://solanaidle.vercel.app |
+| API | https://solanaidle.findparty.online/api |
+| On-chain program | `2bDsZj9EiF81YYqQbXhxU8rQ6HAqRfTQXJH4BT5qHFtK` (devnet) |
+
+API health check: `GET https://solanaidle.findparty.online/api/health`
 
 ## Documentation
 
