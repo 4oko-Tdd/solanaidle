@@ -23,8 +23,8 @@ import { getErValidatorPubkey } from "./er-constants.js";
 
 // ── Constants ──
 
-const BOSS_PROGRAM_ID = new PublicKey(
-  "AeMcgM2YYj4fFrMGEUvPeS3YcHiaDaUeSXYXjz5382up"
+const SOLANAIDLE_PROGRAM_ID = new PublicKey(
+  "2bDsZj9EiF81YYqQbXhxU8rQ6HAqRfTQXJH4BT5qHFtK"
 );
 const DELEGATION_PROGRAM_ID = new PublicKey(
   "DELeGGvXpWV2fqJUhqcF5ZSYMS4JTLjteaAMARRSaeSh"
@@ -129,7 +129,7 @@ export function deriveBossPda(weekStart: number): [PublicKey, number] {
 
   return PublicKey.findProgramAddressSync(
     [BOSS_SEED, weekBytes],
-    BOSS_PROGRAM_ID
+    SOLANAIDLE_PROGRAM_ID
   );
 }
 
@@ -138,7 +138,7 @@ export function deriveBossPda(weekStart: number): [PublicKey, number] {
 function deriveBossDelegationPdas(bossPda: PublicKey) {
   const [bufferPda] = PublicKey.findProgramAddressSync(
     [Buffer.from("buffer"), bossPda.toBuffer()],
-    BOSS_PROGRAM_ID
+    SOLANAIDLE_PROGRAM_ID
   );
   const [delegationRecordPda] = PublicKey.findProgramAddressSync(
     [Buffer.from("delegation"), bossPda.toBuffer()],
@@ -180,7 +180,7 @@ function buildInitializeBossIx(
 
   return {
     instruction: new TransactionInstruction({
-      programId: BOSS_PROGRAM_ID,
+      programId: SOLANAIDLE_PROGRAM_ID,
       keys,
       data,
     }),
@@ -210,7 +210,7 @@ function buildDelegateBossIx(
     { pubkey: delegationRecordPda, isSigner: false, isWritable: true },
     { pubkey: delegationMetadataPda, isSigner: false, isWritable: true },
     { pubkey: bossPda, isSigner: false, isWritable: true }, // pda
-    { pubkey: BOSS_PROGRAM_ID, isSigner: false, isWritable: false }, // owner_program
+    { pubkey: SOLANAIDLE_PROGRAM_ID, isSigner: false, isWritable: false }, // owner_program
     { pubkey: DELEGATION_PROGRAM_ID, isSigner: false, isWritable: false }, // delegation_program
     { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
     // remaining_accounts[0] = validator pubkey (routes delegation to specific ER)
@@ -218,7 +218,7 @@ function buildDelegateBossIx(
   ];
 
   return new TransactionInstruction({
-    programId: BOSS_PROGRAM_ID,
+    programId: SOLANAIDLE_PROGRAM_ID,
     keys,
     data,
   });
@@ -244,7 +244,7 @@ function buildApplyDamageIx(
   ];
 
   return new TransactionInstruction({
-    programId: BOSS_PROGRAM_ID,
+    programId: SOLANAIDLE_PROGRAM_ID,
     keys,
     data,
   });
@@ -256,8 +256,8 @@ function buildFinalizeAndCommitIx(
   magicContext: PublicKey,
   magicProgram: PublicKey
 ): TransactionInstruction {
-  // Anchor discriminator from IDL: [212, 90, 133, 149, 118, 246, 105, 213]
-  const discriminator = Buffer.from([0xd4, 0x5a, 0x85, 0x95, 0x76, 0xf6, 0x69, 0xd5]);
+  // Anchor discriminator from IDL: finalize_boss = [33, 120, 34, 200, 108, 71, 107, 29]
+  const discriminator = Buffer.from([33, 120, 34, 200, 108, 71, 107, 29]);
 
   const keys = [
     { pubkey: payerPubkey, isSigner: true, isWritable: true },
@@ -267,7 +267,7 @@ function buildFinalizeAndCommitIx(
   ];
 
   return new TransactionInstruction({
-    programId: BOSS_PROGRAM_ID,
+    programId: SOLANAIDLE_PROGRAM_ID,
     keys,
     data: discriminator,
   });
@@ -308,7 +308,7 @@ export async function initializeBossOnChain(
         );
         return;
       }
-      if (existingAccount.owner.equals(BOSS_PROGRAM_ID)) {
+      if (existingAccount.owner.equals(SOLANAIDLE_PROGRAM_ID)) {
         // Exists but not delegated — just delegate
         const delegateIx = buildDelegateBossIx(
           serverKeypair.publicKey,
@@ -611,6 +611,6 @@ export function getBossPdaAddress(weekStart: number): string {
 
 // Export constants for frontend use
 export const BOSS_ER_CONSTANTS = {
-  BOSS_PROGRAM_ID: BOSS_PROGRAM_ID.toBase58(),
+  SOLANAIDLE_PROGRAM_ID: SOLANAIDLE_PROGRAM_ID.toBase58(),
   ER_VALIDATOR_URL,
 };

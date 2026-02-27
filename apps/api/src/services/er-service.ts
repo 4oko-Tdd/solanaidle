@@ -24,8 +24,8 @@ import { ER_VALIDATOR_MAP, getErValidatorPubkey } from "./er-constants.js";
 
 // ── Constants ──
 
-const PROGRESS_PROGRAM_ID = new PublicKey(
-  "8umphbZnJMMVNqR5QnaMurNCf6TcpbgQV5CWKKbChzcL"
+const SOLANAIDLE_PROGRAM_ID = new PublicKey(
+  "2bDsZj9EiF81YYqQbXhxU8rQ6HAqRfTQXJH4BT5qHFtK"
 );
 const DELEGATION_PROGRAM_ID = new PublicKey(
   "DELeGGvXpWV2fqJUhqcF5ZSYMS4JTLjteaAMARRSaeSh"
@@ -112,7 +112,7 @@ export function deriveProgressPda(
 
   return PublicKey.findProgramAddressSync(
     [PROGRESS_SEED, playerPubkey.toBuffer(), weekBytes],
-    PROGRESS_PROGRAM_ID
+    SOLANAIDLE_PROGRAM_ID
   );
 }
 
@@ -126,7 +126,7 @@ function deriveDelegationPdas(accountPda: PublicKey) {
   // buffer PDA: seeds ["buffer", accountPda] under the owner program
   const [bufferPda] = PublicKey.findProgramAddressSync(
     [Buffer.from("buffer"), accountPda.toBuffer()],
-    PROGRESS_PROGRAM_ID
+    SOLANAIDLE_PROGRAM_ID
   );
 
   // delegation record PDA: seeds ["delegation", accountPda] under delegation program
@@ -181,7 +181,7 @@ function buildInitializeProgressIx(
 
   return {
     instruction: new TransactionInstruction({
-      programId: PROGRESS_PROGRAM_ID,
+      programId: SOLANAIDLE_PROGRAM_ID,
       keys,
       data,
     }),
@@ -219,7 +219,7 @@ function buildDelegateProgressIx(
     { pubkey: delegationRecordPda, isSigner: false, isWritable: true },
     { pubkey: delegationMetadataPda, isSigner: false, isWritable: true },
     { pubkey: progressPda, isSigner: false, isWritable: true }, // pda
-    { pubkey: PROGRESS_PROGRAM_ID, isSigner: false, isWritable: false }, // owner_program
+    { pubkey: SOLANAIDLE_PROGRAM_ID, isSigner: false, isWritable: false }, // owner_program
     { pubkey: DELEGATION_PROGRAM_ID, isSigner: false, isWritable: false }, // delegation_program
     { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
     // remaining_accounts[0] = validator pubkey (routes delegation to specific ER)
@@ -227,7 +227,7 @@ function buildDelegateProgressIx(
   ];
 
   return new TransactionInstruction({
-    programId: PROGRESS_PROGRAM_ID,
+    programId: SOLANAIDLE_PROGRAM_ID,
     keys,
     data,
   });
@@ -261,7 +261,7 @@ function buildUpdateProgressIx(
   ];
 
   return new TransactionInstruction({
-    programId: PROGRESS_PROGRAM_ID,
+    programId: SOLANAIDLE_PROGRAM_ID,
     keys,
     data,
   });
@@ -277,8 +277,8 @@ export function buildFinalizeAndCommitIx(
   magicContext: PublicKey,
   magicProgram: PublicKey
 ): TransactionInstruction {
-  // Anchor discriminator from IDL: [212, 90, 133, 149, 118, 246, 105, 213]
-  const discriminator = Buffer.from([0xd4, 0x5a, 0x85, 0x95, 0x76, 0xf6, 0x69, 0xd5]);
+  // Anchor discriminator from IDL: finalize_progress = [219, 205, 156, 223, 246, 162, 202, 249]
+  const discriminator = Buffer.from([219, 205, 156, 223, 246, 162, 202, 249]);
 
   const keys = [
     { pubkey: playerPubkey, isSigner: true, isWritable: true },
@@ -288,7 +288,7 @@ export function buildFinalizeAndCommitIx(
   ];
 
   return new TransactionInstruction({
-    programId: PROGRESS_PROGRAM_ID,
+    programId: SOLANAIDLE_PROGRAM_ID,
     keys,
     data: discriminator,
   });
@@ -326,7 +326,7 @@ export async function initializeProgressOnChain(
         );
         return;
       }
-      if (existingAccount.owner.equals(PROGRESS_PROGRAM_ID)) {
+      if (existingAccount.owner.equals(SOLANAIDLE_PROGRAM_ID)) {
         // Exists but not delegated — just delegate
         const delegateIx = buildDelegateProgressIx(
           serverKeypair.publicKey,
@@ -598,7 +598,7 @@ export function getProgressPdaAddress(
 
 // Export constants for frontend use
 export const ER_CONSTANTS = {
-  PROGRESS_PROGRAM_ID: PROGRESS_PROGRAM_ID.toBase58(),
+  SOLANAIDLE_PROGRAM_ID: SOLANAIDLE_PROGRAM_ID.toBase58(),
   DELEGATION_PROGRAM_ID: DELEGATION_PROGRAM_ID.toBase58(),
   ER_ROUTER_URL,
   ER_VALIDATOR_URL,
