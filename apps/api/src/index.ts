@@ -293,12 +293,23 @@ if (process.env.NODE_ENV !== "production") {
     if (!payload) {
       return c.json({ error: "UNAUTHORIZED", message: "Invalid token" }, 401);
     }
-    const db = (await import("./db/database.js")).default;
-    const w = payload.wallet;
-    db.prepare("INSERT OR IGNORE INTO skr_wallets (wallet_address, balance) VALUES (?, 150)").run(w);
-    db.prepare("UPDATE skr_wallets SET balance = balance + 100 WHERE wallet_address = ?").run(w);
-    const row = db.prepare("SELECT balance FROM skr_wallets WHERE wallet_address = ?").get(w) as { balance: number } | undefined;
-    return c.json({ message: `+100 SKR (now ${row?.balance ?? 0})` });
+    const { mintMockSkrToWallet } = await import("./services/skr-service.js");
+    try {
+      const minted = await mintMockSkrToWallet(payload.wallet, 100);
+      return c.json({
+        message: `+100 SKR minted on devnet (now ${minted.balance})`,
+        signature: minted.signature,
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Mint failed";
+      return c.json(
+        {
+          error: "SKR_MINT_FAILED",
+          message,
+        },
+        400
+      );
+    }
   });
 
   // Dev: Toggle destabilized state for current epoch
@@ -439,6 +450,7 @@ if (process.env.NODE_ENV !== "production") {
       db.prepare("DELETE FROM daily_logins WHERE wallet_address = ?").run(w);
       db.prepare("DELETE FROM boss_epoch_state WHERE wallet_address = ?").run(w);
       db.prepare("DELETE FROM skr_spends WHERE wallet_address = ?").run(w);
+      db.prepare("DELETE FROM skr_payments WHERE wallet_address = ?").run(w);
       db.prepare("DELETE FROM skr_wallets WHERE wallet_address = ?").run(w);
 
       // Runs + events

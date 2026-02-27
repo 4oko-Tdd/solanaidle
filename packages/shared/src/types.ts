@@ -148,7 +148,11 @@ export type ErrorCode =
   | "NO_LIVES"
   | "BOSS_NOT_AVAILABLE"
   | "INVALID_MISSION"
-  | "MISSION_LOCKED";
+  | "MISSION_LOCKED"
+  | "INSUFFICIENT_SKR"
+  | "SKR_PAYMENT_SIGNATURE_REQUIRED"
+  | "SKR_PAYMENT_ALREADY_USED"
+  | "INVALID_SKR_PAYMENT";
 
 export interface ApiError {
   error: ErrorCode;

@@ -3,13 +3,14 @@ import { authMiddleware } from "../middleware/auth.js";
 import { getCharacter } from "../services/character-service.js";
 import db from "../db/database.js";
 import type { Inventory } from "@solanaidle/shared";
+import { getSkrBalance } from "../services/skr-service.js";
 
 type Env = { Variables: { wallet: string } };
 
 const inventory = new Hono<Env>();
 inventory.use("*", authMiddleware);
 
-inventory.get("/", (c) => {
+inventory.get("/", async (c) => {
   const wallet = c.get("wallet");
   const char = getCharacter(wallet);
   if (!char)
@@ -31,13 +32,7 @@ inventory.get("/", (c) => {
     artifact: row.artifact,
   };
 
-  db.prepare(
-    "INSERT OR IGNORE INTO skr_wallets (wallet_address, balance) VALUES (?, 0)"
-  ).run(wallet);
-  const skrRow = db
-    .prepare("SELECT balance FROM skr_wallets WHERE wallet_address = ?")
-    .get(wallet) as { balance: number } | undefined;
-  inv.skr = skrRow?.balance ?? 0;
+  inv.skr = await getSkrBalance(wallet);
 
   return c.json(inv);
 });

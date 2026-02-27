@@ -117,7 +117,7 @@ Wallet serves three roles:
 - **Identity** -- sign-in via signMessage nonce challenge
 - **Ownership** -- permanent boss loot and achievement NFTs live in your wallet
 - **Ritual** -- confirm meaningful on-chain actions (epoch start, VRF roll)
-- **Utility** -- shows SKR balance in Resource Bar for optional boss actions
+- **Utility** -- SKR boss purchases are wallet-signed SPL transfers, verified by backend before utility effects are applied
 
 ### MagicBlock
 

@@ -4,6 +4,7 @@ import {
   SolanaMobileWalletAdapterError,
   SolanaMobileWalletAdapterErrorCode,
 } from "@solana-mobile/mobile-wallet-adapter-protocol";
+import type { Connection, Transaction } from "@solana/web3.js";
 import * as SecureStore from "expo-secure-store";
 import bs58 from "bs58";
 import { API_BASE, api, setAuthToken, clearAuthToken, getAuthToken } from "@/lib/api";
@@ -17,12 +18,20 @@ interface AuthContextValue {
   authenticate: () => Promise<void>;
   logout: () => Promise<void>;
   signMessage: ((msg: Uint8Array) => Promise<Uint8Array>) | null;
+  signAndSendTransaction: ((tx: Transaction) => Promise<string>) | null;
+  connection: Connection;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const { connect, disconnect, signMessage: walletSignMessage } = useMobileWallet();
+  const {
+    connect,
+    disconnect,
+    signMessage: walletSignMessage,
+    signAndSendTransaction: walletSignAndSendTransaction,
+    connection,
+  } = useMobileWallet();
 
   const [isAuthenticated, setIsAuthenticated] = useState(!!getAuthToken());
   const [walletAddress, setWalletAddress] = useState<string | null>(
@@ -129,6 +138,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [walletSignMessage]
   );
 
+  const signAndSendTransaction = useCallback(
+    async (tx: Transaction): Promise<string> => walletSignAndSendTransaction(tx, 0),
+    [walletSignAndSendTransaction]
+  );
+
   return (
     <AuthContext.Provider
       value={{
@@ -139,6 +153,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         authenticate,
         logout,
         signMessage,
+        signAndSendTransaction,
+        connection,
       }}
     >
       {children}

@@ -164,9 +164,7 @@ Implemented now:
   - 30% treasury
   - 20% reserve
 - SKR shown in mobile Resource Bar
-
-Not implemented yet:
-- On-chain SKR transfer + on-chain payment verification for purchases
+- On-chain SKR transfer + payment signature verification for boss utility purchases
 
 ---
 

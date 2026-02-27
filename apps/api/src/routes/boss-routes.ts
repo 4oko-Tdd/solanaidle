@@ -16,13 +16,14 @@ import {
 import { rollBossDrops, applyDrops } from "../services/drop-service.js";
 import { getWeekStart } from "../services/boss-service.js";
 import { getBossPdaAddress, BOSS_ER_CONSTANTS } from "../services/boss-er-service.js";
+import { getSkrBalance } from "../services/skr-service.js";
 
 type Env = { Variables: { wallet: string } };
 
 const app = new Hono<Env>();
 
 // GET /boss — public, but includes player contribution if authenticated
-app.get("/", (c) => {
+app.get("/", async (c) => {
   // getOrSpawnBoss only works during boss phase; fall back to getCurrentBoss for dev-spawned bosses
   const boss = getOrSpawnBoss() ?? getCurrentBoss();
   if (!boss) {
@@ -43,6 +44,10 @@ app.get("/", (c) => {
   const status = getBossStatus(boss.id, wallet);
   if (!status) {
     return c.json({ boss: null });
+  }
+
+  if (wallet) {
+    status.skrBalance = await getSkrBalance(wallet);
   }
 
   return c.json(status);
@@ -99,9 +104,15 @@ app.post("/overload", async (c) => {
 });
 
 // POST /boss/reconnect
-app.post("/reconnect", (c) => {
+app.post("/reconnect", async (c) => {
   const wallet = c.get("wallet");
-  const result = useReconnectProtocol(wallet);
+  const { paymentSignature } = await c.req
+    .json<{ paymentSignature?: string }>()
+    .catch(() => ({} as { paymentSignature?: string }));
+  if (!paymentSignature || !paymentSignature.trim()) {
+    return c.json({ error: "SKR_PAYMENT_SIGNATURE_REQUIRED" }, 400);
+  }
+  const result = await useReconnectProtocol(wallet, paymentSignature);
   if (!result.success) {
     return c.json({ error: result.error }, 400);
   }
@@ -109,9 +120,15 @@ app.post("/reconnect", (c) => {
 });
 
 // POST /boss/overload-amplifier
-app.post("/overload-amplifier", (c) => {
+app.post("/overload-amplifier", async (c) => {
   const wallet = c.get("wallet");
-  const result = purchaseOverloadAmplifier(wallet);
+  const { paymentSignature } = await c.req
+    .json<{ paymentSignature?: string }>()
+    .catch(() => ({} as { paymentSignature?: string }));
+  if (!paymentSignature || !paymentSignature.trim()) {
+    return c.json({ error: "SKR_PAYMENT_SIGNATURE_REQUIRED" }, 400);
+  }
+  const result = await purchaseOverloadAmplifier(wallet, paymentSignature);
   if (!result.success) {
     return c.json({ error: result.error }, 400);
   }
@@ -119,9 +136,15 @@ app.post("/overload-amplifier", (c) => {
 });
 
 // POST /boss/raid-license
-app.post("/raid-license", (c) => {
+app.post("/raid-license", async (c) => {
   const wallet = c.get("wallet");
-  const result = purchaseRaidLicense(wallet);
+  const { paymentSignature } = await c.req
+    .json<{ paymentSignature?: string }>()
+    .catch(() => ({} as { paymentSignature?: string }));
+  if (!paymentSignature || !paymentSignature.trim()) {
+    return c.json({ error: "SKR_PAYMENT_SIGNATURE_REQUIRED" }, 400);
+  }
+  const result = await purchaseRaidLicense(wallet, paymentSignature);
   if (!result.success) {
     return c.json({ error: result.error }, 400);
   }

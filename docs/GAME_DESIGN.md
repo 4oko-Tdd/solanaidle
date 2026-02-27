@@ -517,7 +517,7 @@ The game world is **Solana's network as a cyberpunk city.**
 | Epoch Start | `signMessage` — commits class selection + ER delegation |
 | Epoch End | Score sealed on-chain via Ephemeral Rollups |
 | VRF Bonus | `signTransaction` — requests on-chain randomness (MagicBlock VRF) |
-| Boss Utility Purchase | Uses wallet-linked SKR balance for optional boss actions (on-chain transfer verification in progress) |
+| Boss Utility Purchase | Uses wallet-signed SKR transfer transactions; backend verifies the payment signature on-chain before applying utility effects |
 | Claim NFT | Server mints to wallet (no player signature) |
 | View NFTs | Read Metaplex Core assets from wallet |
 

@@ -14,7 +14,12 @@ Three Anchor programs handle different aspects of on-chain state:
 
 All ER writes are **server-signed** — players never sign damage or progress transactions. The server keypair (`SERVER_KEYPAIR`) is the sole authority.
 
-SKR monetization actions (Reconnect / Overload Amplifier / Raid License) are documented in `MONETIZATION_PLAN.md` and `API.md`. Current implementation uses wallet-linked SKR balance checks in backend state; on-chain SKR transfer verification is planned.
+SKR monetization actions (Reconnect / Overload Amplifier / Raid License) are documented in `MONETIZATION_PLAN.md` and `API.md`. Current implementation uses client-signed SPL token transfers on Solana base layer, with backend verification of transfer signatures before action unlocks.
+
+SKR verification flow:
+- Mobile builds and signs SPL `transfer_checked` payment tx (`apps/mobile/lib/skr.ts`)
+- Client sends resulting `paymentSignature` to boss utility endpoints (`/boss/reconnect`, `/boss/overload-amplifier`, `/boss/raid-license`)
+- API validates signer + token deltas + replay protection before applying utility effects (`apps/api/src/services/skr-service.ts`)
 
 ---
 
