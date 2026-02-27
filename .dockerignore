@@ -4,7 +4,6 @@ node_modules
 **/.env*
 target
 apps/mobile
-apps/web
 programs
 keys
 data
