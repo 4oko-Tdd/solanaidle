@@ -5,8 +5,8 @@ import { PERMANENT_LOOT_DEFINITIONS } from "./game-config.js";
 import type { EpochBonusRewards, WeeklyRun } from "@solanaidle/shared";
 
 // Program ID — update after deploying vrf-roller to devnet
-const VRF_ROLLER_PROGRAM_ID = new PublicKey(
-  "6poGeFLevD7oDWtY9FYHHXQ669vwJvMRa8R5iT98ESKN"
+const SOLANAIDLE_PROGRAM_ID = new PublicKey(
+  "2bDsZj9EiF81YYqQbXhxU8rQ6HAqRfTQXJH4BT5qHFtK"
 );
 
 const VRF_RESULT_SEED = Buffer.from("vrf_result");
@@ -46,7 +46,7 @@ export interface VrfResultData {
 export function deriveVrfResultPda(playerPubkey: PublicKey): [PublicKey, number] {
   return PublicKey.findProgramAddressSync(
     [VRF_RESULT_SEED, playerPubkey.toBuffer()],
-    VRF_ROLLER_PROGRAM_ID
+    SOLANAIDLE_PROGRAM_ID
   );
 }
 
