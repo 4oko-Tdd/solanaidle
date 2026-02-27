@@ -19,13 +19,11 @@ Player sends a character on timed missions (7h/12h/24h/48h), waits real time, cl
 ## Architecture
 
 ```
-apps/mobile           → Expo React Native app, primary Seeker client
-apps/web              → React SPA, companion client
-apps/api              → Hono REST API, manages game state + timers
-packages/shared       → TypeScript types shared between FE and BE
-programs/progress-tracker → Anchor program: per-player-per-epoch progress PDA on MagicBlock ER
-programs/vrf-roller       → Anchor program: VRF randomness via MagicBlock
-programs/boss-tracker     → Anchor program: global boss HP PDA on MagicBlock ER (one per week)
+apps/mobile      → Expo React Native app, primary Seeker client
+apps/web         → React SPA, companion client
+apps/api         → Hono REST API, manages game state + timers
+packages/shared  → TypeScript types shared between FE and BE
+programs/solanaidle → Unified Anchor program: progress tracker + boss HP + VRF on MagicBlock ER
 ```
 
 ## Key Commands
@@ -80,15 +78,17 @@ pnpm build            # Build all packages
 - Frontend: vitest + testing-library for component tests
 - No E2E in MVP — manual testing is fine
 
-## On-Chain Programs (MagicBlock Ephemeral Rollups)
+## On-Chain Program (MagicBlock Ephemeral Rollups)
 
-Three separate Anchor programs, each with a distinct PDA lifecycle:
+Single unified Anchor program `solanaidle` with three PDA types:
 
-| Program | PDA Seed | Lifecycle | Purpose |
-|---------|----------|-----------|---------|
-| `progress-tracker` | `[b"progress", player, week_start]` | Per-player, per-epoch | Player score/missions/deaths mirror |
-| `vrf-roller` | — | On-demand | Verifiable randomness for epoch bonuses |
-| `boss-tracker` | `[b"boss", week_start]` | One global, per-weekend | Real-time boss HP via websocket |
+| PDA | Seed | Lifecycle | Purpose |
+|-----|------|-----------|---------|
+| `PlayerProgress` | `[b"progress", player, week_start]` | Per-player, per-epoch | Player score/missions/deaths mirror |
+| `VrfResult` | `[b"vrf_result", player]` | On-demand | Verifiable randomness for epoch bonuses |
+| `BossState` | `[b"boss", week_start]` | One global, per-weekend | Real-time boss HP via websocket |
+
+**Deployed:** `2bDsZj9EiF81YYqQbXhxU8rQ6HAqRfTQXJH4BT5qHFtK` (devnet) — upgrade authority `./keys/dev.json`
 
 **Server-authority pattern:** The API server holds a keypair (`SERVER_KEYPAIR` env var) that is the sole writer for ER updates. Players never sign damage transactions.
 
