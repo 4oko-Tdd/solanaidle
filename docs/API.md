@@ -187,6 +187,7 @@ Claim completed mission result.
 
 #### `GET /inventory`
 Get player's resources.
+`skr` is sourced from on-chain SPL token balance for `SKR_MINT_ADDRESS`.
 
 **Response:**
 ```json
@@ -330,6 +331,14 @@ Use OVERLOAD — burns all resources for critical damage. Once per boss fight.
 
 #### `POST /boss/reconnect` (auth required)
 Use paid instant recovery from `destabilized` state (epoch-capped).
+`paymentSignature` must be the confirmed devnet tx signature for the SKR transfer from player ATA to treasury ATA.
+
+**Body:**
+```json
+{
+  "paymentSignature": "<devnet_tx_signature>"
+}
+```
 
 **Response:**
 ```json
@@ -341,6 +350,14 @@ Use paid instant recovery from `destabilized` state (epoch-capped).
 
 #### `POST /boss/overload-amplifier` (auth required)
 Purchase +10% OVERLOAD amplifier for current epoch (once per epoch).
+`paymentSignature` must be the confirmed devnet tx signature for the SKR transfer from player ATA to treasury ATA.
+
+**Body:**
+```json
+{
+  "paymentSignature": "<devnet_tx_signature>"
+}
+```
 
 **Response:**
 ```json
@@ -352,6 +369,14 @@ Purchase +10% OVERLOAD amplifier for current epoch (once per epoch).
 
 #### `POST /boss/raid-license` (auth required)
 Purchase +5% passive contribution efficiency for current epoch (once per epoch).
+`paymentSignature` must be the confirmed devnet tx signature for the SKR transfer from player ATA to treasury ATA.
+
+**Body:**
+```json
+{
+  "paymentSignature": "<devnet_tx_signature>"
+}
+```
 
 **Response:**
 ```json
@@ -422,6 +447,9 @@ Common error codes:
 - `NOT_IN_FIGHT` — player not in boss fight (overload)
 - `OVERLOAD_ALREADY_USED` — already used overload this fight
 - `INSUFFICIENT_SKR` — insufficient SKR balance for action
+- `SKR_PAYMENT_SIGNATURE_REQUIRED` — payment tx signature was not provided
+- `SKR_PAYMENT_ALREADY_USED` — payment signature replay detected
+- `INVALID_SKR_PAYMENT` — tx not confirmed / wrong signer / wrong token movement
 - `NODE_NOT_DESTABILIZED` — reconnect requested while node is stable
 - `RECONNECT_ALREADY_USED` — reconnect already used this epoch
 - `OVERLOAD_AMP_ALREADY_ACTIVE` — overload amplifier already purchased this epoch
@@ -436,7 +464,16 @@ These routes are only available when API runs with `NODE_ENV !== "production"`.
 ### Economy / SKR testing
 
 #### `POST /dev/add-skr` (auth required)
-Add `+100 SKR` to current wallet.
+Mints `+100 SKR` on devnet to current wallet's associated token account.
+Requires `SERVER_KEYPAIR` to be the mint authority for `SKR_MINT_ADDRESS`.
+
+**Response:**
+```json
+{
+  "message": "+100 SKR minted on devnet (now 300)",
+  "signature": "<mint_tx_signature>"
+}
+```
 
 #### `POST /dev/toggle-destabilized` (auth required)
 Toggle current epoch `destabilized` flag for current wallet.

@@ -11,8 +11,8 @@ import {
   applyDamageOnER,
   finalizeBossOnChain,
 } from "./boss-er-service.js";
+import { getSkrBalance, verifyAndRecordSkrPayment } from "./skr-service.js";
 
-const INITIAL_SKR_BALANCE = 0;
 const DESTABILIZE_ROLL_CHANCE = 0.12;
 const DESTABILIZE_ROLL_INTERVAL_MS = 20 * 60 * 1000;
 const DESTABILIZE_FREE_RECOVERY_MS = 15 * 60 * 1000;
@@ -126,20 +126,6 @@ function mapParticipant(row: ParticipantRow): Participant {
   };
 }
 
-function ensureSkrWallet(walletAddress: string): void {
-  db.prepare(
-    "INSERT OR IGNORE INTO skr_wallets (wallet_address, balance) VALUES (?, ?)"
-  ).run(walletAddress, INITIAL_SKR_BALANCE);
-}
-
-function getSkrBalance(walletAddress: string): number {
-  ensureSkrWallet(walletAddress);
-  const row = db
-    .prepare("SELECT balance FROM skr_wallets WHERE wallet_address = ?")
-    .get(walletAddress) as { balance: number } | undefined;
-  return row?.balance ?? 0;
-}
-
 function ensureBossEpochState(walletAddress: string, weekStart: string): BossEpochStateRow {
   db.prepare(
     `INSERT OR IGNORE INTO boss_epoch_state
@@ -152,39 +138,6 @@ function ensureBossEpochState(walletAddress: string, weekStart: string): BossEpo
     .get(walletAddress, weekStart) as BossEpochStateRow;
 }
 
-function spendSkr(
-  walletAddress: string,
-  amount: number,
-  action: string,
-  weekStart: string
-): { success: boolean; error?: string; balance?: number } {
-  const current = getSkrBalance(walletAddress);
-  if (current < amount) {
-    return { success: false, error: "INSUFFICIENT_SKR" };
-  }
-
-  const burned = Math.floor(amount * 0.5);
-  const treasury = Math.floor(amount * 0.3);
-  const reserve = amount - burned - treasury;
-
-  const tx = db.transaction(() => {
-    db.prepare("UPDATE skr_wallets SET balance = balance - ? WHERE wallet_address = ?").run(
-      amount,
-      walletAddress
-    );
-    db.prepare(
-      "UPDATE skr_distribution SET burned = burned + ?, treasury = treasury + ?, reserve = reserve + ? WHERE id = 1"
-    ).run(burned, treasury, reserve);
-    db.prepare(
-      `INSERT INTO skr_spends
-      (id, wallet_address, week_start, action, amount, burned, treasury, reserve)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
-    ).run(randomUUID(), walletAddress, weekStart, action, amount, burned, treasury, reserve);
-  });
-  tx();
-
-  return { success: true, balance: current - amount };
-}
 
 // ── Core functions ──
 
@@ -521,24 +474,36 @@ export async function useOverload(
   return { success: true, damage };
 }
 
-export function purchaseRaidLicense(walletAddress: string): { success: boolean; error?: string; skrBalance?: number } {
+export async function purchaseRaidLicense(
+  walletAddress: string,
+  paymentSignature: string
+): Promise<{ success: boolean; error?: string; skrBalance?: number }> {
   const weekStart = getWeekStart();
   const state = ensureBossEpochState(walletAddress, weekStart);
   if (state.raid_license === 1) {
     return { success: false, error: "RAID_LICENSE_ALREADY_ACTIVE" };
   }
 
-  const spent = spendSkr(walletAddress, SKR_COSTS.raidLicense, "raid_license", weekStart);
-  if (!spent.success) return { success: false, error: spent.error };
+  const payment = await verifyAndRecordSkrPayment({
+    signature: paymentSignature,
+    walletAddress,
+    amount: SKR_COSTS.raidLicense,
+    action: "raid_license",
+    weekStart,
+  });
+  if (!payment.success) return { success: false, error: payment.error };
 
   db.prepare(
     "UPDATE boss_epoch_state SET raid_license = 1 WHERE wallet_address = ? AND week_start = ?"
   ).run(walletAddress, weekStart);
 
-  return { success: true, skrBalance: spent.balance };
+  return { success: true, skrBalance: await getSkrBalance(walletAddress) };
 }
 
-export function purchaseOverloadAmplifier(walletAddress: string): { success: boolean; error?: string; skrBalance?: number } {
+export async function purchaseOverloadAmplifier(
+  walletAddress: string,
+  paymentSignature: string
+): Promise<{ success: boolean; error?: string; skrBalance?: number }> {
   const weekStart = getWeekStart();
   const boss = getCurrentBoss();
   if (!boss) return { success: false, error: "BOSS_NOT_ACTIVE" };
@@ -552,17 +517,26 @@ export function purchaseOverloadAmplifier(walletAddress: string): { success: boo
   const state = ensureBossEpochState(walletAddress, weekStart);
   if (state.overload_amp_used === 1) return { success: false, error: "OVERLOAD_AMP_ALREADY_ACTIVE" };
 
-  const spent = spendSkr(walletAddress, SKR_COSTS.overloadAmplifier, "overload_amplifier", weekStart);
-  if (!spent.success) return { success: false, error: spent.error };
+  const payment = await verifyAndRecordSkrPayment({
+    signature: paymentSignature,
+    walletAddress,
+    amount: SKR_COSTS.overloadAmplifier,
+    action: "overload_amplifier",
+    weekStart,
+  });
+  if (!payment.success) return { success: false, error: payment.error };
 
   db.prepare(
     "UPDATE boss_epoch_state SET overload_amp_used = 1 WHERE wallet_address = ? AND week_start = ?"
   ).run(walletAddress, weekStart);
 
-  return { success: true, skrBalance: spent.balance };
+  return { success: true, skrBalance: await getSkrBalance(walletAddress) };
 }
 
-export function useReconnectProtocol(walletAddress: string): { success: boolean; error?: string; skrBalance?: number } {
+export async function useReconnectProtocol(
+  walletAddress: string,
+  paymentSignature: string
+): Promise<{ success: boolean; error?: string; skrBalance?: number }> {
   const weekStart = getWeekStart();
   const boss = getCurrentBoss();
   if (!boss) return { success: false, error: "BOSS_NOT_ACTIVE" };
@@ -577,8 +551,14 @@ export function useReconnectProtocol(walletAddress: string): { success: boolean;
   if (state.reconnect_used === 1) return { success: false, error: "RECONNECT_ALREADY_USED" };
   if (state.destabilized === 0) return { success: false, error: "NODE_NOT_DESTABILIZED" };
 
-  const spent = spendSkr(walletAddress, SKR_COSTS.reconnect, "reconnect_protocol", weekStart);
-  if (!spent.success) return { success: false, error: spent.error };
+  const payment = await verifyAndRecordSkrPayment({
+    signature: paymentSignature,
+    walletAddress,
+    amount: SKR_COSTS.reconnect,
+    action: "reconnect_protocol",
+    weekStart,
+  });
+  if (!payment.success) return { success: false, error: payment.error };
 
   const now = Date.now();
   const destabilizedAt = state.destabilized_at ? new Date(state.destabilized_at).getTime() : now;
@@ -598,7 +578,7 @@ export function useReconnectProtocol(walletAddress: string): { success: boolean;
   });
   tx();
 
-  return { success: true, skrBalance: spent.balance };
+  return { success: true, skrBalance: await getSkrBalance(walletAddress) };
 }
 
 /** Recalculate all passive damage and apply to boss HP. */
@@ -724,7 +704,6 @@ export function getBossStatus(
 
     result.hasJoined = !!playerRow;
     result.overloadUsed = !!playerRow && playerRow.crit_used === 1;
-    result.skrBalance = getSkrBalance(walletAddress);
     result.reconnectUsed = epochState.reconnect_used === 1;
     result.overloadAmpUsed = epochState.overload_amp_used === 1;
     result.raidLicense = epochState.raid_license === 1;

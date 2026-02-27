@@ -180,6 +180,15 @@ export function initSchema() {
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
 
+    CREATE TABLE IF NOT EXISTS skr_payments (
+      signature TEXT PRIMARY KEY,
+      wallet_address TEXT NOT NULL,
+      week_start TEXT NOT NULL,
+      action TEXT NOT NULL,
+      amount INTEGER NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
     CREATE TABLE IF NOT EXISTS boss_epoch_state (
       wallet_address TEXT NOT NULL,
       week_start TEXT NOT NULL,

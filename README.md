@@ -85,16 +85,19 @@ If you run on a physical Seeker/Android device, set:
 - `EXPO_PUBLIC_API_URL=http://<YOUR_LAN_IP>:3000/api`
 - Keep API running on the same LAN (`pnpm --filter @solanaidle/api dev`)
 
-See [Setup Guide](docs/SETUP.md) for full environment setup including server keypair and program deployment.
+See [Setup Guide](docs/SETUP.md) for full environment setup including server keypair, devnet SKR mock token setup, and program deployment.
+
+Android action notifications are documented in the Setup Guide (`Android Action Notifications`): mission complete, boss active, epoch finished, and new epoch started.
 
 ## Documentation
 
 | Doc | What it covers |
 |-----|---------------|
-| [Setup Guide](docs/SETUP.md) | Prerequisites, env vars, keypair setup, deployment |
+| [Setup Guide](docs/SETUP.md) | Prerequisites, env vars, keypair setup, deployment, Android action notifications |
 | [On-Chain Guide](docs/ONCHAIN.md) | Anchor programs, ER delegation, PDA lifecycle, verification |
 | [Game Design](docs/GAME_DESIGN.md) | Core loop, classes, missions, perks, boss mechanics |
 | [API Reference](docs/API.md) | All backend endpoints with request/response examples |
+| [Monetization Plan](docs/MONETIZATION_PLAN.md) | SKR utility actions, pricing, and spend-routing model |
 | [Project Brief](docs/PROJECT_BRIEF.md) | Vision and game concept |
 
 ## License

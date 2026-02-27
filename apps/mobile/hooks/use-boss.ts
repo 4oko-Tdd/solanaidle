@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { api } from "@/lib/api";
 import { signOverload } from "@/lib/er";
-import { useWalletSign } from "./use-wallet-sign";
 import { useBossER } from "./use-boss-er";
+import { paySkrOnChain } from "@/lib/skr";
+import { useAuth } from "@/providers/auth-context";
 import type { WorldBoss } from "@solanaidle/shared";
 
 interface BossStatus {
@@ -51,7 +52,7 @@ const POLL_INTERVAL_DEFAULT = 30000;
 const POLL_INTERVAL_WITH_WS = 120000;
 
 export function useBoss() {
-  const { signMessage, walletAddress } = useWalletSign();
+  const { signMessage, walletAddress, signAndSendTransaction, connection } = useAuth();
   const [state, setState] = useState<BossState>({
     boss: null,
     participantCount: 0,
@@ -143,19 +144,55 @@ export function useBoss() {
   }, [refresh, signMessage, walletAddress]);
 
   const reconnect = useCallback(async () => {
-    await api("/boss/reconnect", { method: "POST" });
+    if (!walletAddress || !signAndSendTransaction) {
+      throw new Error("Wallet transaction signature required");
+    }
+    const paymentSignature = await paySkrOnChain({
+      walletAddress,
+      amount: state.monetizationCosts.reconnect,
+      connection,
+      signAndSendTransaction,
+    });
+    await api("/boss/reconnect", {
+      method: "POST",
+      body: JSON.stringify({ paymentSignature }),
+    });
     await refresh();
-  }, [refresh]);
+  }, [connection, refresh, signAndSendTransaction, state.monetizationCosts.reconnect, walletAddress]);
 
   const buyOverloadAmplifier = useCallback(async () => {
-    await api("/boss/overload-amplifier", { method: "POST" });
+    if (!walletAddress || !signAndSendTransaction) {
+      throw new Error("Wallet transaction signature required");
+    }
+    const paymentSignature = await paySkrOnChain({
+      walletAddress,
+      amount: state.monetizationCosts.overloadAmplifier,
+      connection,
+      signAndSendTransaction,
+    });
+    await api("/boss/overload-amplifier", {
+      method: "POST",
+      body: JSON.stringify({ paymentSignature }),
+    });
     await refresh();
-  }, [refresh]);
+  }, [connection, refresh, signAndSendTransaction, state.monetizationCosts.overloadAmplifier, walletAddress]);
 
   const buyRaidLicense = useCallback(async () => {
-    await api("/boss/raid-license", { method: "POST" });
+    if (!walletAddress || !signAndSendTransaction) {
+      throw new Error("Wallet transaction signature required");
+    }
+    const paymentSignature = await paySkrOnChain({
+      walletAddress,
+      amount: state.monetizationCosts.raidLicense,
+      connection,
+      signAndSendTransaction,
+    });
+    await api("/boss/raid-license", {
+      method: "POST",
+      body: JSON.stringify({ paymentSignature }),
+    });
     await refresh();
-  }, [refresh]);
+  }, [connection, refresh, signAndSendTransaction, state.monetizationCosts.raidLicense, walletAddress]);
 
   // Merge on-chain state with HTTP state when websocket is connected.
   // Only trust on-chain HP if it's a valid value (≤ maxHp). If the ER PDA

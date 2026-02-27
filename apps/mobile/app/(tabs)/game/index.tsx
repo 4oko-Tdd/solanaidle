@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ScrollView, View, ActivityIndicator, Text, Pressable, Alert, Modal } from "react-native";
 import { useNavigation, useRouter, Tabs } from "expo-router";
 import { useAuth } from "@/providers/auth-context";
@@ -19,6 +19,13 @@ import { ScreenBg } from "@/components/screen-bg";
 import { useToast } from "@/components/toast-provider";
 import { api } from "@/lib/api";
 import { useDevToolsEnabled } from "@/providers/dev-tools";
+import {
+  initGameNotifications,
+  notifyBossStarted,
+  notifyEpochFinished,
+  notifyEpochStarted,
+  scheduleMissionReadyNotification,
+} from "@/lib/game-notifications";
 import { Wrench, ChevronDown, ChevronUp } from "lucide-react-native";
 import type { MissionId } from "@solanaidle/shared";
 
@@ -53,6 +60,15 @@ export default function GameScreen() {
   const perks = usePerks();
   const [devOpen, setDevOpen] = useState(false);
   const [dailyDismissed, setDailyDismissed] = useState(false);
+  const hasObservedBossRef = useRef(false);
+  const previousBossRef = useRef<typeof boss>(null);
+  const hasObservedEpochRef = useRef(false);
+  const previousEpochStateRef = useRef<{
+    activeRunId: string | null;
+    endedRunId: string | null;
+    endedRunHasSignature: boolean;
+    showInlineClassPicker: boolean;
+  } | null>(null);
   const showInlineClassPicker =
     !gameState.loading &&
     !gameState.activeRun &&
@@ -62,6 +78,77 @@ export default function GameScreen() {
   useEffect(() => {
     if (!devToolsEnabled) setDevOpen(false);
   }, [devToolsEnabled]);
+
+  useEffect(() => {
+    void initGameNotifications();
+  }, []);
+
+  useEffect(() => {
+    void scheduleMissionReadyNotification(gameState.activeMission);
+  }, [gameState.activeMission?.endsAt, gameState.activeMission?.missionId]);
+
+  useEffect(() => {
+    if (!hasObservedBossRef.current) {
+      hasObservedBossRef.current = true;
+      previousBossRef.current = boss;
+      return;
+    }
+    const previous = previousBossRef.current;
+    const bossStarted = !!boss && !boss.killed && (!previous || previous.killed || previous.id !== boss.id);
+    if (bossStarted) {
+      void notifyBossStarted(boss.id, boss.name);
+    }
+    previousBossRef.current = boss;
+  }, [boss]);
+
+  useEffect(() => {
+    if (gameState.loading) return;
+
+    const current = {
+      activeRunId: gameState.activeRun?.id ?? null,
+      endedRunId: gameState.endedRun?.id ?? null,
+      endedRunHasSignature: !!gameState.endedRun?.endSignature,
+      showInlineClassPicker,
+    };
+
+    if (!hasObservedEpochRef.current) {
+      hasObservedEpochRef.current = true;
+      previousEpochStateRef.current = current;
+      return;
+    }
+
+    const previous = previousEpochStateRef.current;
+    if (previous) {
+      const justFinishedEpoch =
+        !!previous.activeRunId &&
+        !current.activeRunId &&
+        !!current.endedRunId &&
+        !current.endedRunHasSignature;
+
+      if (justFinishedEpoch) {
+        void notifyEpochFinished(current.endedRunId!);
+      }
+
+      const justStartedNewEpochWindow =
+        !previous.showInlineClassPicker && current.showInlineClassPicker;
+
+      if (justStartedNewEpochWindow) {
+        const epochKey =
+          current.endedRunId ??
+          previous.endedRunId ??
+          `${Date.now()}`;
+        void notifyEpochStarted(epochKey);
+      }
+    }
+
+    previousEpochStateRef.current = current;
+  }, [
+    gameState.loading,
+    gameState.activeRun?.id,
+    gameState.endedRun?.id,
+    gameState.endedRun?.endSignature,
+    showInlineClassPicker,
+  ]);
 
   useEffect(() => {
     const parent = navigation.getParent();
