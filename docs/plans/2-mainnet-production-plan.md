@@ -7,7 +7,7 @@ Prepared: February 27, 2026
 This plan is independent.
 - It can run in parallel with Monolith submission.
 - It is not required for Monolith submission.
-- dApp Store publishing can proceed before this plan is complete.
+- dApp Store publishing must wait until this plan reaches Go status (mainnet-ready app).
 
 ## Goal
 

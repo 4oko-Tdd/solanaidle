@@ -4,9 +4,9 @@ Prepared: February 27, 2026
 
 ## Dependency Rule
 
-This plan is standalone relative to mainnet.
-- It can be executed without completing the mainnet plan.
-- It can be executed in parallel with Monolith submission.
+This plan depends on mainnet readiness.
+- It starts only after the mainnet production plan is complete (Go decision).
+- It is separate from Monolith submission and must not be used as a pre-mainnet shortcut.
 
 ## Goal
 
@@ -44,3 +44,4 @@ Publish Seeker Node through Solana dApp Store review and release workflow.
 - [ ] Listing accepted or only non-blocking feedback remains.
 - [ ] Release artifact reproducible from tagged source commit.
 - [ ] Store-facing copy and URLs match actual product behavior.
+- [ ] Mainnet readiness sign-off exists before submission (engineering + product + ops).
