@@ -145,7 +145,7 @@ function deriveDelegationPdas(accountPda: PublicKey) {
 }
 
 // ── Instruction Builders ──
-// Discriminators sourced from target/idl/progress_tracker.json
+// Discriminators sourced from target/idl/solanaidle.json
 
 /**
  * Build the initialize_progress instruction (base layer only, no delegation).
@@ -283,8 +283,8 @@ export function buildFinalizeAndCommitIx(
   const keys = [
     { pubkey: playerPubkey, isSigner: true, isWritable: true },
     { pubkey: progressPda, isSigner: false, isWritable: true },
-    { pubkey: magicProgram, isSigner: false, isWritable: false },
     { pubkey: magicContext, isSigner: false, isWritable: true },
+    { pubkey: magicProgram, isSigner: false, isWritable: false },
   ];
 
   return new TransactionInstruction({

@@ -152,7 +152,7 @@ function deriveBossDelegationPdas(bossPda: PublicKey) {
 }
 
 // ── Instruction Builders ──
-// Discriminators sourced from target/idl/boss_tracker.json
+// Discriminators sourced from target/idl/solanaidle.json
 
 function buildInitializeBossIx(
   payerPubkey: PublicKey,
@@ -262,8 +262,8 @@ function buildFinalizeAndCommitIx(
   const keys = [
     { pubkey: payerPubkey, isSigner: true, isWritable: true },
     { pubkey: bossPda, isSigner: false, isWritable: true },
-    { pubkey: magicProgram, isSigner: false, isWritable: false },
     { pubkey: magicContext, isSigner: false, isWritable: true },
+    { pubkey: magicProgram, isSigner: false, isWritable: false },
   ];
 
   return new TransactionInstruction({
