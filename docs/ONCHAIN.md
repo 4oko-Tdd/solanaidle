@@ -1,16 +1,16 @@
 # On-Chain Guide
 
-How the Solana programs work, how PDAs are delegated to MagicBlock Ephemeral Rollups, and how to verify on-chain state.
+How the Solana program works, how PDAs are delegated to MagicBlock Ephemeral Rollups, and how to verify on-chain state.
 
 ## Overview
 
-Three Anchor programs handle different aspects of on-chain state:
+Single unified Anchor program `solanaidle` manages three PDA types:
 
-| Program | PDA Seed | Scope | Lifecycle |
-|---------|----------|-------|-----------|
-| `progress-tracker` | `["progress", player, week_start]` | Per-player, per-epoch | Created at run start, committed at epoch end |
-| `boss-tracker` | `["boss", week_start]` | One global per week | Created at boss spawn, committed when boss dies |
-| `vrf-roller` | `["vrf_result", player]` | Per-player | Created at epoch finalize for bonus roll |
+| PDA | Seed | Scope | Lifecycle |
+|-----|------|-------|-----------|
+| `PlayerProgress` | `["progress", player, week_start]` | Per-player, per-epoch | Created at run start, committed at epoch end |
+| `BossState` | `["boss", week_start]` | One global per week | Created at boss spawn, committed when boss dies |
+| `VrfResult` | `["vrf_result", player]` | Per-player | Created at epoch finalize for bonus roll |
 
 All ER writes are **server-signed** — players never sign damage or progress transactions. The server keypair (`SERVER_KEYPAIR`) is the sole authority.
 
@@ -146,7 +146,7 @@ Each player gets a separate PDA per weekly epoch.
 | `initialize_progress` | Run starts | Base layer | Server |
 | `delegate_progress` | Run starts (same tx) | Base layer | Server |
 | `update_progress` | After each mission claim | ER | Server |
-| `finalize_and_commit` | Epoch ends | ER | Server |
+| `finalize_progress` | Epoch ends | ER | Server |
 
 ### Data Flow
 
@@ -166,7 +166,7 @@ Player claims a mission
       → Simulate on ER, then send + confirm
 
 Epoch ends
-  → API: finalizeBossOnChain() (commit + undelegate)
+  → API: finalizeProgressOnChain() (commit + undelegate)
 ```
 
 ### Service File
@@ -203,7 +203,7 @@ One global PDA per week, shared across all players.
 | `initialize_boss` | Boss spawns (Saturday 00:00 UTC) | Base layer | Server |
 | `delegate_boss` | Boss spawns (same tx) | Base layer | Server |
 | `apply_damage` | Every damage tick + OVERLOAD | ER | Server |
-| `finalize_and_commit` | Boss dies or weekend ends | ER | Server |
+| `finalize_boss` | Boss dies or weekend ends | ER | Server |
 
 ### Data Flow
 
@@ -293,8 +293,7 @@ Plus `remaining_accounts[0]` = ER validator pubkey for routing.
 
 | Program | Address | Network |
 |---------|---------|---------|
-| `progress-tracker` | `8umphbZnJMMVNqR5QnaMurNCf6TcpbgQV5CWKKbChzcL` | Devnet |
-| `boss-tracker` | `AeMcgM2YYj4fFrMGEUvPeS3YcHiaDaUeSXYXjz5382up` | Devnet |
+| `solanaidle` | `2bDsZj9EiF81YYqQbXhxU8rQ6HAqRfTQXJH4BT5qHFtK` | Devnet |
 | Delegation Program | `DELeGGvXpWV2fqJUhqcF5ZSYMS4JTLjteaAMARRSaeSh` | Devnet |
 
 Server authority: `HLjsjniaFyDJSHs2wKkdbc2W3dqR6coqmRz5YHWYUsV3`
