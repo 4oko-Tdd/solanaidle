@@ -36,3 +36,4 @@ local.properties
 
 # Local testing tools
 mock-mwa-wallet/
+.env.production

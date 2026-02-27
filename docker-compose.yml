@@ -1,0 +1,27 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file: .env.production
+    volumes:
+      - api_data:/app/data
+    networks:
+      - traefik
+      - internal
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.solanaidle-api.rule=Host(`api.yourdomain.com`)"
+      - "traefik.http.routers.solanaidle-api.entrypoints=websecure"
+      - "traefik.http.routers.solanaidle-api.tls.certresolver=letsencrypt"
+      - "traefik.http.services.solanaidle-api.loadbalancer.server.port=3000"
+
+volumes:
+  api_data:
+
+networks:
+  traefik:
+    external: true
+  internal:
+    driver: bridge
