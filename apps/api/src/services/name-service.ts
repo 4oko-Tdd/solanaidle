@@ -4,7 +4,8 @@ import {
   reverseLookup,
 } from "@bonfida/spl-name-service";
 
-const RPC_URL = process.env.SOLANA_RPC_URL ?? "https://api.devnet.solana.com";
+// Domains (.sol, .skr) only exist on mainnet — always resolve against mainnet
+const MAINNET_RPC = "https://api.mainnet-beta.solana.com";
 const ALLDOMAIN_API = "https://api.alldomains.id/reverse-lookup";
 const TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
@@ -31,7 +32,7 @@ function setCached(address: string, name: string | null): void {
 
 async function resolveSol(address: string): Promise<string | null> {
   try {
-    const connection = new Connection(RPC_URL, "confirmed");
+    const connection = new Connection(MAINNET_RPC, "confirmed");
     const pubkey = new PublicKey(address);
     const { domain } = await getFavoriteDomain(connection, pubkey);
     const name = await reverseLookup(connection, domain);
