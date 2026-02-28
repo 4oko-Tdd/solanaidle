@@ -59,7 +59,6 @@ export default function GameScreen() {
     monetizationCosts,
     surgeActive,
     nextSurge,
-    surgeWindows,
     refresh: bossRefresh,
   } = useBoss();
   const dailyLogin = useDailyLogin(isAuthenticated);

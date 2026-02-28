@@ -382,8 +382,7 @@ export function calculatePassiveDamage(
   const efficiency = bossState.raid_license === 1 ? 1.05 : 1;
   const damage = Math.floor(basePower * efficiency * hoursInFight);
 
-  const boss = db.prepare("SELECT week_start FROM world_boss WHERE id = ?").get(bossId) as { week_start: string } | undefined;
-  const weekStartMs = boss ? new Date(boss.week_start).getTime() : 0;
+  const weekStartMs = new Date(weekStart).getTime();
   const surgeMultiplier = isSurgeActive(weekStartMs) ? 2 : 1;
   const finalDamage = Math.floor(damage * surgeMultiplier);
 
