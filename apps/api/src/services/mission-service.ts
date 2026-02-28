@@ -346,14 +346,15 @@ export async function claimMission(
 
   // Track challenge progress
   if (walletAddress) {
-    const charForChallenge = db
-      .prepare("SELECT id FROM characters WHERE wallet_address = ?")
-      .get(walletAddress) as { id: string } | undefined;
-    if (charForChallenge) {
-      trackChallengeProgress(walletAddress, "missions", 1, charForChallenge.id);
-      trackChallengeProgress(walletAddress, "scrap", rewards.scrap, charForChallenge.id);
-      if (rewards.crystal) trackChallengeProgress(walletAddress, "crystal", rewards.crystal, charForChallenge.id);
-    }
+    try {
+      trackChallengeProgress(walletAddress, "missions", 1, characterId);
+      trackChallengeProgress(walletAddress, "scrap", rewards.scrap, characterId);
+      if (rewards.crystal) trackChallengeProgress(walletAddress, "crystal", rewards.crystal, characterId);
+      // Track liquidity_run challenges separately (expedition = Liquidity Run)
+      if (missionRow.mission_id === "expedition") {
+        trackChallengeProgress(walletAddress, "liquidity_run", 1, characterId);
+      }
+    } catch {}
   }
 
   // Update on-chain progress via ER (server-side, fire-and-forget)

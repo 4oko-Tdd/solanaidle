@@ -479,7 +479,7 @@ export interface TrophyCaseData {
 }
 
 // ── Daily Challenges ──
-export type ChallengeType = "missions" | "scrap" | "crystal" | "boss_join" | "overload" | "raid";
+export type ChallengeType = "missions" | "scrap" | "crystal" | "boss_join" | "overload" | "raid" | "liquidity_run";
 
 export interface ChallengeDefinition {
   id: string;
