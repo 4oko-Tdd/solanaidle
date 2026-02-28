@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ScrollView, View, Text, Pressable } from "react-native";
+import { ScrollView, View, Text, Pressable, Alert } from "react-native";
 import { useRouter, useNavigation } from "expo-router";
 import { useAuth } from "@/providers/auth-context";
 import { useGameState } from "@/hooks/use-game-state";
@@ -104,13 +104,17 @@ export default function BaseScreen() {
               autoOpen={false}
               showOpenButton
               onReroll={async () => {
-                const sig = await paySkrOnChain({
-                  walletAddress: walletAddress!,
-                  amount: 10,
-                  connection,
-                  signAndSendTransaction: signAndSendTransaction!,
-                });
-                await rerollPerks(sig);
+                try {
+                  const sig = await paySkrOnChain({
+                    walletAddress: walletAddress!,
+                    amount: 10,
+                    connection,
+                    signAndSendTransaction: signAndSendTransaction!,
+                  });
+                  await rerollPerks(sig);
+                } catch (e: any) {
+                  Alert.alert("Reroll Failed", e?.message ?? "Could not reroll perk offers. Try again.");
+                }
               }}
               rerollCost={10}
             />
