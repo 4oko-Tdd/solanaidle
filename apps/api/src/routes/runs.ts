@@ -131,6 +131,43 @@ runs.get("/classes", (c) => {
   return c.json(CLASSES);
 });
 
+// Unlock the fast mission slot for this epoch (costs 20 SKR)
+runs.post("/unlock-fast-slot", async (c) => {
+  const wallet = c.get("wallet");
+  const { paymentSignature } = await c.req
+    .json<{ paymentSignature?: string }>()
+    .catch(() => ({} as { paymentSignature?: string }));
+  if (!paymentSignature?.trim()) {
+    return c.json({ error: "PAYMENT_SIGNATURE_REQUIRED" }, 400);
+  }
+
+  const run = getActiveRun(wallet);
+  if (!run) return c.json({ error: "NO_ACTIVE_RUN" }, 400);
+
+  const row = db.prepare("SELECT fast_slot_unlocked FROM weekly_runs WHERE id = ?")
+    .get(run.id) as { fast_slot_unlocked: number } | undefined;
+  if (row?.fast_slot_unlocked) {
+    return c.json({ error: "ALREADY_UNLOCKED", message: "Fast slot already unlocked this epoch" }, 409);
+  }
+
+  // Verify SKR payment
+  const { verifyAndRecordSkrPayment } = await import("../services/skr-service.js");
+  const { getWeekStart } = await import("../services/boss-service.js");
+  const payment = await verifyAndRecordSkrPayment({
+    signature: paymentSignature,
+    walletAddress: wallet,
+    amount: 20,
+    action: "fast_slot",
+    weekStart: getWeekStart(),
+  });
+  if (!payment.success) {
+    return c.json({ error: "INVALID_SKR_PAYMENT", message: payment.error }, 400);
+  }
+
+  db.prepare("UPDATE weekly_runs SET fast_slot_unlocked = 1 WHERE id = ?").run(run.id);
+  return c.json({ fastSlotUnlocked: true });
+});
+
 // Get ER constants and progress PDA for the current epoch
 runs.get("/er-info", (c) => {
   const wallet = c.get("wallet");
