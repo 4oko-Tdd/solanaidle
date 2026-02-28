@@ -219,6 +219,9 @@ app.post("/choose", async (c) => {
     }
   }
 
+  // Reset reroll flag so next level-up gets a fresh reroll
+  db.prepare("UPDATE weekly_runs SET perk_pending_rerolled = 0 WHERE id = ?").run(run.id);
+
   // Log perk pick event
   insertEvent(run.id, "perk_pick", {
     perkId: perk.id,
@@ -238,6 +241,49 @@ app.post("/choose", async (c) => {
   }));
 
   return c.json({ perks: activePerks });
+});
+
+// POST /perks/reroll
+app.post("/reroll", async (c) => {
+  const wallet = c.get("wallet");
+  const char = getCharacter(wallet);
+  if (!char) return c.json({ error: "CHARACTER_NOT_FOUND" }, 404);
+  const run = getActiveRun(wallet);
+  if (!run) return c.json({ error: "NO_ACTIVE_RUN" }, 400);
+
+  // Verify pending perk exists (same check as GET /offers)
+  const perkCountRow = db
+    .prepare("SELECT COUNT(*) as cnt FROM character_perks WHERE run_id = ?")
+    .get(run.id) as { cnt: number };
+  const bonusRow = db
+    .prepare("SELECT bonus_perk_points, perk_pending_rerolled FROM weekly_runs WHERE id = ?")
+    .get(run.id) as { bonus_perk_points: number; perk_pending_rerolled: number } | undefined;
+  const expectedPerks = Math.max(0, char.level - 1) + (bonusRow?.bonus_perk_points ?? 0);
+  if (expectedPerks <= perkCountRow.cnt) {
+    return c.json({ error: "NO_PENDING_CHOICE", message: "No perk choice pending" }, 400);
+  }
+  if ((bonusRow?.perk_pending_rerolled ?? 0) >= 1) {
+    return c.json({ error: "REROLL_LIMIT", message: "Already rerolled this level-up" }, 400);
+  }
+
+  // Verify SKR payment (same pattern as boss-service.ts)
+  const { paymentSignature } = await c.req.json<{ paymentSignature: string }>();
+  const { verifyAndRecordSkrPayment } = await import("../services/skr-service.js");
+  const { getWeekStart } = await import("../services/boss-service.js");
+  const payment = await verifyAndRecordSkrPayment({
+    signature: paymentSignature,
+    walletAddress: wallet,
+    amount: 10,
+    action: "perk_reroll",
+    weekStart: getWeekStart(),
+  });
+  if (!payment.success) {
+    return c.json({ error: "INVALID_SKR_PAYMENT", message: payment.error }, 400);
+  }
+
+  // Mark rerolled and return fresh offers
+  db.prepare("UPDATE weekly_runs SET perk_pending_rerolled = 1 WHERE id = ?").run(run.id);
+  return c.json({ offers: generatePerkOffers(run.classId), hasPending: true });
 });
 
 // GET /perks/active

@@ -268,6 +268,9 @@ export function initSchema() {
   if (!colNames.includes("bonus_perk_points")) {
     db.prepare("ALTER TABLE weekly_runs ADD COLUMN bonus_perk_points INTEGER NOT NULL DEFAULT 0").run();
   }
+  if (!colNames.includes("perk_pending_rerolled")) {
+    db.prepare("ALTER TABLE weekly_runs ADD COLUMN perk_pending_rerolled INTEGER NOT NULL DEFAULT 0").run();
+  }
 
   // Migrations — active_missions columns
   const missionCols = db.prepare("PRAGMA table_info(active_missions)").all() as { name: string }[];
