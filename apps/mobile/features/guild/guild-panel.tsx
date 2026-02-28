@@ -205,7 +205,7 @@ export function GuildPanel({ isAuthenticated, onViewRaid }: Props) {
               >
                 <View className="h-2.5 w-2.5 rounded-full bg-[#14F195]" />
                 <Text className="font-mono text-sm text-[#7ab8d9]">
-                  {truncateWallet(m.walletAddress)}
+                  {m.displayName ?? truncateWallet(m.walletAddress)}
                 </Text>
               </View>
             ))}

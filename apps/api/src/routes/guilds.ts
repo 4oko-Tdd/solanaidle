@@ -7,6 +7,7 @@ import {
   getGuildByMember,
   getGuildMembers,
 } from "../services/guild-service.js";
+import { batchResolve } from "../services/name-service.js";
 
 type Env = { Variables: { wallet: string } };
 
@@ -14,12 +15,16 @@ const guilds = new Hono<Env>();
 guilds.use("*", authMiddleware);
 
 // Get my guild (with members)
-guilds.get("/mine", (c) => {
+guilds.get("/mine", async (c) => {
   const wallet = c.get("wallet");
   const guild = getGuildByMember(wallet);
   if (!guild) return c.json({ guild: null, members: [] });
   const members = getGuildMembers(guild.id);
-  return c.json({ guild, members });
+  const names = await batchResolve(members.map((m) => m.walletAddress));
+  const enriched = members.map((m) =>
+    names.has(m.walletAddress) ? { ...m, displayName: names.get(m.walletAddress) } : m
+  );
+  return c.json({ guild, members: enriched });
 });
 
 // Create a guild
