@@ -170,7 +170,10 @@ export async function getSkrBalance(walletAddress: string): Promise<number> {
     const whole = raw / SKR_BASE_UNITS;
     return whole > BigInt(Number.MAX_SAFE_INTEGER) ? Number.MAX_SAFE_INTEGER : Number(whole);
   } catch (err) {
-    console.warn("[SKR] Failed to fetch on-chain SKR balance:", err);
+    const msg = err instanceof Error ? err.message : String(err);
+    if (!msg.includes("could not find mint")) {
+      console.warn("[SKR] Failed to fetch on-chain SKR balance:", err);
+    }
     return 0;
   }
 }
