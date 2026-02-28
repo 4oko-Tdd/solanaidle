@@ -246,6 +246,15 @@ app.post("/choose", async (c) => {
 // POST /perks/reroll
 app.post("/reroll", async (c) => {
   const wallet = c.get("wallet");
+
+  // Parse body first (with .catch fallback per codebase convention)
+  const { paymentSignature } = await c.req
+    .json<{ paymentSignature?: string }>()
+    .catch(() => ({} as { paymentSignature?: string }));
+  if (!paymentSignature || !paymentSignature.trim()) {
+    return c.json({ error: "PAYMENT_SIGNATURE_REQUIRED" }, 400);
+  }
+
   const char = getCharacter(wallet);
   if (!char) return c.json({ error: "CHARACTER_NOT_FOUND" }, 404);
   const run = getActiveRun(wallet);
@@ -267,7 +276,6 @@ app.post("/reroll", async (c) => {
   }
 
   // Verify SKR payment (same pattern as boss-service.ts)
-  const { paymentSignature } = await c.req.json<{ paymentSignature: string }>();
   const { verifyAndRecordSkrPayment } = await import("../services/skr-service.js");
   const { getWeekStart } = await import("../services/boss-service.js");
   const payment = await verifyAndRecordSkrPayment({
