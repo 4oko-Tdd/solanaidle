@@ -44,6 +44,7 @@ pnpm build            # Build all packages
 - Shared types in `packages/shared/src/types.ts` — import from `@solanaidle/shared`
 - API routes go in `apps/api/src/routes/` — one file per resource
 - Game logic (timers, RNG, mission resolution) in `apps/api/src/services/`
+- Wallet name resolution in `apps/api/src/services/name-service.ts` — resolves `.sol` (Bonfida SNS) and `.skr` (AllDomains) against mainnet, 24h in-memory cache, exposed via `batchResolve()`
 - Mobile routes in `apps/mobile/app/`, mobile features in `apps/mobile/features/`, mobile hooks in `apps/mobile/hooks/`
 - Web components in `apps/web/src/components/`
 - Web feature code in `apps/web/src/features/{game,wallet,inventory}/`
