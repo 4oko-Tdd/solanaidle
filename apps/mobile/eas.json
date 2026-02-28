@@ -13,11 +13,23 @@
       "distribution": "internal",
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://solanaidle.findparty.online/api",
+        "EXPO_PUBLIC_SKR_MINT_ADDRESS": "3veRJ3k6ZxgRGffwNxBdUpSNEx7J4pG4kcdEZ6oACA9Z",
+        "EXPO_PUBLIC_SKR_TREASURY_WALLET": "7RLJF7jE9QcoA2RFEsBEhsbgsawatAFpRfpxgiAHQU6Z",
+        "EXPO_PUBLIC_SKR_TOKEN_DECIMALS": "9"
       }
     },
     "production": {
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://solanaidle.findparty.online/api",
+        "EXPO_PUBLIC_SKR_MINT_ADDRESS": "3veRJ3k6ZxgRGffwNxBdUpSNEx7J4pG4kcdEZ6oACA9Z",
+        "EXPO_PUBLIC_SKR_TREASURY_WALLET": "7RLJF7jE9QcoA2RFEsBEhsbgsawatAFpRfpxgiAHQU6Z",
+        "EXPO_PUBLIC_SKR_TOKEN_DECIMALS": "9"
       }
     }
   },
