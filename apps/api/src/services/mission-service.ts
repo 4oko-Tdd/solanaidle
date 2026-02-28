@@ -66,6 +66,26 @@ export function getActiveMission(characterId: string): ActiveMission | null {
   };
 }
 
+export function getActiveMissions(characterId: string): { main: ActiveMission | null; fast: ActiveMission | null } {
+  const rows = db.prepare("SELECT * FROM active_missions WHERE character_id = ?")
+    .all(characterId) as MissionRow[];
+  const toActive = (row: MissionRow | undefined): ActiveMission | null => {
+    if (!row) return null;
+    const now = Date.now();
+    const endsAt = new Date(row.ends_at).getTime();
+    return {
+      missionId: row.mission_id as MissionId,
+      startedAt: row.started_at,
+      endsAt: row.ends_at,
+      timeRemaining: Math.max(0, Math.floor((endsAt - now) / 1000)),
+    };
+  };
+  return {
+    main: toActive(rows.find(r => (r as any).slot === 'main')),
+    fast: toActive(rows.find(r => (r as any).slot === 'fast')),
+  };
+}
+
 export function startMission(
   characterId: string,
   missionId: string,
@@ -74,17 +94,33 @@ export function startMission(
   runId?: string,
   rerollStacks?: number,
   insured?: boolean,
-  walletAddress?: string
+  walletAddress?: string,
+  slot: 'main' | 'fast' = 'main'
 ): ActiveMission {
   const mission = getMission(missionId);
   if (!mission) throw new Error("Invalid mission");
 
-  // Tier gating
-  if (missionId === "expedition" && characterLevel && characterLevel < TIER2_UNLOCK_LEVEL) {
-    throw new Error("Mission tier locked");
+  // Fast slot validation
+  if (slot === 'fast') {
+    if (missionId !== 'scout') throw new Error("FAST_SLOT_SCOUT_ONLY");
+    if (runId) {
+      const runRow = db.prepare("SELECT fast_slot_unlocked FROM weekly_runs WHERE id = ?").get(runId) as { fast_slot_unlocked: number } | undefined;
+      if (!runRow || runRow.fast_slot_unlocked !== 1) throw new Error("FAST_SLOT_LOCKED");
+    } else {
+      throw new Error("FAST_SLOT_LOCKED");
+    }
+    const existingFast = db.prepare("SELECT id FROM active_missions WHERE character_id = ? AND slot = 'fast'").get(characterId);
+    if (existingFast) throw new Error("MISSION_IN_PROGRESS");
   }
-  if (missionId === "deep_dive" && characterLevel && characterLevel < TIER3_UNLOCK_LEVEL) {
-    throw new Error("Mission tier locked");
+
+  // Tier gating (main slot only)
+  if (slot === 'main') {
+    if (missionId === "expedition" && characterLevel && characterLevel < TIER2_UNLOCK_LEVEL) {
+      throw new Error("Mission tier locked");
+    }
+    if (missionId === "deep_dive" && characterLevel && characterLevel < TIER3_UNLOCK_LEVEL) {
+      throw new Error("Mission tier locked");
+    }
   }
 
   // Apply class duration modifier
@@ -105,9 +141,9 @@ export function startMission(
     }
   }
 
-  // Validate and deduct reroll/insurance costs
-  const stacks = Math.min(Math.max(rerollStacks ?? 0, 0), MAX_REROLL_STACKS);
-  const useInsurance = insured ? 1 : 0;
+  // Validate and deduct reroll/insurance costs (main slot only)
+  const stacks = slot === 'main' ? Math.min(Math.max(rerollStacks ?? 0, 0), MAX_REROLL_STACKS) : 0;
+  const useInsurance = slot === 'main' && insured ? 1 : 0;
 
   if (stacks > 0 || useInsurance) {
     const inv = db.prepare(
@@ -131,12 +167,13 @@ export function startMission(
 
   const id = randomUUID();
   db.prepare(
-    "INSERT INTO active_missions (id, character_id, mission_id, started_at, ends_at, reroll_stacks, insured, run_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
-  ).run(id, characterId, missionId, now.toISOString(), endsAt.toISOString(), stacks, useInsurance, runId ?? null);
+    "INSERT INTO active_missions (id, character_id, mission_id, started_at, ends_at, reroll_stacks, insured, run_id, slot) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+  ).run(id, characterId, missionId, now.toISOString(), endsAt.toISOString(), stacks, useInsurance, runId ?? null, slot);
 
-  db.prepare("UPDATE characters SET state = 'on_mission' WHERE id = ?").run(
-    characterId
-  );
+  // Only set character state to 'on_mission' for main slot
+  if (slot === 'main') {
+    db.prepare("UPDATE characters SET state = 'on_mission' WHERE id = ?").run(characterId);
+  }
 
   return {
     missionId: mission.id as MissionId,
@@ -150,11 +187,12 @@ export async function claimMission(
   classId?: string,
   runId?: string,
   walletAddress?: string,
-  playerSignature?: string
+  playerSignature?: string,
+  slot: 'main' | 'fast' = 'main'
 ): Promise<MissionClaimResponse> {
   const missionRow = db
-    .prepare("SELECT * FROM active_missions WHERE character_id = ?")
-    .get(characterId) as MissionRow | undefined;
+    .prepare("SELECT * FROM active_missions WHERE character_id = ? AND slot = ?")
+    .get(characterId, slot) as MissionRow | undefined;
   if (!missionRow) throw new Error("No active mission");
 
   const endsAt = new Date(missionRow.ends_at).getTime();
@@ -206,34 +244,37 @@ export async function claimMission(
   if (roll < finalFailRate) {
     // FAILURE
 
-    // Run-aware failure handling
-    if (runId) {
-      useLife(runId);
-      // Insurance protects streak on failure
-      if (!missionRow.insured) {
-        resetStreak(runId);
-      }
-      const runAfterLife = db.prepare("SELECT lives_remaining FROM weekly_runs WHERE id = ?").get(runId) as any;
-      const livesLeft = runAfterLife?.lives_remaining ?? 0;
-      insertEvent(runId, "mission_fail", {
-        missionId: missionRow.mission_id,
-        livesRemaining: livesLeft,
-        escaped: false,
-      });
-      if (livesLeft <= 0) {
-        insertEvent(runId, "run_end", {
-          finalScore: 0,
-          cause: "death",
+    if (slot === 'main') {
+      // Run-aware failure handling (main slot only)
+      if (runId) {
+        useLife(runId);
+        // Insurance protects streak on failure
+        if (!missionRow.insured) {
+          resetStreak(runId);
+        }
+        const runAfterLife = db.prepare("SELECT lives_remaining FROM weekly_runs WHERE id = ?").get(runId) as any;
+        const livesLeft = runAfterLife?.lives_remaining ?? 0;
+        insertEvent(runId, "mission_fail", {
+          missionId: missionRow.mission_id,
+          livesRemaining: livesLeft,
+          escaped: false,
         });
+        if (livesLeft <= 0) {
+          insertEvent(runId, "run_end", {
+            finalScore: 0,
+            cause: "death",
+          });
+        }
       }
-    }
 
-    const reviveAt = new Date(
-      Date.now() + REVIVE_COOLDOWN_MS
-    ).toISOString();
-    db.prepare(
-      "UPDATE characters SET state = 'dead', revive_at = ? WHERE id = ?"
-    ).run(reviveAt, characterId);
+      const reviveAt = new Date(
+        Date.now() + REVIVE_COOLDOWN_MS
+      ).toISOString();
+      db.prepare(
+        "UPDATE characters SET state = 'dead', revive_at = ? WHERE id = ?"
+      ).run(reviveAt, characterId);
+    }
+    // Fast slot failure: no life loss, no state change — just lose the mission
 
     const char = db
       .prepare("SELECT * FROM characters WHERE id = ?")
@@ -313,9 +354,15 @@ export async function claimMission(
     newLevel++;
   }
 
-  db.prepare(
-    "UPDATE characters SET state = 'idle', level = ?, xp = ?, revive_at = NULL WHERE id = ?"
-  ).run(newLevel, newXp, characterId);
+  if (slot === 'main') {
+    db.prepare(
+      "UPDATE characters SET state = 'idle', level = ?, xp = ?, revive_at = NULL WHERE id = ?"
+    ).run(newLevel, newXp, characterId);
+  } else {
+    db.prepare(
+      "UPDATE characters SET level = ?, xp = ? WHERE id = ?"
+    ).run(newLevel, newXp, characterId);
+  }
 
   // Add resources
   db.prepare(

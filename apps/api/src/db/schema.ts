@@ -341,4 +341,40 @@ export function initSchema() {
     db.pragma("foreign_keys = ON");
   }
 
+  // Add fast_slot_unlocked to weekly_runs
+  const runCols5 = db.prepare("PRAGMA table_info(weekly_runs)").all() as { name: string }[];
+  if (!runCols5.map(c => c.name).includes("fast_slot_unlocked")) {
+    db.prepare("ALTER TABLE weekly_runs ADD COLUMN fast_slot_unlocked INTEGER NOT NULL DEFAULT 0").run();
+  }
+
+  // Recreate active_missions with (character_id, slot) unique constraint
+  const amSql = (db.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='active_missions'")
+    .get() as { sql: string } | undefined)?.sql ?? "";
+  if (!amSql.includes("slot")) {
+    db.pragma("foreign_keys = OFF");
+    db.prepare(`
+      CREATE TABLE active_missions_new (
+        id TEXT PRIMARY KEY,
+        character_id TEXT NOT NULL REFERENCES characters(id),
+        mission_id TEXT NOT NULL,
+        started_at TEXT NOT NULL,
+        ends_at TEXT NOT NULL,
+        reroll_stacks INTEGER NOT NULL DEFAULT 0,
+        insured INTEGER NOT NULL DEFAULT 0,
+        run_id TEXT,
+        slot TEXT NOT NULL DEFAULT 'main',
+        UNIQUE(character_id, slot)
+      )
+    `).run();
+    db.prepare(`
+      INSERT INTO active_missions_new
+        SELECT id, character_id, mission_id, started_at, ends_at,
+          COALESCE(reroll_stacks,0), COALESCE(insured,0), run_id, 'main'
+        FROM active_missions
+    `).run();
+    db.prepare("DROP TABLE active_missions").run();
+    db.prepare("ALTER TABLE active_missions_new RENAME TO active_missions").run();
+    db.pragma("foreign_keys = ON");
+  }
+
 }

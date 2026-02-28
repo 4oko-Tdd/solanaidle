@@ -29,7 +29,7 @@ import {
   notifyEpochStarted,
   scheduleMissionReadyNotification,
 } from "@/lib/game-notifications";
-import { Wrench, ChevronDown, ChevronUp } from "lucide-react-native";
+import { Wrench, ChevronDown, ChevronUp, Lock, Zap } from "lucide-react-native";
 import type { MissionId } from "@solanaidle/shared";
 
 export default function GameScreen() {
@@ -92,6 +92,40 @@ export default function GameScreen() {
   useEffect(() => {
     void scheduleMissionReadyNotification(gameState.activeMission);
   }, [gameState.activeMission?.endsAt, gameState.activeMission?.missionId]);
+
+  const { activeMissions } = gameState;
+
+  const handleClaimFast = async () => {
+    try {
+      const result = await gameState.claimMission('fast');
+      if (result.result === 'success') {
+        toast("Quick Swap complete! Rewards collected.", "success");
+      } else {
+        toast("Quick Swap failed.", "error");
+      }
+    } catch (e: any) {
+      toast(e?.message ?? "Failed to claim fast slot", "error");
+    }
+  };
+
+  const handleUnlockFastSlot = async () => {
+    if (!walletAddress || !connection || !signAndSendTransaction) {
+      Alert.alert("Wallet Required", "Connect your wallet to unlock the fast slot.");
+      return;
+    }
+    try {
+      const sig = await paySkrOnChain({
+        walletAddress,
+        amount: 20,
+        connection,
+        signAndSendTransaction,
+      });
+      await gameState.unlockFastSlot(sig);
+      toast("Fast slot unlocked for this epoch!", "success");
+    } catch (e: any) {
+      Alert.alert("Unlock Failed", e?.message ?? "Could not unlock fast slot. Try again.");
+    }
+  };
 
   useEffect(() => {
     if (!hasObservedBossRef.current) {
@@ -175,10 +209,10 @@ export default function GameScreen() {
     !!dailyLogin.status &&
     !dailyLogin.status.claimedToday;
 
-  const handleStartMission = async (missionId: MissionId, options?: { rerollStacks?: number; insured?: boolean }) => {
+  const handleStartMission = async (missionId: MissionId, options?: { rerollStacks?: number; insured?: boolean; slot?: 'main' | 'fast' }) => {
     try {
       await gameState.startMission(missionId, options);
-      toast("Mission started!", "success");
+      toast(options?.slot === 'fast' ? "Quick Swap started!" : "Mission started!", "success");
     } catch (e: any) {
       toast(e?.message ?? "Failed to start", "error");
     }
@@ -425,6 +459,101 @@ export default function GameScreen() {
             classId={gameState.activeRun?.classId ?? null}
             inventory={gameState.inventory}
           />
+        )}
+
+        {/* Fast Slot Panel — visible only when there's an active run */}
+        {!!gameState.activeRun && (
+          <View
+            style={{
+              borderRadius: 12,
+              borderWidth: 1,
+              borderColor: "rgba(255,184,0,0.22)",
+              backgroundColor: "#0d0c05",
+              padding: 14,
+              gap: 10,
+            }}
+          >
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+              <Zap size={13} color="#FFB800" />
+              <Text style={{ fontSize: 11, color: "#FFB800", fontFamily: "Orbitron_400Regular", letterSpacing: 2, textTransform: "uppercase" }}>
+                Fast Slot
+              </Text>
+            </View>
+
+            {activeMissions?.fast ? (
+              /* Fast slot countdown card */
+              <View style={{ gap: 8 }}>
+                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+                  <Text style={{ fontSize: 13, color: "#FFB800", fontFamily: "Orbitron_400Regular" }}>
+                    Quick Swap Active
+                  </Text>
+                  <Text style={{ fontSize: 12, color: "rgba(255,255,255,0.55)", fontFamily: "Orbitron_400Regular" }}>
+                    {activeMissions.fast.timeRemaining != null && activeMissions.fast.timeRemaining > 0
+                      ? `${Math.floor(activeMissions.fast.timeRemaining / 60)}m ${activeMissions.fast.timeRemaining % 60}s`
+                      : "Ready!"}
+                  </Text>
+                </View>
+                {(activeMissions.fast.timeRemaining == null || activeMissions.fast.timeRemaining <= 0) && (
+                  <Pressable
+                    onPress={handleClaimFast}
+                    style={{
+                      paddingVertical: 10,
+                      paddingHorizontal: 16,
+                      borderRadius: 8,
+                      borderWidth: 1,
+                      borderColor: "rgba(255,184,0,0.5)",
+                      backgroundColor: "rgba(255,184,0,0.12)",
+                      alignItems: "center",
+                    }}
+                  >
+                    <Text style={{ fontSize: 13, color: "#FFB800", fontFamily: "Orbitron_700Bold" }}>
+                      Claim Quick Swap
+                    </Text>
+                  </Pressable>
+                )}
+              </View>
+            ) : activeMissions?.fastSlotUnlocked ? (
+              /* Start fast slot mission */
+              <Pressable
+                onPress={() => handleStartMission("scout", { slot: 'fast' })}
+                style={{
+                  paddingVertical: 10,
+                  paddingHorizontal: 16,
+                  borderRadius: 8,
+                  borderWidth: 1,
+                  borderColor: "rgba(255,184,0,0.5)",
+                  backgroundColor: "rgba(255,184,0,0.1)",
+                  alignItems: "center",
+                }}
+              >
+                <Text style={{ fontSize: 13, color: "#FFB800", fontFamily: "Orbitron_700Bold" }}>
+                  Start Quick Swap (Fast Slot)
+                </Text>
+              </Pressable>
+            ) : (
+              /* Unlock fast slot */
+              <Pressable
+                onPress={handleUnlockFastSlot}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
+                  paddingVertical: 10,
+                  paddingHorizontal: 16,
+                  borderRadius: 8,
+                  borderWidth: 1,
+                  borderColor: "rgba(255,184,0,0.25)",
+                  backgroundColor: "rgba(255,184,0,0.05)",
+                }}
+              >
+                <Lock size={13} color="rgba(255,184,0,0.65)" />
+                <Text style={{ fontSize: 13, color: "rgba(255,184,0,0.65)", fontFamily: "Orbitron_400Regular" }}>
+                  Unlock Fast Slot — 20 SKR
+                </Text>
+              </Pressable>
+            )}
+          </View>
         )}
         <RunLog run={gameState.activeRun ?? null} />
         {challenges.data && (

@@ -39,6 +39,12 @@ export interface ActiveMission {
   timeRemaining?: number;
 }
 
+export interface ActiveMissions {
+  main: ActiveMission | null;
+  fast: ActiveMission | null;
+  fastSlotUnlocked: boolean;
+}
+
 export type MissionResult = "success" | "failure";
 
 export interface MissionClaimResponse {
