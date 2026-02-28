@@ -212,7 +212,7 @@ function ModalContent({
           </View>
         ) : (
           <>
-            {onReroll && (
+            {onReroll && !choosing && (
               <View className="items-center">
                 <Button
                   variant="ghost"
