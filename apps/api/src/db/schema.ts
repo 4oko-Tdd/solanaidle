@@ -264,6 +264,12 @@ export function initSchema() {
     db.exec("ALTER TABLE weekly_runs ADD COLUMN scanner_level INTEGER NOT NULL DEFAULT 0");
   }
 
+  // Check and add bonus_perk_points column
+  const runColsBonus = db.prepare("PRAGMA table_info(weekly_runs)").all() as { name: string }[];
+  if (!runColsBonus.map(c => c.name).includes("bonus_perk_points")) {
+    db.prepare("ALTER TABLE weekly_runs ADD COLUMN bonus_perk_points INTEGER NOT NULL DEFAULT 0").run();
+  }
+
   // Migrations — active_missions columns
   const missionCols = db.prepare("PRAGMA table_info(active_missions)").all() as { name: string }[];
   const missionColNames = missionCols.map(c => c.name);
