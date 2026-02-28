@@ -4,15 +4,14 @@ import type { ActiveRaid, RaidId } from "@solanaidle/shared";
 import { getRaid, RAIDS } from "./game-config.js";
 import { getGuildByMember, getGuildMembers } from "./guild-service.js";
 import { checkAndGrantAchievements } from "./achievement-service.js";
+import { trackChallengeProgress } from "./challenge-service.js";
 
-// Get available raids for a guild (based on member count)
-export function getAvailableRaids(guildId: string) {
-  const members = db
-    .prepare(
-      "SELECT COUNT(*) as count FROM guild_members WHERE guild_id = ?"
-    )
+// Get all raids + current member count (client handles locked state)
+export function getAvailableRaids(guildId: string): { raids: typeof RAIDS, memberCount: number } {
+  const row = db
+    .prepare("SELECT COUNT(*) as count FROM guild_members WHERE guild_id = ?")
     .get(guildId) as any;
-  return RAIDS.filter((r) => r.requiredPlayers <= members.count);
+  return { raids: RAIDS, memberCount: row.count as number };
 }
 
 // Get active raid for a guild
@@ -78,11 +77,6 @@ export function startRaid(
     throw new Error("RAID_NOT_READY");
   }
 
-  const char = db
-    .prepare("SELECT id FROM characters WHERE wallet_address = ?")
-    .get(wallet) as any;
-  if (!char) throw new Error("CHARACTER_NOT_FOUND");
-
   const id = crypto.randomUUID();
   const now = new Date();
   const endsAt = new Date(now.getTime() + raid.duration * 1000);
@@ -91,9 +85,32 @@ export function startRaid(
     "INSERT INTO active_raids (id, raid_id, guild_id, started_at, ends_at) VALUES (?, ?, ?, ?, ?)"
   ).run(id, raidId, guildId, now.toISOString(), endsAt.toISOString());
 
-  db.prepare(
+  // Auto-commit all guild members who have a character
+  const guildMembers = db
+    .prepare("SELECT wallet_address FROM guild_members WHERE guild_id = ?")
+    .all(guildId) as any[];
+  const insertParticipant = db.prepare(
     "INSERT INTO raid_participants (raid_id, wallet_address, character_id) VALUES (?, ?, ?)"
-  ).run(id, wallet, char.id);
+  );
+  let initiatorCharId: string | null = null;
+  for (const member of guildMembers) {
+    const char = db
+      .prepare("SELECT id FROM characters WHERE wallet_address = ?")
+      .get(member.wallet_address) as any;
+    if (char) {
+      insertParticipant.run(id, member.wallet_address, char.id);
+      if (member.wallet_address === wallet) {
+        initiatorCharId = char.id;
+      }
+    }
+  }
+
+  // Track challenge progress for the initiator
+  if (initiatorCharId) {
+    try {
+      trackChallengeProgress(wallet, "raid", 1, initiatorCharId);
+    } catch {}
+  }
 
   return getActiveRaid(guildId)!;
 }
@@ -106,9 +123,9 @@ export function commitToRaid(
   const active = getActiveRaid(guildId);
   if (!active) throw new Error("RAID_NOT_READY");
 
-  // Check not already committed
+  // Already committed — idempotent
   if (active.committedPlayers.includes(wallet)) {
-    throw new Error("RAID_IN_PROGRESS");
+    return active;
   }
 
   const char = db

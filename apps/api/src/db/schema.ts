@@ -242,6 +242,16 @@ export function initSchema() {
     );
   `);
 
+  db.prepare(`
+    CREATE TABLE IF NOT EXISTS challenge_progress (
+      wallet_address TEXT NOT NULL,
+      quest_id TEXT NOT NULL,
+      period_key TEXT NOT NULL,
+      progress INTEGER NOT NULL DEFAULT 0,
+      PRIMARY KEY (wallet_address, quest_id, period_key)
+    )
+  `).run();
+
   // Migrations — add columns if missing
   const cols = db.prepare("PRAGMA table_info(weekly_runs)").all() as { name: string }[];
   const colNames = cols.map(c => c.name);

@@ -12,6 +12,7 @@ import {
   finalizeBossOnChain,
 } from "./boss-er-service.js";
 import { getSkrBalance, verifyAndRecordSkrPayment } from "./skr-service.js";
+import { trackChallengeProgress } from "./challenge-service.js";
 
 const DESTABILIZE_ROLL_CHANCE = 0.12;
 const DESTABILIZE_ROLL_INTERVAL_MS = 20 * 60 * 1000;
@@ -248,6 +249,11 @@ export function joinBossFight(
   });
   joinTx();
 
+  // Track challenge progress for boss_join
+  try {
+    trackChallengeProgress(walletAddress, "boss_join", 1, char.id);
+  } catch {}
+
   const participant: Participant = {
     bossId: boss.id,
     walletAddress,
@@ -447,6 +453,11 @@ export async function useOverload(
     }
   });
   overloadTx();
+
+  // Track challenge progress for overload
+  try {
+    trackChallengeProgress(walletAddress, "overload", 1, char.id);
+  } catch {}
 
   // Store player signature as proof of OVERLOAD authorization
   if (playerSignature) {

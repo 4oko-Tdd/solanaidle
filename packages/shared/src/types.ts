@@ -477,3 +477,27 @@ export interface TrophyCaseData {
   relics: RelicItem[];
   badges: BadgeItem[];
 }
+
+// ── Daily Challenges ──
+export type ChallengeType = "missions" | "scrap" | "crystal" | "boss_join" | "overload" | "raid";
+
+export interface ChallengeDefinition {
+  id: string;
+  description: string;
+  requirement: number;
+  rewardScrap: number;
+  rewardCrystal: number;
+  type: ChallengeType;
+}
+
+export interface DailyChallenge extends ChallengeDefinition {
+  progress: number;
+  completed: boolean;
+  rerolled: boolean;
+}
+
+export interface DailyChallengesStatus {
+  challenges: DailyChallenge[];
+  periodKey: string;
+  rerollCost: number;
+}
