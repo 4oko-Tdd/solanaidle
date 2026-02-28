@@ -21,6 +21,7 @@ import { insertEvent } from "./event-service.js";
 import type { ActiveMission, MissionClaimResponse, MissionId, MissionRewards } from "@solanaidle/shared";
 import { updateProgressOnER } from "./er-service.js";
 import { checkAndGrantAchievements } from "./achievement-service.js";
+import { trackChallengeProgress } from "./challenge-service.js";
 
 interface MissionRow {
   id: string;
@@ -340,6 +341,18 @@ export async function claimMission(
       checkAndGrantAchievements(walletAddress, characterId, "mission_success", {
         streak: currentStreak,
       }).catch(() => {});
+    }
+  }
+
+  // Track challenge progress
+  if (walletAddress) {
+    const charForChallenge = db
+      .prepare("SELECT id FROM characters WHERE wallet_address = ?")
+      .get(walletAddress) as { id: string } | undefined;
+    if (charForChallenge) {
+      trackChallengeProgress(walletAddress, "missions", 1, charForChallenge.id);
+      trackChallengeProgress(walletAddress, "scrap", rewards.scrap, charForChallenge.id);
+      if (rewards.crystal) trackChallengeProgress(walletAddress, "crystal", rewards.crystal, charForChallenge.id);
     }
   }
 

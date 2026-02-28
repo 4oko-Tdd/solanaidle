@@ -17,6 +17,7 @@ import nfts from "./routes/nft-routes.js";
 import boss from "./routes/boss-routes.js";
 import perks from "./routes/perk-routes.js";
 import collection from "./routes/collection-routes.js";
+import challenges from "./routes/challenges.js";
 
 const app = new Hono().basePath("/api");
 
@@ -45,6 +46,7 @@ app.route("/nfts", nfts);
 app.route("/boss", boss);
 app.route("/perks", perks);
 app.route("/collection", collection);
+app.route("/challenges", challenges);
 
 initSchema();
 const { ensureCollections } = await import("./services/metaplex-service.js");

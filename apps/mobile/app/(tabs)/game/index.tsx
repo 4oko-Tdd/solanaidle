@@ -2,6 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { ScrollView, View, ActivityIndicator, Text, Pressable, Alert, Modal } from "react-native";
 import { useNavigation, useRouter, Tabs } from "expo-router";
 import { useAuth } from "@/providers/auth-context";
+import { useChallenges } from "@/hooks/use-challenges";
+import { ChallengesPanel } from "@/features/game/challenges-panel";
+import { paySkrOnChain } from "@/lib/skr";
 import { useGameState } from "@/hooks/use-game-state";
 import { useBoss } from "@/hooks/use-boss";
 import { useDailyLogin } from "@/hooks/use-daily-login";
@@ -32,7 +35,7 @@ import type { MissionId } from "@solanaidle/shared";
 export default function GameScreen() {
   const router = useRouter();
   const navigation = useNavigation();
-  const { isAuthenticated, signMessage } = useAuth();
+  const { isAuthenticated, signMessage, walletAddress, signAndSendTransaction, connection } = useAuth();
   const gameState = useGameState(isAuthenticated);
   const { toast } = useToast();
   const devToolsEnabled = useDevToolsEnabled();
@@ -58,6 +61,7 @@ export default function GameScreen() {
   } = useBoss();
   const dailyLogin = useDailyLogin(isAuthenticated);
   const perks = usePerks();
+  const challenges = useChallenges(isAuthenticated);
   const [devOpen, setDevOpen] = useState(false);
   const [dailyDismissed, setDailyDismissed] = useState(false);
   const hasObservedBossRef = useRef(false);
@@ -419,6 +423,26 @@ export default function GameScreen() {
           />
         )}
         <RunLog run={gameState.activeRun ?? null} />
+        {challenges.data && (
+          <ChallengesPanel
+            challenges={challenges.data.challenges}
+            periodKey={challenges.data.periodKey}
+            rerollCost={challenges.data.rerollCost}
+            onReroll={async (questId) => {
+              try {
+                const sig = await paySkrOnChain({
+                  walletAddress: walletAddress!,
+                  amount: challenges.data!.rerollCost,
+                  connection,
+                  signAndSendTransaction: signAndSendTransaction!,
+                });
+                await challenges.rerollChallenge(questId, sig);
+              } catch (e: any) {
+                Alert.alert("Reroll Failed", e?.message ?? "Could not reroll challenge. Try again.");
+              }
+            }}
+          />
+        )}
       </View>
     </ScrollView>
     <MissionResultDialog
