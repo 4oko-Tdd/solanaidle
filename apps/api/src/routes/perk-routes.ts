@@ -204,13 +204,19 @@ app.post("/choose", async (c) => {
     ).run(randomUUID(), run.id, perkId);
   }
 
-  // Decrement bonus_perk_points if this choice consumed a bonus slot
-  const bonusNow = db
-    .prepare("SELECT bonus_perk_points FROM weekly_runs WHERE id = ?")
-    .get(run.id) as { bonus_perk_points: number } | undefined;
-  if ((bonusNow?.bonus_perk_points ?? 0) > 0) {
-    db.prepare("UPDATE weekly_runs SET bonus_perk_points = bonus_perk_points - 1 WHERE id = ?")
-      .run(run.id);
+  // Only decrement bonus if this choice consumed a bonus slot (beyond level budget)
+  const newPerkCount = (db
+    .prepare("SELECT COUNT(*) as count FROM character_perks WHERE run_id = ?")
+    .get(run.id) as { count: number }).count;
+  const levelBudget = Math.max(0, char.level - 1);
+  if (newPerkCount > levelBudget) {
+    const bonusNow = db
+      .prepare("SELECT bonus_perk_points FROM weekly_runs WHERE id = ?")
+      .get(run.id) as { bonus_perk_points: number } | undefined;
+    if ((bonusNow?.bonus_perk_points ?? 0) > 0) {
+      db.prepare("UPDATE weekly_runs SET bonus_perk_points = bonus_perk_points - 1 WHERE id = ?")
+        .run(run.id);
+    }
   }
 
   // Log perk pick event

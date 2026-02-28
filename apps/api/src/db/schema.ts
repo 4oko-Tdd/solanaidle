@@ -265,8 +265,7 @@ export function initSchema() {
   }
 
   // Check and add bonus_perk_points column
-  const runColsBonus = db.prepare("PRAGMA table_info(weekly_runs)").all() as { name: string }[];
-  if (!runColsBonus.map(c => c.name).includes("bonus_perk_points")) {
+  if (!colNames.includes("bonus_perk_points")) {
     db.prepare("ALTER TABLE weekly_runs ADD COLUMN bonus_perk_points INTEGER NOT NULL DEFAULT 0").run();
   }
 
