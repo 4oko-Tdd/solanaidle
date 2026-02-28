@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { View, Text, ActivityIndicator, Pressable } from "react-native";
+import { View, Text, ActivityIndicator } from "react-native";
 import { Target, CheckCircle } from "lucide-react-native";
 import { GlassPanel } from "@/components/glass-panel";
-import { Progress } from "@/components/ui";
+import { Button, Progress } from "@/components/ui";
 import type { DailyChallenge } from "@solanaidle/shared";
 
 interface Props {
@@ -63,29 +63,18 @@ function ChallengeRow({ challenge: ch, rerollCost, onReroll }: {
         {ch.completed ? (
           <CheckCircle size={16} color="#14F195" />
         ) : (
-          <Pressable
-            onPress={async () => {
-              setRolling(true);
-              try { await onReroll(); } finally { setRolling(false); }
-            }}
+          <Button
+            variant="ghost"
+            size="sm"
+            onPress={async () => { setRolling(true); try { await onReroll(); } finally { setRolling(false); } }}
             disabled={rolling}
-            style={({ pressed }) => ({
-              opacity: rolling ? 0.4 : pressed ? 0.8 : 1,
-              borderWidth: 1,
-              borderColor: "rgba(20,241,149,0.2)",
-              backgroundColor: "rgba(20,241,149,0.05)",
-              paddingHorizontal: 8,
-              paddingVertical: 4,
-              borderRadius: 6,
-              alignItems: "center" as const,
-              justifyContent: "center" as const,
-              minWidth: 48,
-            })}
+            style={{ borderWidth: 1, borderColor: "rgba(20,241,149,0.2)",
+              backgroundColor: "rgba(20,241,149,0.05)", paddingHorizontal: 8, paddingVertical: 4 }}
           >
             {rolling
               ? <ActivityIndicator size="small" color="#14F195" />
-              : <Text style={{ fontSize: 10, fontFamily: "RobotoMono_400Regular", color: "#14F195" }}>{rerollCost} SKR</Text>}
-          </Pressable>
+              : <Text className="text-[10px] font-mono text-[#14F195]">{rerollCost} SKR</Text>}
+          </Button>
         )}
       </View>
       <Progress value={pct} className="h-1" />
