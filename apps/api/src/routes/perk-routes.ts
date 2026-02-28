@@ -99,7 +99,12 @@ app.get("/offers", (c) => {
 
   // Player gets a perk choice each level after level 1
   // So at level 2 they should have 1 perk, level 3 should have 2, etc.
-  const expectedPerks = Math.max(0, char.level - 1);
+  // Plus any bonus perk points granted (e.g. starter perk on epoch start)
+  const bonusRow = db
+    .prepare("SELECT bonus_perk_points FROM weekly_runs WHERE id = ?")
+    .get(run.id) as { bonus_perk_points: number } | undefined;
+  const bonusPoints = bonusRow?.bonus_perk_points ?? 0;
+  const expectedPerks = Math.max(0, char.level - 1) + bonusPoints;
   const hasPending = expectedPerks > perkCount;
 
   if (!hasPending) {
@@ -129,11 +134,15 @@ app.post("/choose", async (c) => {
     return c.json({ error: "INVALID_PERK", message: "Perk not found" }, 400);
   }
 
-  // Check they have a pending choice
+  // Check they have a pending choice (level-based + bonus perk points)
   const perkCountRow = db
     .prepare("SELECT COUNT(*) as cnt FROM character_perks WHERE run_id = ?")
     .get(run.id) as { cnt: number };
-  const expectedPerks = Math.max(0, char.level - 1);
+  const bonusRowChoose = db
+    .prepare("SELECT bonus_perk_points FROM weekly_runs WHERE id = ?")
+    .get(run.id) as { bonus_perk_points: number } | undefined;
+  const bonusPointsChoose = bonusRowChoose?.bonus_perk_points ?? 0;
+  const expectedPerks = Math.max(0, char.level - 1) + bonusPointsChoose;
   if (expectedPerks <= perkCountRow.cnt) {
     return c.json(
       { error: "NO_PENDING_CHOICE", message: "No perk choice pending" },
@@ -193,6 +202,15 @@ app.post("/choose", async (c) => {
     db.prepare(
       "INSERT INTO character_perks (id, run_id, perk_id, stacks) VALUES (?, ?, ?, 1)"
     ).run(randomUUID(), run.id, perkId);
+  }
+
+  // Decrement bonus_perk_points if this choice consumed a bonus slot
+  const bonusNow = db
+    .prepare("SELECT bonus_perk_points FROM weekly_runs WHERE id = ?")
+    .get(run.id) as { bonus_perk_points: number } | undefined;
+  if ((bonusNow?.bonus_perk_points ?? 0) > 0) {
+    db.prepare("UPDATE weekly_runs SET bonus_perk_points = bonus_perk_points - 1 WHERE id = ?")
+      .run(run.id);
   }
 
   // Log perk pick event

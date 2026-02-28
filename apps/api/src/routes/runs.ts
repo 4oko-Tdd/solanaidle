@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { authMiddleware } from "../middleware/auth.js";
+import db from "../db/database.js";
 import { getActiveRun, startRun, getLeaderboard, getEndedRun, storeStartSignature, storeEndSignature, endRun, getWeekBounds } from "../services/run-service.js";
 import { batchResolve } from "../services/name-service.js";
 import { getRunEvents } from "../services/event-service.js";
@@ -38,6 +39,10 @@ runs.post("/start", async (c) => {
   try {
     const run = startRun(wallet, body.classId as ClassId);
     storeStartSignature(run.id, body.signature);
+
+    // Grant starter perk offer
+    db.prepare("UPDATE weekly_runs SET bonus_perk_points = 1 WHERE wallet_address = ? AND active = 1")
+      .run(wallet);
 
     // Initialize progress PDA and reset to zero (handles same-week re-runs in dev)
     const { weekStart } = getWeekBounds();
