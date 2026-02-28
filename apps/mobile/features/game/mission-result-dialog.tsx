@@ -1,5 +1,8 @@
-import { Modal, View, Text, Image, Pressable } from "react-native";
-import Animated from "react-native-reanimated";
+import { useEffect, useState } from "react";
+import { Modal, View, Text, Image, Pressable, ActivityIndicator } from "react-native";
+import Animated, {
+  useSharedValue, useAnimatedStyle, withRepeat, withTiming, Easing,
+} from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
 import { Trophy, Skull, Heart, HeartCrack, Sparkles, Zap } from "lucide-react-native";
 import { Button } from "@/components/ui";
@@ -14,6 +17,14 @@ interface Props {
 }
 
 export function MissionResultDialog({ result, onClose, livesRemaining }: Props) {
+  const [revealed, setRevealed] = useState(false);
+
+  useEffect(() => {
+    if (!result) { setRevealed(false); return; }
+    const timer = setTimeout(() => setRevealed(true), 1200);
+    return () => clearTimeout(timer);
+  }, [result]);
+
   if (!result) return null;
 
   const isSuccess = result.result === "success";
@@ -65,6 +76,7 @@ export function MissionResultDialog({ result, onClose, livesRemaining }: Props) 
             end={{ x: 0.5, y: 1 }}
             style={{ padding: 16, gap: 12 }}
           >
+            {!revealed ? <RevealingScreen /> : <>
             {/* Gradient accent line at top */}
             {isSuccess && (
               <LinearGradient
@@ -337,6 +349,7 @@ export function MissionResultDialog({ result, onClose, livesRemaining }: Props) 
                 </Text>
               </Button>
             )}
+            </>}
           </LinearGradient>
         </Animated.View>
       </View>
@@ -401,6 +414,50 @@ function RewardCard({
           {value}
         </Text>
       </View>
+    </View>
+  );
+}
+
+function RevealingScreen() {
+  return (
+    <View style={{ alignItems: "center", gap: 20, paddingVertical: 28 }}>
+      <View style={{
+        width: 72, height: 72, borderRadius: 36,
+        borderWidth: 2, borderColor: "rgba(20,241,149,0.3)",
+        alignItems: "center", justifyContent: "center",
+      }}>
+        <ActivityIndicator size="large" color="#14F195" />
+      </View>
+      <View style={{ alignItems: "center", gap: 6 }}>
+        <Text style={{ color: "#14F195", fontWeight: "800", fontSize: 15,
+          letterSpacing: 1.2, textTransform: "uppercase" }}>
+          Processing Transaction
+        </Text>
+        <Text style={{ color: "rgba(255,255,255,0.35)", fontSize: 13 }}>
+          Verifying on-chain...
+        </Text>
+      </View>
+      <ScanBar />
+    </View>
+  );
+}
+
+function ScanBar() {
+  const tx = useSharedValue(-100);
+  useEffect(() => {
+    tx.value = withRepeat(
+      withTiming(100, { duration: 900, easing: Easing.inOut(Easing.quad) }),
+      -1, true
+    );
+  }, []);
+  const style = useAnimatedStyle(() => ({ transform: [{ translateX: tx.value }] }));
+  return (
+    <View style={{ width: 200, height: 2,
+      backgroundColor: "rgba(255,255,255,0.06)", borderRadius: 1, overflow: "hidden" }}>
+      <Animated.View style={[
+        { position: "absolute", width: 80, height: 2, borderRadius: 1, backgroundColor: "#14F195" },
+        style,
+      ]} />
     </View>
   );
 }
