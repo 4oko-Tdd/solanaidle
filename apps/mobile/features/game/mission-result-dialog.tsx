@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Modal, View, Text, Image, Pressable, ActivityIndicator } from "react-native";
 import Animated, {
-  useSharedValue, useAnimatedStyle, withRepeat, withTiming, Easing,
+  useSharedValue, useAnimatedStyle, withRepeat, withTiming, Easing, cancelAnimation,
 } from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
 import { Trophy, Skull, Heart, HeartCrack, Sparkles, Zap } from "lucide-react-native";
@@ -449,6 +449,7 @@ function ScanBar() {
       withTiming(100, { duration: 900, easing: Easing.inOut(Easing.quad) }),
       -1, true
     );
+    return () => cancelAnimation(tx);
   }, []);
   const style = useAnimatedStyle(() => ({ transform: [{ translateX: tx.value }] }));
   return (
