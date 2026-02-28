@@ -10,7 +10,6 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@bonfida/spl-name-service": "^3.0.19",
     "@hono/node-server": "^1.19.9",
     "@metaplex-foundation/mpl-core": "^1.7.0",
     "@metaplex-foundation/umi": "^1.5.1",

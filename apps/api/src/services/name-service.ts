@@ -1,11 +1,6 @@
-import { Connection, PublicKey } from "@solana/web3.js";
-import {
-  getFavoriteDomain,
-  reverseLookup,
-} from "@bonfida/spl-name-service";
-
 // Domains (.sol, .skr) only exist on mainnet — always resolve against mainnet
-const MAINNET_RPC = "https://api.mainnet-beta.solana.com";
+// SNS uses Bonfida REST proxy (no favorite required, works for any domain owner)
+const BONFIDA_API = "https://sns-sdk-proxy.bonfida.workers.dev/domains";
 const ALLDOMAIN_API = "https://api.alldomains.id/reverse-lookup";
 const TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
@@ -32,11 +27,13 @@ function setCached(address: string, name: string | null): void {
 
 async function resolveSol(address: string): Promise<string | null> {
   try {
-    const connection = new Connection(MAINNET_RPC, "confirmed");
-    const pubkey = new PublicKey(address);
-    const { domain } = await getFavoriteDomain(connection, pubkey);
-    const name = await reverseLookup(connection, domain);
-    return `${name}.sol`;
+    const res = await fetch(`${BONFIDA_API}/${address}`, {
+      signal: AbortSignal.timeout(5000),
+    });
+    if (!res.ok) return null;
+    const data = (await res.json()) as { result?: { domain: string }[] };
+    const first = data.result?.[0]?.domain;
+    return first ? `${first}.sol` : null;
   } catch {
     return null;
   }
