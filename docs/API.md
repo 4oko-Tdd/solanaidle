@@ -417,6 +417,180 @@ Get boss fight results after boss is killed. Triggers drop rolls for the authent
 
 ---
 
+### Runs & Leaderboard
+
+#### `POST /runs/start` (auth required)
+Start a new weekly run. Requires choosing a class. Only one active run per player per epoch.
+
+**Body:**
+```json
+{ "classId": "scout" }
+```
+
+**Response:**
+```json
+{
+  "run": {
+    "id": "...",
+    "classId": "scout",
+    "weekStart": "2026-02-23T00:00:00.000Z",
+    "livesRemaining": 3,
+    "score": 0,
+    "missionsCompleted": 0,
+    "bossDefeated": false,
+    "active": true,
+    "streak": 0
+  }
+}
+```
+
+#### `GET /runs/active` (auth required)
+Get the player's current active run.
+
+#### `POST /runs/finalize` (auth required)
+Finalize the current run and apply VRF-powered epoch bonus.
+
+**Response:**
+```json
+{
+  "finalized": true,
+  "bonus": {
+    "multiplier": 1.5,
+    "boostedScore": 1500,
+    "originalScore": 1000,
+    "vrfVerified": true,
+    "vrfAccount": "Vrf...abc"
+  }
+}
+```
+
+#### `GET /runs/leaderboard` (public)
+Get the leaderboard for the current epoch. Wallet addresses are resolved to `.sol` or `.skr` domain names where available (server-side, cached 24h).
+
+**Response:**
+```json
+[
+  {
+    "rank": 1,
+    "walletAddress": "HLjs...V3",
+    "displayName": "alice.sol",
+    "classId": "guardian",
+    "score": 4200,
+    "missionsCompleted": 18,
+    "bossDefeated": true
+  },
+  {
+    "rank": 2,
+    "walletAddress": "9xKp...Wz",
+    "classId": "scout",
+    "score": 3100,
+    "missionsCompleted": 14,
+    "bossDefeated": false
+  }
+]
+```
+
+`displayName` is present only when a `.sol` or `.skr` domain resolves for the wallet. Falls back to truncated address in the UI.
+
+---
+
+### Guilds
+
+#### `GET /guilds/mine` (auth required)
+Get the player's current guild and member list. Member wallet addresses are resolved to domain names where available.
+
+**Response:**
+```json
+{
+  "guild": {
+    "id": "...",
+    "name": "Phantom Fleet",
+    "inviteCode": "XK9M2",
+    "createdBy": "HLjs...V3",
+    "memberCount": 3
+  },
+  "members": [
+    {
+      "walletAddress": "HLjs...V3",
+      "characterId": "...",
+      "joinedAt": "2026-02-20T10:00:00.000Z",
+      "displayName": "alice.sol"
+    },
+    {
+      "walletAddress": "9xKp...Wz",
+      "characterId": "...",
+      "joinedAt": "2026-02-21T08:00:00.000Z"
+    }
+  ]
+}
+```
+
+Returns `{ guild: null, members: [] }` if player has no guild.
+
+#### `POST /guilds` (auth required)
+Create a new guild.
+
+**Body:**
+```json
+{ "name": "Phantom Fleet" }
+```
+
+#### `POST /guilds/join` (auth required)
+Join a guild by invite code.
+
+**Body:**
+```json
+{ "inviteCode": "XK9M2" }
+```
+
+#### `POST /guilds/leave` (auth required)
+Leave the current guild.
+
+---
+
+### Raids
+
+#### `GET /raids/available` (auth required)
+List raid missions available to the player's guild.
+
+**Response:**
+```json
+[
+  {
+    "id": "outpost",
+    "name": "Outpost Raid",
+    "requiredPlayers": 2,
+    "duration": 7200,
+    "lootMultiplier": 2,
+    "description": "2-player co-op for 2x loot"
+  },
+  {
+    "id": "stronghold",
+    "name": "Stronghold Siege",
+    "requiredPlayers": 3,
+    "duration": 14400,
+    "lootMultiplier": 3,
+    "description": "3-player siege for 3x loot"
+  }
+]
+```
+
+#### `POST /raids/start` (auth required)
+Start a guild raid.
+
+**Body:**
+```json
+{ "raidId": "outpost" }
+```
+
+#### `GET /raids/active` (auth required)
+Get the guild's active raid (if any).
+
+#### `POST /raids/claim` (auth required)
+Claim completed raid rewards.
+
+---
+
 ## Error Responses
 
 All errors follow:
