@@ -57,6 +57,9 @@ export default function GameScreen() {
     raidLicense,
     destabilized,
     monetizationCosts,
+    surgeActive,
+    nextSurge,
+    surgeWindows,
     refresh: bossRefresh,
   } = useBoss();
   const dailyLogin = useDailyLogin(isAuthenticated);
@@ -405,6 +408,8 @@ export default function GameScreen() {
             raidLicenseActive={raidLicense}
             destabilized={destabilized}
             monetizationCosts={monetizationCosts}
+            surgeActive={surgeActive}
+            nextSurge={nextSurge}
             onJoin={bossJoin}
             onOverload={bossOverload}
             onReconnect={bossReconnect}
