@@ -501,3 +501,9 @@ export interface DailyChallengesStatus {
   periodKey: string;
   rerollCost: number;
 }
+
+// ── Boss Surge ──
+export interface SurgeWindow {
+  startsAt: number;
+  endsAt: number;
+}

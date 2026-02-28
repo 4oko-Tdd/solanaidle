@@ -23,6 +23,31 @@ const SKR_COSTS = {
   raidLicense: 35,
 } as const;
 
+const SURGE_SCHEDULE = [
+  { daysFromMonday: 5, hour: 8 },   // Saturday 08:00 UTC
+  { daysFromMonday: 5, hour: 20 },  // Saturday 20:00 UTC
+  { daysFromMonday: 6, hour: 8 },   // Sunday 08:00 UTC
+];
+const SURGE_DURATION_MS = 45 * 60 * 1000;
+
+export function getSurgeWindows(weekStartMs: number): { startsAt: number; endsAt: number }[] {
+  return SURGE_SCHEDULE.map(({ daysFromMonday, hour }) => {
+    const d = new Date(weekStartMs + daysFromMonday * 86400000);
+    d.setUTCHours(hour, 0, 0, 0);
+    return { startsAt: d.getTime(), endsAt: d.getTime() + SURGE_DURATION_MS };
+  });
+}
+
+export function isSurgeActive(weekStartMs: number): boolean {
+  const now = Date.now();
+  return getSurgeWindows(weekStartMs).some(w => now >= w.startsAt && now < w.endsAt);
+}
+
+export function getNextSurge(weekStartMs: number): { startsAt: number; endsAt: number } | null {
+  const now = Date.now();
+  return getSurgeWindows(weekStartMs).find(w => w.startsAt > now) ?? null;
+}
+
 // ── Helpers ──
 
 /** Returns true if current UTC time is Saturday (6) or Sunday (0) */
@@ -357,11 +382,16 @@ export function calculatePassiveDamage(
   const efficiency = bossState.raid_license === 1 ? 1.05 : 1;
   const damage = Math.floor(basePower * efficiency * hoursInFight);
 
+  const boss = db.prepare("SELECT week_start FROM world_boss WHERE id = ?").get(bossId) as { week_start: string } | undefined;
+  const weekStartMs = boss ? new Date(boss.week_start).getTime() : 0;
+  const surgeMultiplier = isSurgeActive(weekStartMs) ? 2 : 1;
+  const finalDamage = Math.floor(damage * surgeMultiplier);
+
   db.prepare(
     "UPDATE boss_participants SET passive_damage = ? WHERE boss_id = ? AND wallet_address = ?"
-  ).run(damage, bossId, walletAddress);
+  ).run(finalDamage, bossId, walletAddress);
 
-  return damage;
+  return finalDamage;
 }
 
 /** Use the OVERLOAD ability — burns all resources for crit damage. Once per fight. */
@@ -654,6 +684,9 @@ export function getBossStatus(
   overloadAmpUsed?: boolean;
   raidLicense?: boolean;
   destabilized?: boolean;
+  surgeActive: boolean;
+  nextSurge: { startsAt: number; endsAt: number } | null;
+  surgeWindows: { startsAt: number; endsAt: number }[];
   monetizationCosts?: {
     reconnect: number;
     overloadAmplifier: number;
@@ -667,6 +700,7 @@ export function getBossStatus(
   if (!row) return null;
 
   const boss = mapBoss(row);
+  const weekStartMs = new Date(row.week_start).getTime();
 
   const countRow = db
     .prepare(
@@ -692,6 +726,9 @@ export function getBossStatus(
     overloadAmpUsed?: boolean;
     raidLicense?: boolean;
     destabilized?: boolean;
+    surgeActive: boolean;
+    nextSurge: { startsAt: number; endsAt: number } | null;
+    surgeWindows: { startsAt: number; endsAt: number }[];
     monetizationCosts?: {
       reconnect: number;
       overloadAmplifier: number;
@@ -702,6 +739,9 @@ export function getBossStatus(
     boss,
     participantCount: countRow.cnt,
     totalDamage: dmgRow.total,
+    surgeActive: isSurgeActive(weekStartMs),
+    nextSurge: getNextSurge(weekStartMs),
+    surgeWindows: getSurgeWindows(weekStartMs),
   };
 
   if (walletAddress) {

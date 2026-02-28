@@ -124,3 +124,22 @@ export async function notifyEpochStarted(epochKey: string): Promise<void> {
     console.warn("[notifications] epoch started notify failed", error);
   }
 }
+
+export async function scheduleSurgeNotifications(
+  surgeWindows: { startsAt: number }[]
+): Promise<void> {
+  const ready = await initGameNotifications();
+  if (!ready || !moduleRef) return;
+  for (const [i, w] of surgeWindows.entries()) {
+    const notifyAt = w.startsAt - 10 * 60 * 1000;
+    if (notifyAt <= Date.now()) continue;
+    try {
+      await moduleRef.scheduleNotification(
+        "⚡ Surge Window Opening Soon",
+        "Leviathan becomes vulnerable in 10 minutes. Prepare your OVERLOAD.",
+        notifyAt,
+        `surge_window_${i}`
+      );
+    } catch { /* silent */ }
+  }
+}

@@ -4,7 +4,8 @@ import { signOverload } from "@/lib/er";
 import { useBossER } from "./use-boss-er";
 import { paySkrOnChain } from "@/lib/skr";
 import { useAuth } from "@/providers/auth-context";
-import type { WorldBoss } from "@solanaidle/shared";
+import { scheduleSurgeNotifications } from "@/lib/game-notifications";
+import type { WorldBoss, SurgeWindow } from "@solanaidle/shared";
 
 interface BossStatus {
   boss: WorldBoss | null;
@@ -18,6 +19,9 @@ interface BossStatus {
   overloadAmpUsed?: boolean;
   raidLicense?: boolean;
   destabilized?: boolean;
+  surgeActive?: boolean;
+  nextSurge?: SurgeWindow | null;
+  surgeWindows?: SurgeWindow[];
   monetizationCosts?: {
     reconnect: number;
     overloadAmplifier: number;
@@ -38,6 +42,9 @@ interface BossState {
   overloadAmpUsed: boolean;
   raidLicense: boolean;
   destabilized: boolean;
+  surgeActive: boolean;
+  nextSurge: SurgeWindow | null;
+  surgeWindows: SurgeWindow[];
   monetizationCosts: {
     reconnect: number;
     overloadAmplifier: number;
@@ -65,6 +72,9 @@ export function useBoss() {
     overloadAmpUsed: false,
     raidLicense: false,
     destabilized: false,
+    surgeActive: false,
+    nextSurge: null,
+    surgeWindows: [],
     monetizationCosts: {
       reconnect: 25,
       overloadAmplifier: 18,
@@ -94,6 +104,9 @@ export function useBoss() {
         overloadAmpUsed: data.overloadAmpUsed ?? false,
         raidLicense: data.raidLicense ?? false,
         destabilized: data.destabilized ?? false,
+        surgeActive: data.surgeActive ?? false,
+        nextSurge: data.nextSurge ?? null,
+        surgeWindows: data.surgeWindows ?? [],
         monetizationCosts: data.monetizationCosts ?? {
           reconnect: 25,
           overloadAmplifier: 18,
@@ -125,8 +138,12 @@ export function useBoss() {
 
   const join = useCallback(async () => {
     await api("/boss/join", { method: "POST" });
+    // Schedule surge notifications after joining
+    if (state.surgeWindows.length > 0) {
+      scheduleSurgeNotifications(state.surgeWindows).catch(() => {});
+    }
     await refresh();
-  }, [refresh]);
+  }, [refresh, state.surgeWindows]);
 
   const overload = useCallback(async () => {
     if (!signMessage || !walletAddress) {
@@ -221,6 +238,9 @@ export function useBoss() {
       ? er.onChainTotalDamage
       : state.totalDamage,
     wsConnected: er.connected,
+    surgeActive: state.surgeActive,
+    nextSurge: state.nextSurge,
+    surgeWindows: state.surgeWindows,
     join,
     overload,
     reconnect,
