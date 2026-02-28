@@ -156,7 +156,7 @@ export function LeaderboardPanel({ currentWallet }: Props) {
                 </span>
                 <ClassIcon classId={entry.classId} className="h-4 w-4" />
                 <span className={`font-mono text-xs ${isMe ? "text-white font-medium" : "text-[#7ab8d9]"}`}>
-                  {isMe ? "You" : truncateWallet(entry.walletAddress)}
+                  {isMe ? "You" : (entry.displayName ?? truncateWallet(entry.walletAddress))}
                 </span>
               </div>
               <div className="flex items-center gap-2.5">

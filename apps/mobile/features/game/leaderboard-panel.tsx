@@ -174,7 +174,7 @@ export function LeaderboardPanel({ isAuthenticated, currentWallet }: Props) {
                   </View>
                   <ClassIcon classId={entry.classId} size={18} />
                   <Text className={`${isMe ? "font-mono-bold text-sm text-white" : "font-mono text-sm text-[#7ab8d9]"}`}>
-                    {isMe ? "You" : truncateWallet(entry.walletAddress)}
+                    {isMe ? "You" : (entry.displayName ?? truncateWallet(entry.walletAddress))}
                   </Text>
                 </View>
                 <View className="flex-row items-center gap-3">

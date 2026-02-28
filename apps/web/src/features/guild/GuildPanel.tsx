@@ -157,7 +157,7 @@ export function GuildPanel() {
               >
                 <div className="h-2 w-2 rounded-full bg-[#14F195]" />
                 <span className="font-mono text-xs text-[#7ab8d9]">
-                  {truncateWallet(m.walletAddress)}
+                  {m.displayName ?? truncateWallet(m.walletAddress)}
                 </span>
               </div>
             ))}

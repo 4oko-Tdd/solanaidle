@@ -249,6 +249,7 @@ export interface GuildMember {
   walletAddress: string;
   characterId: string;
   joinedAt: string;
+  displayName?: string;
 }
 
 // ── Raids ──
@@ -343,6 +344,7 @@ export interface LeaderboardEntry {
   score: number;
   missionsCompleted: number;
   bossDefeated: boolean;
+  displayName?: string;
 }
 
 // ── Extended Character (adds class & run info) ──

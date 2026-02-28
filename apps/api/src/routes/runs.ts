@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { authMiddleware } from "../middleware/auth.js";
 import { getActiveRun, startRun, getLeaderboard, getEndedRun, storeStartSignature, storeEndSignature, endRun, getWeekBounds } from "../services/run-service.js";
+import { batchResolve } from "../services/name-service.js";
 import { getRunEvents } from "../services/event-service.js";
 import { CLASSES } from "../services/game-config.js";
 import { computeEpochBonus } from "../services/vrf-service.js";
@@ -57,9 +58,13 @@ runs.post("/start", async (c) => {
 });
 
 // Get leaderboard
-runs.get("/leaderboard", (c) => {
+runs.get("/leaderboard", async (c) => {
   const leaderboard = getLeaderboard();
-  return c.json(leaderboard);
+  const names = await batchResolve(leaderboard.map((e) => e.walletAddress));
+  const enriched = leaderboard.map((e) =>
+    names.has(e.walletAddress) ? { ...e, displayName: names.get(e.walletAddress) } : e
+  );
+  return c.json(enriched);
 });
 
 // Get ended run for current week (for finalize screen)
