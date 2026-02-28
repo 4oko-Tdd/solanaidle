@@ -105,10 +105,19 @@ export function usePerks(enabled = true) {
     notifyPerksChanged();
   }, [refresh]);
 
+  const rerollPerks = useCallback(async (paymentSignature: string) => {
+    const res = await api<{ offers: PerkDefinition[]; hasPending: boolean }>(
+      "/perks/reroll",
+      { method: "POST", body: JSON.stringify({ paymentSignature }) }
+    );
+    setState(s => ({ ...s, offers: res.offers, hasPending: res.hasPending }));
+  }, []);
+
   return {
     ...state,
     hasPending: enabled ? (state.hasPending || optimisticPending) : false,
     choosePerk,
+    rerollPerks,
     refresh,
   };
 }

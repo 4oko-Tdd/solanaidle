@@ -10,6 +10,7 @@ import { TrophyCase } from "@/features/game/trophy-case";
 import { PermanentCollection } from "@/features/game/permanent-collection";
 import { ScreenBg } from "@/components/screen-bg";
 import { ChevronDown, ChevronUp } from "lucide-react-native";
+import { paySkrOnChain } from "@/lib/skr";
 
 function SectionCard({
   title,
@@ -54,9 +55,9 @@ function SectionCard({
 
 export default function BaseScreen() {
   const router = useRouter();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, walletAddress, signAndSendTransaction, connection } = useAuth();
   const { upgradeInfo, inventory, upgradeTrack, activeRun, refresh } = useGameState(isAuthenticated);
-  const { offers, hasPending, loading, choosePerk, refresh: refreshPerks } = usePerks();
+  const { offers, hasPending, loading, choosePerk, rerollPerks, refresh: refreshPerks } = usePerks();
   const navigation = useNavigation();
   const [showPermanent, setShowPermanent] = useState(false);
   const [showTrophy, setShowTrophy] = useState(false);
@@ -102,6 +103,16 @@ export default function BaseScreen() {
               onActivate={choosePerk}
               autoOpen={false}
               showOpenButton
+              onReroll={async () => {
+                const sig = await paySkrOnChain({
+                  walletAddress: walletAddress!,
+                  amount: 10,
+                  connection,
+                  signAndSendTransaction: signAndSendTransaction!,
+                });
+                await rerollPerks(sig);
+              }}
+              rerollCost={10}
             />
             <View
               style={{

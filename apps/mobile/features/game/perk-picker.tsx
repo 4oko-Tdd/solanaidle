@@ -28,6 +28,8 @@ interface PerkPickerProps {
   onActivate: (perkId: string) => Promise<void>;
   autoOpen?: boolean;
   showOpenButton?: boolean;
+  onReroll?: () => Promise<void>;
+  rerollCost?: number;
 }
 
 type TierKey = "common" | "rare" | "legendary";
@@ -155,10 +157,14 @@ function ModalContent({
   perks,
   onActivate,
   onClose,
+  onReroll,
+  rerollCost,
 }: {
   perks: PerkDefinition[];
   onActivate: (id: string) => Promise<void>;
   onClose: () => void;
+  onReroll?: () => Promise<void>;
+  rerollCost?: number;
 }) {
   const [choosing, setChoosing] = useState(false);
   const contentFadeIn = useFadeInUp(0, 350);
@@ -205,11 +211,34 @@ function ModalContent({
             <Text className="text-base text-white/50">Installing perk...</Text>
           </View>
         ) : (
-          <View className="items-center">
-            <Button variant="ghost" size="sm" onPress={onClose}>
-              Later
-            </Button>
-          </View>
+          <>
+            {onReroll && (
+              <View className="items-center">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onPress={async () => {
+                    setChoosing(true);
+                    try { await onReroll(); } finally { setChoosing(false); }
+                  }}
+                  style={{
+                    borderWidth: 1,
+                    borderColor: "rgba(20,241,149,0.25)",
+                    backgroundColor: "rgba(20,241,149,0.06)",
+                  }}
+                >
+                  <Text className="text-xs font-mono text-[#14F195]">
+                    Reroll offers ({rerollCost ?? 10} SKR)
+                  </Text>
+                </Button>
+              </View>
+            )}
+            <View className="items-center">
+              <Button variant="ghost" size="sm" onPress={onClose}>
+                Later
+              </Button>
+            </View>
+          </>
         )}
       </Animated.View>
     </View>
@@ -221,6 +250,8 @@ export function PerkPicker({
   onActivate,
   autoOpen = true,
   showOpenButton = false,
+  onReroll,
+  rerollCost,
 }: PerkPickerProps) {
   const [open, setOpen] = useState(false);
 
@@ -302,7 +333,7 @@ export function PerkPicker({
         navigationBarTranslucent
         onRequestClose={() => setOpen(false)}
       >
-        <ModalContent perks={perks.offers} onActivate={onActivate} onClose={() => setOpen(false)} />
+        <ModalContent perks={perks.offers} onActivate={onActivate} onClose={() => setOpen(false)} onReroll={onReroll} rerollCost={rerollCost} />
       </Modal>
     </>
   );
