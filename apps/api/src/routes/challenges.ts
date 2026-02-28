@@ -29,6 +29,13 @@ challenges.post("/reroll", async (c) => {
 
   const wallet = c.get("wallet");
 
+  // Validate questId belongs to this player's current challenges
+  const currentChallenges = getDailyChallenges(wallet);
+  const validIds = currentChallenges.challenges.map(ch => ch.id);
+  if (!validIds.includes(questId)) {
+    return c.json({ error: "INVALID_QUEST_ID", message: "Quest not in current daily challenges" }, 400);
+  }
+
   const payment = await verifyAndRecordSkrPayment({
     signature: paymentSignature,
     walletAddress: wallet,

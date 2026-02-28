@@ -8,7 +8,7 @@ const ALL_CHALLENGES: ChallengeDefinition[] = [
   { id: "missions_4", description: "Complete 4 missions", requirement: 4, rewardScrap: 120, rewardCrystal: 0, type: "missions" },
   { id: "earn_scrap_200", description: "Earn 200 Scrap", requirement: 200, rewardScrap: 50, rewardCrystal: 0, type: "scrap" },
   { id: "earn_crystal_20", description: "Earn 20 Tokens", requirement: 20, rewardScrap: 0, rewardCrystal: 10, type: "crystal" },
-  { id: "survive_expedition", description: "Complete a Liquidity Run", requirement: 1, rewardScrap: 80, rewardCrystal: 5, type: "missions" },
+  { id: "survive_expedition", description: "Complete a Liquidity Run", requirement: 1, rewardScrap: 80, rewardCrystal: 5, type: "liquidity_run" },
   { id: "join_boss", description: "Join the boss hunt", requirement: 1, rewardScrap: 0, rewardCrystal: 15, type: "boss_join" },
   { id: "use_overload", description: "Use OVERLOAD on the boss", requirement: 1, rewardScrap: 0, rewardCrystal: 20, type: "overload" },
   { id: "start_raid", description: "Start a guild raid", requirement: 1, rewardScrap: 100, rewardCrystal: 0, type: "raid" },
@@ -21,8 +21,15 @@ export function getTodayPeriodKey(): string {
 
 /** Seeded deterministic 3-pick — same challenges for all players each day */
 function getDailyChallengeIds(periodKey: string): string[] {
-  let seed = Array.from(periodKey).reduce((acc, c) => acc + c.charCodeAt(0), 0);
-  const next = () => { seed = (seed * 1664525 + 1013904223) & 0x7fffffff; return seed / 0x7fffffff; };
+  // FNV-1a style: position-sensitive, produces unique seed per calendar date
+  let seed = 2166136261;
+  for (const c of periodKey) {
+    seed = (Math.imul(seed ^ c.charCodeAt(0), 16777619)) >>> 0;
+  }
+  const next = () => {
+    seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+    return seed / 0xffffffff;
+  };
   const pool = [...ALL_CHALLENGES];
   for (let i = pool.length - 1; i > 0; i--) {
     const j = Math.floor(next() * (i + 1));
@@ -44,8 +51,16 @@ export function getDailyChallenges(wallet: string) {
   // For each rerolled slot, deterministically pick a replacement from remaining pool
   const finalIds = baseIds.map((id, slot) => {
     if (!rerolledSet.has(id)) return id;
-    let seed2 = Array.from(periodKey + slot).reduce((acc, c) => acc + c.charCodeAt(0), 0);
-    const next2 = () => { seed2 = (seed2 * 1664525 + 1013904223) & 0x7fffffff; return seed2 / 0x7fffffff; };
+    // FNV-1a style: position-sensitive, slot changes the result meaningfully
+    let seed2 = 2166136261;
+    for (const c of periodKey) {
+      seed2 = (Math.imul(seed2 ^ c.charCodeAt(0), 16777619)) >>> 0;
+    }
+    seed2 = (Math.imul(seed2 ^ slot, 16777619)) >>> 0;
+    const next2 = () => {
+      seed2 = (Math.imul(seed2, 1664525) + 1013904223) >>> 0;
+      return seed2 / 0xffffffff;
+    };
     const rest = ALL_CHALLENGES.filter(c => !baseIds.includes(c.id));
     return rest[Math.floor(next2() * rest.length)]?.id ?? id;
   });
