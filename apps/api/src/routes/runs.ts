@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { authMiddleware } from "../middleware/auth.js";
 import db from "../db/database.js";
 import { getActiveRun, startRun, getLeaderboard, getEndedRun, storeStartSignature, storeEndSignature, endRun, getWeekBounds } from "../services/run-service.js";
-import { getPlayerTitle, incrementLifetimeStat } from "../services/milestone-service.js";
+import { batchGetPlayerTitles, incrementLifetimeStat } from "../services/milestone-service.js";
 import { verifyAndRecordSkrPayment } from "../services/skr-service.js";
 import { batchResolve } from "../services/name-service.js";
 import { getRunEvents } from "../services/event-service.js";
@@ -67,11 +67,15 @@ runs.post("/start", async (c) => {
 // Get leaderboard
 runs.get("/leaderboard", async (c) => {
   const leaderboard = getLeaderboard();
-  const names = await batchResolve(leaderboard.map((e) => e.walletAddress));
+  const wallets = leaderboard.map((e) => e.walletAddress);
+  const [names, titles] = await Promise.all([
+    batchResolve(wallets),
+    Promise.resolve(batchGetPlayerTitles(wallets)),
+  ]);
   const enriched = leaderboard.map((e) => ({
     ...e,
     ...(names.has(e.walletAddress) ? { displayName: names.get(e.walletAddress) } : {}),
-    title: getPlayerTitle(e.walletAddress) ?? undefined,
+    title: titles.get(e.walletAddress),
   }));
   return c.json(enriched);
 });
