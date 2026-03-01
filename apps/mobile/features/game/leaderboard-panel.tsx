@@ -173,9 +173,16 @@ export function LeaderboardPanel({ isAuthenticated, currentWallet }: Props) {
                     <RankIcon rank={entry.rank} />
                   </View>
                   <ClassIcon classId={entry.classId} size={18} />
-                  <Text className={`${isMe ? "font-mono-bold text-sm text-white" : "font-mono text-sm text-[#7ab8d9]"}`}>
-                    {isMe ? "You" : (entry.displayName ?? truncateWallet(entry.walletAddress))}
-                  </Text>
+                  <View>
+                    <Text className={`${isMe ? "font-mono-bold text-sm text-white" : "font-mono text-sm text-[#7ab8d9]"}`}>
+                      {isMe ? "You" : (entry.displayName ?? truncateWallet(entry.walletAddress))}
+                    </Text>
+                    {entry.title && (
+                      <Text className="text-[10px] font-mono text-[#9945FF] uppercase tracking-wider">
+                        {entry.title}
+                      </Text>
+                    )}
+                  </View>
                 </View>
                 <View className="flex-row items-center gap-3">
                   {entry.bossDefeated && <Crown size={16} color="#ffb800" />}

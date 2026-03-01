@@ -356,6 +356,7 @@ export interface LeaderboardEntry {
   missionsCompleted: number;
   bossDefeated: boolean;
   displayName?: string;
+  title?: string;
 }
 
 // ── Extended Character (adds class & run info) ──
