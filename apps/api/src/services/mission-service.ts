@@ -49,21 +49,7 @@ function randomInt(min: number, max: number): number {
 }
 
 export function getActiveMission(characterId: string): ActiveMission | null {
-  const row = db
-    .prepare("SELECT * FROM active_missions WHERE character_id = ?")
-    .get(characterId) as MissionRow | undefined;
-  if (!row) return null;
-
-  const now = Date.now();
-  const endsAt = new Date(row.ends_at).getTime();
-  const timeRemaining = Math.max(0, Math.floor((endsAt - now) / 1000));
-
-  return {
-    missionId: row.mission_id as MissionId,
-    startedAt: row.started_at,
-    endsAt: row.ends_at,
-    timeRemaining,
-  };
+  return getActiveMissions(characterId).main;
 }
 
 export function getActiveMissions(characterId: string): { main: ActiveMission | null; fast: ActiveMission | null } {
