@@ -136,20 +136,6 @@ Titles are cosmetic only — zero gameplay advantage. Visible to everyone on the
 
 ---
 
-## Core Engagement Loop
-
-```
-Monday    → Pick class, start fresh (Level 1, 3 lives, zero resources)
-Mon-Fri   → Run missions → earn XP + resources → buy upgrades → choose perks on level-up
-Saturday  → World Boss spawns → all missions lock → Join the Hunt
-Weekend   → Optional SKR utilities (Reconnect / Amp / License) if needed
-Sun 23:59 → Epoch ends → boss drops roll → full reset → repeat
-```
-
-No infinite farming. Time is the core limiter. Lives are finite. Decisions have consequences. The boss is the chase.
-
----
-
 ## Solana Integrations
 
 ### Solana Mobile
@@ -222,7 +208,7 @@ Each integration (Mobile Wallet Adapter, MagicBlock ER, Metaplex Core NFTs, SKR)
 
 ---
 
-## Core Engagement Loop (Updated)
+## Core Engagement Loop
 
 ```
 Monday    → Pick class, start fresh + receive starter perk offer
@@ -234,6 +220,8 @@ Saturday  → World Boss spawns → all missions lock → Join the Hunt
 Weekend   → OVERLOAD during surge for max impact; optional SKR utilities
 Sun 23:59 → Epoch ends → boss drops roll → full reset → repeat
 ```
+
+No infinite farming. Time is the core limiter. Lives are finite. Decisions have consequences. The boss is the chase.
 
 ---
 
