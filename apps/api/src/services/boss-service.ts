@@ -650,9 +650,9 @@ export function updateAllPassiveDamage(bossId: string): void {
   const totalDamage = totalPassive + critRow.total;
 
   const boss = db
-    .prepare("SELECT max_hp FROM world_boss WHERE id = ?")
+    .prepare("SELECT max_hp FROM world_boss WHERE id = ? AND killed = 0")
     .get(bossId) as { max_hp: number } | undefined;
-  if (!boss) return;
+  if (!boss) return; // not found or already killed
 
   const newHp = Math.max(0, boss.max_hp - totalDamage);
 
