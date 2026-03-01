@@ -162,8 +162,11 @@ export type ErrorCode =
   | "FAST_SLOT_LOCKED"
   | "FAST_SLOT_SCOUT_ONLY"
   | "ALREADY_UNLOCKED"
+  | "ALREADY_REROLLED"
   | "PAYMENT_SIGNATURE_REQUIRED"
-  | "SIGNATURE_REQUIRED";
+  | "SIGNATURE_REQUIRED"
+  | "INVALID_QUEST_ID"
+  | "QUEST_ID_REQUIRED";
 
 export interface ApiError {
   error: ErrorCode;

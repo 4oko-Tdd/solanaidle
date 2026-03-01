@@ -454,6 +454,10 @@ if (process.env.NODE_ENV !== "production") {
       db.prepare("DELETE FROM skr_spends WHERE wallet_address = ?").run(w);
       db.prepare("DELETE FROM skr_payments WHERE wallet_address = ?").run(w);
       db.prepare("DELETE FROM skr_wallets WHERE wallet_address = ?").run(w);
+      db.prepare("DELETE FROM quest_boosts WHERE wallet_address = ?").run(w);
+      db.prepare("DELETE FROM quest_completions WHERE wallet_address = ?").run(w);
+      db.prepare("DELETE FROM challenge_progress WHERE wallet_address = ?").run(w);
+      db.prepare("DELETE FROM lifetime_stats WHERE wallet_address = ?").run(w);
 
       // Runs + events
       const runs = db.prepare("SELECT id FROM weekly_runs WHERE wallet_address = ?").all(w) as any[];
