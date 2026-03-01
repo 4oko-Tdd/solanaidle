@@ -16,7 +16,7 @@
 - [ ] Boss spawned via dev bar (boss fight replaces the mission panel on the game tab)
 - [ ] Surge active — tap "Toggle Surge" in dev bar to force it on (shows gold "SURGE ACTIVE" banner)
 - [ ] At least one permanent loot item — tap "+Boss Loot" in dev bar to inject one
-- [ ] Leaderboard has a titled player visible (earn 10 missions or seed the DB)
+- [ ] Leaderboard has titled players visible — tap "Seed LB" in dev bar
 
 **Dev bar quick actions (tap the "Dev" label with wrench icon at the top of the game screen):**
 - Spawn Boss / Kill Boss — always visible, doesn't require active run
@@ -24,6 +24,7 @@
 - Skip Timer — completes active mission instantly (only shown when mission is active)
 - Toggle Surge — force-enables the 2× surge banner on the boss fight screen
 - +Boss Loot — injects a permanent loot item (Leviathan Scale, Protocol Core, etc.) into your collection
+- Seed LB — populates the leaderboard with 5 demo players with titles (Leviathan Hunter, Node Operator, etc.)
 
 **Recording tips:**
 - Tap slowly — judges need to follow
