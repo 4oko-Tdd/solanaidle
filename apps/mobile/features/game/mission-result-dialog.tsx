@@ -19,15 +19,7 @@ interface Props {
 export function MissionResultDialog({ result, onClose, livesRemaining }: Props) {
   const [revealed, setRevealed] = useState(false);
 
-  useEffect(() => {
-    if (!result) { setRevealed(false); return; }
-    const timer = setTimeout(() => setRevealed(true), 1200);
-    return () => clearTimeout(timer);
-  }, [result]);
-
-  if (!result) return null;
-
-  const isSuccess = result.result === "success";
+  const isSuccess = result?.result === "success";
   const isRunOver = livesRemaining !== undefined && livesRemaining <= 0;
 
   const glowStyle = useGlowPulse(
@@ -40,6 +32,14 @@ export function MissionResultDialog({ result, onClose, livesRemaining }: Props) 
   const fadeIn4 = useFadeInUp(400);
   const fadeIn5 = useFadeInUp(500);
   const fadeInDelays = [fadeIn1, fadeIn2, fadeIn3, fadeIn4, fadeIn5];
+
+  useEffect(() => {
+    if (!result) { setRevealed(false); return; }
+    const timer = setTimeout(() => setRevealed(true), 1200);
+    return () => clearTimeout(timer);
+  }, [result]);
+
+  if (!result) return null;
 
   return (
     <Modal
