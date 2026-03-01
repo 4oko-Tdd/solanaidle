@@ -14,7 +14,7 @@ type Env = { Variables: { wallet: string } };
 const raids = new Hono<Env>();
 raids.use("*", authMiddleware);
 
-// Get available raids for my guild
+// Get raids for my guild (all raids + member count; client handles locked state)
 raids.get("/", (c) => {
   const wallet = c.get("wallet");
   const guild = getGuildByMember(wallet);
@@ -23,8 +23,7 @@ raids.get("/", (c) => {
       { error: "NOT_IN_GUILD", message: "Join a guild first" },
       400
     );
-  const available = getAvailableRaids(guild.id);
-  return c.json(available);
+  return c.json(getAvailableRaids(guild.id));
 });
 
 // Get active raid for my guild

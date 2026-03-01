@@ -6,6 +6,7 @@ interface RaidState {
   raids: RaidMission[];
   activeRaid: ActiveRaid | null;
   loading: boolean;
+  memberCount: number;
 }
 
 export function useRaid(isAuthenticated: boolean) {
@@ -13,16 +14,22 @@ export function useRaid(isAuthenticated: boolean) {
     raids: [],
     activeRaid: null,
     loading: false,
+    memberCount: 0,
   });
 
   const fetchData = useCallback(async () => {
     if (!isAuthenticated) return;
     try {
-      const [available, active] = await Promise.all([
-        api<RaidMission[]>("/raids"),
+      const [raidData, active] = await Promise.all([
+        api<{ raids: RaidMission[]; memberCount: number }>("/raids"),
         api<ActiveRaid | null>("/raids/active"),
       ]);
-      setState((s) => ({ ...s, raids: available, activeRaid: active }));
+      setState((s) => ({
+        ...s,
+        raids: raidData.raids,
+        memberCount: raidData.memberCount,
+        activeRaid: active,
+      }));
     } catch {
       // Not in a guild or network error — leave state as-is
     }
@@ -51,8 +58,8 @@ export function useRaid(isAuthenticated: boolean) {
       try {
         await api("/raids/start", { method: "POST", body: JSON.stringify({ raidId }) });
         await fetchData();
-      } catch {
-        // error
+      } catch (e) {
+        throw e;
       } finally {
         setState((s) => ({ ...s, loading: false }));
       }
@@ -65,8 +72,8 @@ export function useRaid(isAuthenticated: boolean) {
     try {
       await api("/raids/commit", { method: "POST" });
       await fetchData();
-    } catch {
-      // error
+    } catch (e) {
+      throw e;
     } finally {
       setState((s) => ({ ...s, loading: false }));
     }
@@ -77,8 +84,8 @@ export function useRaid(isAuthenticated: boolean) {
     try {
       await api("/raids/claim", { method: "POST" });
       await fetchData();
-    } catch {
-      // error
+    } catch (e) {
+      throw e;
     } finally {
       setState((s) => ({ ...s, loading: false }));
     }
