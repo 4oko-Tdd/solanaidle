@@ -2,7 +2,6 @@ import { Hono } from "hono";
 import { authMiddleware } from "../middleware/auth.js";
 import { verifyToken } from "../services/auth-service.js";
 import {
-  getOrSpawnBoss,
   getCurrentBoss,
   getBossStatus,
   joinBossFight,
@@ -24,8 +23,9 @@ const app = new Hono<Env>();
 
 // GET /boss — public, but includes player contribution if authenticated
 app.get("/", async (c) => {
-  // getOrSpawnBoss only works during boss phase; fall back to getCurrentBoss for dev-spawned bosses
-  const boss = getOrSpawnBoss() ?? getCurrentBoss();
+  // Read-only: never auto-spawn on a GET request. Use getCurrentBoss which
+  // only reads without side-effects. getOrSpawnBoss is called by the scheduler.
+  const boss = getCurrentBoss();
   if (!boss) {
     return c.json({ boss: null });
   }
