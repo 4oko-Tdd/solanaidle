@@ -52,8 +52,8 @@ initSchema();
 const { ensureCollections } = await import("./services/metaplex-service.js");
 ensureCollections().catch((err) => console.error("Collection init error:", err));
 
-// Dev-only routes (not available in production)
-if (process.env.NODE_ENV !== "production") {
+// Dev routes — auth-protected, available in all environments for demo/testing
+{
   app.post("/dev/skip-timer", async (c) => {
     // Inline auth check
     const header = c.req.header("Authorization");
