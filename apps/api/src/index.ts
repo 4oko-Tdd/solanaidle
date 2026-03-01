@@ -236,6 +236,15 @@ if (process.env.NODE_ENV !== "production") {
 
   // Dev: Force-spawn boss (bypasses weekend check)
   app.post("/dev/spawn-boss", async (c) => {
+    const header = c.req.header("Authorization");
+    if (!header?.startsWith("Bearer ")) {
+      return c.json({ error: "UNAUTHORIZED", message: "Missing token" }, 401);
+    }
+    const { verifyToken } = await import("./services/auth-service.js");
+    if (!verifyToken(header.slice(7))) {
+      return c.json({ error: "UNAUTHORIZED", message: "Invalid token" }, 401);
+    }
+
     const { randomUUID } = await import("crypto");
     const db = (await import("./db/database.js")).default;
     const { getWeekStart, getActivePlayerCount } = await import("./services/boss-service.js");
@@ -280,11 +289,16 @@ if (process.env.NODE_ENV !== "production") {
       return c.json({ error: "UNAUTHORIZED", message: "Invalid token" }, 401);
     }
     const db = (await import("./db/database.js")).default;
+    const { getTodayPeriodKey } = await import("./services/challenge-service.js");
+    const todayKey = getTodayPeriodKey();
     db.prepare("DELETE FROM daily_logins WHERE wallet_address = ?").run(payload.wallet);
-    return c.json({ message: "Daily login reset" });
+    db.prepare("DELETE FROM challenge_progress WHERE wallet_address = ? AND period_key = ?").run(payload.wallet, todayKey);
+    db.prepare("DELETE FROM quest_completions WHERE wallet_address = ? AND period_key = ?").run(payload.wallet, todayKey);
+    db.prepare("DELETE FROM quest_boosts WHERE wallet_address = ? AND expires_at >= ?").run(payload.wallet, todayKey);
+    return c.json({ message: "Daily reset — login modal + challenges cleared" });
   });
 
-  // Dev: Add SKR balance for monetization testing
+  // Dev: Add SKR balance for monetization testing (DB-only, no devnet required)
   app.post("/dev/add-skr", async (c) => {
     const header = c.req.header("Authorization");
     if (!header?.startsWith("Bearer ")) {
@@ -295,23 +309,9 @@ if (process.env.NODE_ENV !== "production") {
     if (!payload) {
       return c.json({ error: "UNAUTHORIZED", message: "Invalid token" }, 401);
     }
-    const { mintMockSkrToWallet } = await import("./services/skr-service.js");
-    try {
-      const minted = await mintMockSkrToWallet(payload.wallet, 100);
-      return c.json({
-        message: `+100 SKR minted on devnet (now ${minted.balance})`,
-        signature: minted.signature,
-      });
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Mint failed";
-      return c.json(
-        {
-          error: "SKR_MINT_FAILED",
-          message,
-        },
-        400
-      );
-    }
+    const { creditDbSkr } = await import("./services/skr-service.js");
+    const newBalance = creditDbSkr(payload.wallet, 100);
+    return c.json({ message: `+100 SKR (now ${newBalance})` });
   });
 
   // Dev: Toggle destabilized state for current epoch

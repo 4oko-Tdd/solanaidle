@@ -144,6 +144,24 @@ function buildMintToCheckedInstruction(
   });
 }
 
+export function creditDbSkr(walletAddress: string, amount: number): number {
+  db.prepare(
+    `INSERT INTO skr_wallets (wallet_address, balance) VALUES (?, ?)
+     ON CONFLICT(wallet_address) DO UPDATE SET balance = balance + ?`
+  ).run(walletAddress, amount, amount);
+  const row = db
+    .prepare("SELECT balance FROM skr_wallets WHERE wallet_address = ?")
+    .get(walletAddress) as { balance: number };
+  return row.balance;
+}
+
+function getDbSkrBalance(walletAddress: string): number {
+  const row = db
+    .prepare("SELECT balance FROM skr_wallets WHERE wallet_address = ?")
+    .get(walletAddress) as { balance: number } | undefined;
+  return row?.balance ?? 0;
+}
+
 export async function getSkrBalance(walletAddress: string): Promise<number> {
   let owner: PublicKey;
   try {
@@ -152,6 +170,7 @@ export async function getSkrBalance(walletAddress: string): Promise<number> {
     return 0;
   }
 
+  let onChain = 0;
   try {
     const tokenAccounts = await connection.getParsedTokenAccountsByOwner(
       owner,
@@ -168,14 +187,15 @@ export async function getSkrBalance(walletAddress: string): Promise<number> {
       raw += BigInt(amount);
     }
     const whole = raw / SKR_BASE_UNITS;
-    return whole > BigInt(Number.MAX_SAFE_INTEGER) ? Number.MAX_SAFE_INTEGER : Number(whole);
+    onChain = whole > BigInt(Number.MAX_SAFE_INTEGER) ? Number.MAX_SAFE_INTEGER : Number(whole);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     if (!msg.includes("could not find mint")) {
       console.warn("[SKR] Failed to fetch on-chain SKR balance:", err);
     }
-    return 0;
   }
+
+  return onChain + getDbSkrBalance(walletAddress);
 }
 
 export async function verifyAndRecordSkrPayment(

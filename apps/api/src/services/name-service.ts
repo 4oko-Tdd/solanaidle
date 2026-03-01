@@ -60,8 +60,8 @@ export async function resolveName(address: string): Promise<string | null> {
   const [sol, skr] = await Promise.allSettled([resolveSol(address), resolveSkr(address)]);
 
   const name =
-    (sol.status === "fulfilled" ? sol.value : null) ??
-    (skr.status === "fulfilled" ? skr.value : null);
+    (skr.status === "fulfilled" ? skr.value : null) ??
+    (sol.status === "fulfilled" ? sol.value : null);
 
   setCached(address, name);
   return name;
