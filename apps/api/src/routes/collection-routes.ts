@@ -16,9 +16,19 @@ app.use("*", authMiddleware);
 // GET /collection
 app.get("/", (c) => {
   const wallet = c.get("wallet");
-  const items = getCollection(wallet);
+  const rawItems = getCollection(wallet);
   const capacity = getInventoryCapacity(wallet);
   const weeklyBuffs = getWeeklyBuffs(wallet, getWeekStart());
+
+  const items = rawItems.map((r) => ({
+    id: r.id,
+    itemId: r.item_id,
+    itemName: r.item_name,
+    perkType: r.perk_type,
+    perkValue: r.perk_value,
+    mintAddress: r.mint_address ?? undefined,
+    droppedAt: r.dropped_at,
+  }));
 
   return c.json({ items, capacity, weeklyBuffs });
 });
@@ -38,8 +48,17 @@ app.post("/sacrifice", async (c) => {
   }
 
   // Return updated state
-  const items = getCollection(wallet);
+  const rawItems = getCollection(wallet);
   const capacity = getInventoryCapacity(wallet);
+  const items = rawItems.map((r) => ({
+    id: r.id,
+    itemId: r.item_id,
+    itemName: r.item_name,
+    perkType: r.perk_type,
+    perkValue: r.perk_value,
+    mintAddress: r.mint_address ?? undefined,
+    droppedAt: r.dropped_at,
+  }));
 
   return c.json({ success: true, items, capacity });
 });
