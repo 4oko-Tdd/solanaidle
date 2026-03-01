@@ -75,7 +75,7 @@ function LastLifeWarning() {
   );
 }
 
-export function CharacterCard({ character, classId, run, onPickClass }: Props) {
+export function CharacterCard({ character, classId, run, inventory, onPickClass }: Props) {
   const xpForNextLevel = Math.floor(75 * Math.pow(1.6, character.level - 1));
   const xpPercent = Math.min(100, Math.round((character.xp / xpForNextLevel) * 100));
   const lives = run?.livesRemaining ?? 3;
@@ -170,6 +170,22 @@ export function CharacterCard({ character, classId, run, onPickClass }: Props) {
           </View>
         ) : null}
       </View>
+
+      {/* Row 4: Resources */}
+      {inventory && (
+        <View style={{ flexDirection: "row", gap: 6 }}>
+          {[
+            { icon: require("@/assets/icons/scrap.png"), value: inventory.scrap, size: 16 },
+            { icon: require("@/assets/icons/tokens.png"), value: inventory.crystal, size: 14 },
+            { icon: require("@/assets/icons/key.png"), value: inventory.artifact, size: 14 },
+          ].map(({ icon, value, size }, i) => (
+            <View key={i} style={{ flexDirection: "row", alignItems: "center", gap: 3, backgroundColor: "rgba(255,255,255,0.04)", borderRadius: 6, paddingHorizontal: 8, paddingVertical: 4, borderWidth: 1, borderColor: "rgba(255,255,255,0.07)" }}>
+              <Image source={icon} style={{ width: size, height: size }} />
+              <Text style={{ fontFamily: "RobotoMono_400Regular", fontSize: 12, color: "rgba(255,255,255,0.6)" }}>{value}</Text>
+            </View>
+          ))}
+        </View>
+      )}
 
       {/* Pick class button if no class selected */}
       {!classId && onPickClass && (
