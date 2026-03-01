@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { View, Text, ActivityIndicator } from "react-native";
-import { Target, CheckCircle } from "lucide-react-native";
+import { Target, CheckCircle, Shuffle } from "lucide-react-native";
 import { GlassPanel } from "@/components/glass-panel";
 import { Button, Progress } from "@/components/ui";
 import type { DailyChallenge } from "@solanaidle/shared";
@@ -73,7 +73,10 @@ function ChallengeRow({ challenge: ch, rerollCost, onReroll }: {
           >
             {rolling
               ? <ActivityIndicator size="small" color="#14F195" />
-              : <Text className="text-[10px] font-mono text-[#14F195]">{rerollCost} SKR</Text>}
+              : <View className="flex-row items-center gap-1">
+                  <Shuffle size={10} color="#14F195" />
+                  <Text className="text-[10px] font-mono text-[#14F195]">{rerollCost} SKR</Text>
+                </View>}
           </Button>
         )}
       </View>

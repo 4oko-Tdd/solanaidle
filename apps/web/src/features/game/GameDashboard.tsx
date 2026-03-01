@@ -245,14 +245,14 @@ export function GameDashboard({ isAuthenticated, onInventoryChange }: Props) {
                         addToast("Epoch ended", "warning");
                         await refresh();
                       }}>End Epoch</Button>
-                      <Button variant="ghost" size="sm" className={`h-6 text-xs px-2 ${boss ? "text-neon-red" : "text-neon-purple"}`} onClick={async () => {
-                        const res = await api<{ message: string }>("/dev/spawn-boss", { method: "POST" });
-                        addToast(res.message, boss ? "warning" : "success");
-                        await bossRefresh();
-                        await refresh();
-                      }}>{boss ? "Kill Boss" : "Spawn Boss"}</Button>
                     </>
                   )}
+                  <Button variant="ghost" size="sm" className={`h-6 text-xs px-2 ${boss ? "text-neon-red" : "text-neon-purple"}`} onClick={async () => {
+                    const res = await api<{ message: string }>("/dev/spawn-boss", { method: "POST" });
+                    addToast(res.message, boss ? "warning" : "success");
+                    await bossRefresh();
+                    await refresh();
+                  }}>{boss ? "Kill Boss" : "Spawn Boss"}</Button>
 
                   {!activeRun && (
                     <Button variant="ghost" size="sm" className="h-6 text-xs px-2 text-neon-green" onClick={async () => {
