@@ -424,6 +424,49 @@ ensureCollections().catch((err) => console.error("Collection init error:", err))
     return c.json({ message: "Boss monetization state reset (this epoch)" });
   });
 
+  // Dev: Seed leaderboard with fake players (for demo)
+  app.post("/dev/seed-leaderboard", async (c) => {
+    const header = c.req.header("Authorization");
+    if (!header?.startsWith("Bearer ")) {
+      return c.json({ error: "UNAUTHORIZED", message: "Missing token" }, 401);
+    }
+    const { verifyToken } = await import("./services/auth-service.js");
+    if (!verifyToken(header.slice(7))) {
+      return c.json({ error: "UNAUTHORIZED", message: "Invalid token" }, 401);
+    }
+
+    const db = (await import("./db/database.js")).default;
+    const { randomUUID } = await import("crypto");
+    const { getWeekBounds } = await import("./services/run-service.js");
+    const { weekStart } = getWeekBounds();
+
+    const fakes = [
+      { wallet: "DEMO1111111111111111111111111111111111111111", classId: "validator", score: 2840, missions: 22, bossDefeated: 1, lifetimeMissions: 120, bossKills: 12, epochs: 8 },
+      { wallet: "DEMO2222222222222222222222222222222222222222", classId: "oracle",    score: 2310, missions: 18, bossDefeated: 1, lifetimeMissions: 55, bossKills: 4,  epochs: 6 },
+      { wallet: "DEMO3333333333333333333333333333333333333333", classId: "staker",    score: 1970, missions: 15, bossDefeated: 1, lifetimeMissions: 45, bossKills: 2,  epochs: 3 },
+      { wallet: "DEMO4444444444444444444444444444444444444444", classId: "validator", score: 1450, missions: 12, bossDefeated: 0, lifetimeMissions: 14, bossKills: 0,  epochs: 2 },
+      { wallet: "DEMO5555555555555555555555555555555555555555", classId: "oracle",    score:  980, missions:  8, bossDefeated: 0, lifetimeMissions: 11, bossKills: 0,  epochs: 1 },
+    ];
+
+    for (const f of fakes) {
+      db.prepare(
+        `INSERT INTO leaderboard (id, wallet_address, class_id, week_start, score, missions_completed, boss_defeated)
+         VALUES (?, ?, ?, ?, ?, ?, ?)
+         ON CONFLICT(wallet_address, week_start) DO UPDATE SET
+           score = excluded.score, missions_completed = excluded.missions_completed, boss_defeated = excluded.boss_defeated`
+      ).run(randomUUID(), f.wallet, f.classId, weekStart, f.score, f.missions, f.bossDefeated);
+
+      db.prepare(
+        `INSERT INTO lifetime_stats (wallet_address, missions_completed, boss_kills, raids_completed, epochs_survived)
+         VALUES (?, ?, ?, 0, ?)
+         ON CONFLICT(wallet_address) DO UPDATE SET
+           missions_completed = excluded.missions_completed, boss_kills = excluded.boss_kills, epochs_survived = excluded.epochs_survived`
+      ).run(f.wallet, f.lifetimeMissions, f.bossKills, f.epochs);
+    }
+
+    return c.json({ message: "Leaderboard seeded with 5 demo players" });
+  });
+
   // Dev: Add a Leviathan Scale to permanent loot (for demo)
   app.post("/dev/add-boss-loot", async (c) => {
     const header = c.req.header("Authorization");
