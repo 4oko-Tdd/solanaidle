@@ -252,6 +252,16 @@ export function initSchema() {
     )
   `).run();
 
+  db.prepare(`
+    CREATE TABLE IF NOT EXISTS lifetime_stats (
+      wallet_address TEXT PRIMARY KEY,
+      missions_completed INTEGER NOT NULL DEFAULT 0,
+      boss_kills INTEGER NOT NULL DEFAULT 0,
+      raids_completed INTEGER NOT NULL DEFAULT 0,
+      epochs_survived INTEGER NOT NULL DEFAULT 0
+    )
+  `).run();
+
   // Migrations — add columns if missing
   const cols = db.prepare("PRAGMA table_info(weekly_runs)").all() as { name: string }[];
   const colNames = cols.map(c => c.name);

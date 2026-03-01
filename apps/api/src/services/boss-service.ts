@@ -13,6 +13,7 @@ import {
 } from "./boss-er-service.js";
 import { getSkrBalance, verifyAndRecordSkrPayment } from "./skr-service.js";
 import { trackChallengeProgress } from "./challenge-service.js";
+import { incrementLifetimeStat } from "./milestone-service.js";
 
 const DESTABILIZE_ROLL_CHANCE = 0.12;
 const DESTABILIZE_ROLL_INTERVAL_MS = 20 * 60 * 1000;
@@ -503,12 +504,18 @@ export async function useOverload(
     applyDamageOnER(weekStartTsOverload, overloadStatus.totalDamage, overloadStatus.participantCount, overloadStatus.boss.maxHp).catch(() => {});
   }
 
-  // If boss was killed, finalize on-chain
+  // If boss was killed, finalize on-chain and track lifetime boss_kills
   const bossAfterOverload = db
     .prepare("SELECT killed FROM world_boss WHERE id = ?")
     .get(bossId) as { killed: number } | undefined;
   if (bossAfterOverload?.killed === 1) {
     finalizeBossOnChain(weekStartTsOverload).catch(() => {});
+    const bossParticipants = db
+      .prepare("SELECT wallet_address FROM boss_participants WHERE boss_id = ?")
+      .all(bossId) as { wallet_address: string }[];
+    for (const p of bossParticipants) {
+      try { incrementLifetimeStat(p.wallet_address, "boss_kills"); } catch {}
+    }
   }
 
   return { success: true, damage };
@@ -663,9 +670,12 @@ export function updateAllPassiveDamage(bossId: string): void {
   const weekStartTsPassive = Math.floor(new Date(weekStartPassive).getTime() / 1000);
   applyDamageOnER(weekStartTsPassive, totalDamage, participants.length, boss.max_hp).catch(() => {});
 
-  // If boss was killed, finalize on-chain
+  // If boss was killed, finalize on-chain and track lifetime boss_kills
   if (newHp <= 0) {
     finalizeBossOnChain(weekStartTsPassive).catch(() => {});
+    for (const p of participants) {
+      try { incrementLifetimeStat(p.wallet_address, "boss_kills"); } catch {}
+    }
   }
 }
 

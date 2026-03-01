@@ -5,6 +5,7 @@ import { getRaid, RAIDS } from "./game-config.js";
 import { getGuildByMember, getGuildMembers } from "./guild-service.js";
 import { checkAndGrantAchievements } from "./achievement-service.js";
 import { trackChallengeProgress } from "./challenge-service.js";
+import { incrementLifetimeStat } from "./milestone-service.js";
 
 // Get all raids + current member count (client handles locked state)
 export function getAvailableRaids(guildId: string): { raids: typeof RAIDS, memberCount: number } {
@@ -195,6 +196,9 @@ export function claimRaid(
 
   // Achievement: Raid Victor
   checkAndGrantAchievements(wallet, char.id, "raid_claim", {}).catch(() => {});
+
+  // Track lifetime stat for cosmetic milestones
+  try { incrementLifetimeStat(wallet, "raids_completed"); } catch {}
 
   return {
     lootMultiplier: raid.lootMultiplier,

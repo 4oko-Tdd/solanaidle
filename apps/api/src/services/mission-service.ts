@@ -17,6 +17,7 @@ import {
   REROLL_REDUCTION_PER_STACK,
 } from "./game-config.js";
 import { addScore, incrementMissions, useLife, incrementStreak, resetStreak } from "./run-service.js";
+import { incrementLifetimeStat } from "./milestone-service.js";
 import { insertEvent } from "./event-service.js";
 import type { ActiveMission, MissionClaimResponse, MissionId, MissionRewards } from "@solanaidle/shared";
 import { updateProgressOnER } from "./er-service.js";
@@ -389,6 +390,11 @@ export async function claimMission(
         trackChallengeProgress(walletAddress, "liquidity_run", 1, characterId);
       }
     } catch {}
+  }
+
+  // Track lifetime stat for cosmetic milestones
+  if (walletAddress) {
+    try { incrementLifetimeStat(walletAddress, "missions_completed"); } catch {}
   }
 
   // Update on-chain progress via ER (server-side, fire-and-forget)

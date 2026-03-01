@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { authMiddleware } from "../middleware/auth.js";
 import db from "../db/database.js";
 import { getActiveRun, startRun, getLeaderboard, getEndedRun, storeStartSignature, storeEndSignature, endRun, getWeekBounds } from "../services/run-service.js";
+import { getPlayerTitle, incrementLifetimeStat } from "../services/milestone-service.js";
 import { verifyAndRecordSkrPayment } from "../services/skr-service.js";
 import { batchResolve } from "../services/name-service.js";
 import { getRunEvents } from "../services/event-service.js";
@@ -67,9 +68,11 @@ runs.post("/start", async (c) => {
 runs.get("/leaderboard", async (c) => {
   const leaderboard = getLeaderboard();
   const names = await batchResolve(leaderboard.map((e) => e.walletAddress));
-  const enriched = leaderboard.map((e) =>
-    names.has(e.walletAddress) ? { ...e, displayName: names.get(e.walletAddress) } : e
-  );
+  const enriched = leaderboard.map((e) => ({
+    ...e,
+    ...(names.has(e.walletAddress) ? { displayName: names.get(e.walletAddress) } : {}),
+    title: getPlayerTitle(e.walletAddress) ?? undefined,
+  }));
   return c.json(enriched);
 });
 
@@ -103,6 +106,8 @@ runs.post("/:id/finalize", async (c) => {
   const run = getActiveRun(wallet);
   if (run && run.id === runId) {
     endRun(runId);
+    // Voluntary epoch finalization — count as epoch survived for cosmetic milestones
+    try { incrementLifetimeStat(wallet, "epochs_survived"); } catch {}
   } else if (!run && !runId) {
     return c.json({ error: "RUN_NOT_FOUND", message: "Run not found" }, 404);
   }
