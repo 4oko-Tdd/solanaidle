@@ -394,6 +394,8 @@ export default function GameScreen() {
                       { label: "New Epoch", color: "#14F195", onPress: async () => { try { const r = await api<{ message: string }>("/dev/reset-epoch", { method: "POST" }); toast(r.message, "success"); await gameState.refresh(); } catch (e: any) { toast(e?.message ?? "Failed", "error"); } } },
                       { label: "+100 SKR", color: "#ffb800", onPress: async () => { try { const r = await api<{ message: string }>("/dev/add-skr", { method: "POST" }); toast(r.message, "success"); await bossRefresh(); } catch (e: any) { toast(e?.message ?? "Failed", "error"); } } },
                     ]),
+                    { label: "+Boss Loot", color: "#9945ff", onPress: async () => { try { const r = await api<{ message: string }>("/dev/add-boss-loot", { method: "POST" }); toast(r.message, "success"); } catch (e: any) { toast(e?.message ?? "Failed", "error"); } } },
+                    { label: "Toggle Surge", color: "#ffb800", onPress: async () => { try { const r = await api<{ message: string }>("/dev/toggle-surge", { method: "POST" }); toast(r.message, "warning"); await bossRefresh(); } catch (e: any) { toast(e?.message ?? "Failed", "error"); } } },
                     { label: "Reset Daily", color: "#ffb800", onPress: async () => { try { await api("/dev/reset-daily", { method: "POST" }); toast("Daily reset — restart app", "success"); setDailyDismissed(false); } catch (e: any) { toast(e?.message ?? "Failed", "error"); } } },
                     { label: "Reset Player", color: "rgba(255,68,68,0.6)", onPress: () => Alert.alert("Wipe Data?", "Delete all player data?", [{ text: "Cancel" }, { text: "Confirm", style: "destructive", onPress: async () => { try { const r = await api<{ message: string }>("/dev/reset-player", { method: "POST" }); toast(r.message, "warning"); await gameState.refresh(); } catch (e: any) { toast(e?.message ?? "Reset failed", "error"); } } }]) },
                   ] as { label: string; color: string; onPress: () => void }[]
@@ -555,7 +557,6 @@ export default function GameScreen() {
             )}
           </View>
         )}
-        <RunLog run={gameState.activeRun ?? null} />
         {challenges.data && (
           <ChallengesPanel
             challenges={challenges.data.challenges}
@@ -576,6 +577,7 @@ export default function GameScreen() {
             }}
           />
         )}
+        <RunLog run={gameState.activeRun ?? null} />
       </View>
     </ScrollView>
     <MissionResultDialog

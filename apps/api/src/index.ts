@@ -424,6 +424,51 @@ ensureCollections().catch((err) => console.error("Collection init error:", err))
     return c.json({ message: "Boss monetization state reset (this epoch)" });
   });
 
+  // Dev: Add a Leviathan Scale to permanent loot (for demo)
+  app.post("/dev/add-boss-loot", async (c) => {
+    const header = c.req.header("Authorization");
+    if (!header?.startsWith("Bearer ")) {
+      return c.json({ error: "UNAUTHORIZED", message: "Missing token" }, 401);
+    }
+    const { verifyToken } = await import("./services/auth-service.js");
+    const payload = verifyToken(header.slice(7));
+    if (!payload) {
+      return c.json({ error: "UNAUTHORIZED", message: "Invalid token" }, 401);
+    }
+    const db = (await import("./db/database.js")).default;
+    const { randomUUID } = await import("crypto");
+    // Cycle through all permanent loot definitions for variety
+    const { PERMANENT_LOOT_DEFINITIONS } = await import("./services/game-config.js");
+    const existing = db.prepare("SELECT item_id FROM permanent_loot WHERE wallet_address = ?")
+      .all(payload.wallet) as { item_id: string }[];
+    const existingIds = new Set(existing.map(r => r.item_id));
+    const next = PERMANENT_LOOT_DEFINITIONS.find(d => !existingIds.has(d.id))
+      ?? PERMANENT_LOOT_DEFINITIONS[0];
+    db.prepare(
+      `INSERT INTO permanent_loot (id, wallet_address, item_id, item_name, perk_type, perk_value, mint_address, dropped_at)
+       VALUES (?, ?, ?, ?, ?, ?, NULL, ?)`
+    ).run(randomUUID(), payload.wallet, next.id, next.name, next.perkType, next.perkValue, new Date().toISOString());
+    return c.json({ message: `Added: ${next.name}` });
+  });
+
+  // Dev: Toggle surge active state (in-memory override, resets on server restart)
+  app.post("/dev/toggle-surge", async (c) => {
+    const header = c.req.header("Authorization");
+    if (!header?.startsWith("Bearer ")) {
+      return c.json({ error: "UNAUTHORIZED", message: "Missing token" }, 401);
+    }
+    const { verifyToken } = await import("./services/auth-service.js");
+    if (!verifyToken(header.slice(7))) {
+      return c.json({ error: "UNAUTHORIZED", message: "Invalid token" }, 401);
+    }
+    const { setSurgeOverride, isSurgeActive, getWeekStart } = await import("./services/boss-service.js");
+    const weekStart = getWeekStart();
+    const weekStartMs = new Date(weekStart).getTime();
+    const current = isSurgeActive(weekStartMs);
+    setSurgeOverride(!current);
+    return c.json({ message: `Surge: ${!current ? "ON" : "OFF"}` });
+  });
+
   // Dev: Reset DB -- wipe everything for this player
   app.post("/dev/reset-player", async (c) => {
     const header = c.req.header("Authorization");

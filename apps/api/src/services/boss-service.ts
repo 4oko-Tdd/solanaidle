@@ -24,6 +24,10 @@ const SKR_COSTS = {
   raidLicense: 35,
 } as const;
 
+// Dev override: null = use schedule, true/false = force
+let _surgeOverride: boolean | null = null;
+export function setSurgeOverride(v: boolean | null) { _surgeOverride = v; }
+
 const SURGE_SCHEDULE = [
   { daysFromMonday: 5, hour: 8 },   // Saturday 08:00 UTC
   { daysFromMonday: 5, hour: 20 },  // Saturday 20:00 UTC
@@ -40,6 +44,7 @@ export function getSurgeWindows(weekStartMs: number): { startsAt: number; endsAt
 }
 
 export function isSurgeActive(weekStartMs: number): boolean {
+  if (_surgeOverride !== null) return _surgeOverride;
   const now = Date.now();
   return getSurgeWindows(weekStartMs).some(w => now >= w.startsAt && now < w.endsAt);
 }
