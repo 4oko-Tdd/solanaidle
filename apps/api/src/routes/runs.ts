@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { authMiddleware } from "../middleware/auth.js";
 import db from "../db/database.js";
 import { getActiveRun, startRun, getLeaderboard, getEndedRun, storeStartSignature, storeEndSignature, endRun, getWeekBounds } from "../services/run-service.js";
+import { verifyAndRecordSkrPayment } from "../services/skr-service.js";
 import { batchResolve } from "../services/name-service.js";
 import { getRunEvents } from "../services/event-service.js";
 import { CLASSES } from "../services/game-config.js";
@@ -151,14 +152,13 @@ runs.post("/unlock-fast-slot", async (c) => {
   }
 
   // Verify SKR payment
-  const { verifyAndRecordSkrPayment } = await import("../services/skr-service.js");
-  const { getWeekStart } = await import("../services/boss-service.js");
+  const { weekStart } = getWeekBounds();
   const payment = await verifyAndRecordSkrPayment({
     signature: paymentSignature,
     walletAddress: wallet,
     amount: 20,
     action: "fast_slot",
-    weekStart: getWeekStart(),
+    weekStart,
   });
   if (!payment.success) {
     return c.json({ error: "INVALID_SKR_PAYMENT", message: payment.error }, 400);

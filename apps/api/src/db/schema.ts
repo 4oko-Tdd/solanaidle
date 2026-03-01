@@ -342,8 +342,8 @@ export function initSchema() {
   }
 
   // Add fast_slot_unlocked to weekly_runs
-  const runCols5 = db.prepare("PRAGMA table_info(weekly_runs)").all() as { name: string }[];
-  if (!runCols5.map(c => c.name).includes("fast_slot_unlocked")) {
+  const runColsFastSlot = db.prepare("PRAGMA table_info(weekly_runs)").all() as { name: string }[];
+  if (!runColsFastSlot.map(c => c.name).includes("fast_slot_unlocked")) {
     db.prepare("ALTER TABLE weekly_runs ADD COLUMN fast_slot_unlocked INTEGER NOT NULL DEFAULT 0").run();
   }
 

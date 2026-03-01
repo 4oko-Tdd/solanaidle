@@ -32,6 +32,7 @@ interface MissionRow {
   reroll_stacks: number;
   insured: number;
   run_id: string | null;
+  slot: 'main' | 'fast';
 }
 
 interface CharacterRow {
@@ -67,8 +68,8 @@ export function getActiveMissions(characterId: string): { main: ActiveMission | 
     };
   };
   return {
-    main: toActive(rows.find(r => (r as any).slot === 'main')),
-    fast: toActive(rows.find(r => (r as any).slot === 'fast')),
+    main: toActive(rows.find(r => r.slot === 'main')),
+    fast: toActive(rows.find(r => r.slot === 'fast')),
   };
 }
 
@@ -314,10 +315,10 @@ export async function claimMission(
     }
   }
 
-  // Apply streak multiplier to resources (not XP)
+  // Apply streak multiplier to resources (not XP) — main slot only
   let streakMultiplier = 1.0;
   let currentStreak = 0;
-  if (runId) {
+  if (runId && slot === 'main') {
     const newStreak = incrementStreak(runId);
     currentStreak = newStreak;
     streakMultiplier = getStreakMultiplier(newStreak);
