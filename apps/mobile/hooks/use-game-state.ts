@@ -106,31 +106,19 @@ export function useGameState(isAuthenticated: boolean) {
     }, [refresh]);
 
   const claimMission = useCallback(async (slot: 'main' | 'fast' = 'main') => {
+    let playerSignature: string | undefined;
     if (slot === 'main') {
-      if (!signMessage || !walletAddress) {
-        throw new Error("Wallet signature required");
-      }
-      const playerSignature = await signClaim(signMessage, walletAddress);
-      if (!playerSignature) {
-        throw new Error("Mission claim was cancelled in wallet");
-      }
-      const result = await api<MissionClaimResponse>("/missions/claim", {
-        method: "POST",
-        body: JSON.stringify({ playerSignature, slot }),
-      });
-      setState((s) => ({ ...s, lastClaimResult: result }));
-      await refresh();
-      return result;
-    } else {
-      // Fast slot claim — no signature required
-      const result = await api<MissionClaimResponse>("/missions/claim", {
-        method: "POST",
-        body: JSON.stringify({ slot }),
-      });
-      setState((s) => ({ ...s, lastClaimResult: result }));
-      await refresh();
-      return result;
+      if (!signMessage || !walletAddress) throw new Error("Wallet signature required");
+      playerSignature = await signClaim(signMessage, walletAddress) ?? undefined;
+      if (!playerSignature) throw new Error("Mission claim was cancelled in wallet");
     }
+    const result = await api<MissionClaimResponse>("/missions/claim", {
+      method: "POST",
+      body: JSON.stringify({ playerSignature, slot }),
+    });
+    setState((s) => ({ ...s, lastClaimResult: result }));
+    await refresh();
+    return result;
   }, [refresh, signMessage, walletAddress]);
 
   const upgradeTrack = useCallback(async (track: GearTrack) => {

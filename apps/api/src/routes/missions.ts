@@ -132,7 +132,7 @@ missions.post("/claim", async (c) => {
       400
     );
   }
-  if (active.timeRemaining && active.timeRemaining > 0) {
+  if ((active.timeRemaining ?? 0) > 0) {
     return c.json(
       { error: "MISSION_NOT_COMPLETE", message: "Mission still in progress" },
       400
