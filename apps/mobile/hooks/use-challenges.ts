@@ -5,14 +5,17 @@ import type { DailyChallengesStatus } from "@solanaidle/shared";
 export function useChallenges(isAuthenticated: boolean) {
   const [data, setData] = useState<DailyChallengesStatus | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
     if (!isAuthenticated) return;
     setLoading(true);
+    setError(null);
     try {
       setData(await api<DailyChallengesStatus>("/challenges"));
-    } catch { /* no character yet */ }
-    finally { setLoading(false); }
+    } catch (e: any) {
+      setError(e?.message ?? "Failed to load challenges");
+    } finally { setLoading(false); }
   }, [isAuthenticated]);
 
   useEffect(() => { refresh(); }, [refresh]);
@@ -25,5 +28,5 @@ export function useChallenges(isAuthenticated: boolean) {
     setData(res);
   }, []);
 
-  return { data, loading, refresh, rerollChallenge };
+  return { data, loading, error, refresh, rerollChallenge };
 }

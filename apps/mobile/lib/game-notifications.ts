@@ -135,7 +135,7 @@ export async function scheduleSurgeNotifications(
     if (notifyAt <= Date.now()) continue;
     try {
       await moduleRef.scheduleNotification(
-        "⚡ Surge Window Opening Soon",
+        "Surge Window Opening Soon",
         "Leviathan becomes vulnerable in 10 minutes. Prepare your OVERLOAD.",
         notifyAt,
         `surge_window_${i}`

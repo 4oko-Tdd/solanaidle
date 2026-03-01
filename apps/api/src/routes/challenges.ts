@@ -31,9 +31,12 @@ challenges.post("/reroll", async (c) => {
 
   // Validate questId belongs to this player's current challenges
   const currentChallenges = getDailyChallenges(wallet);
-  const validIds = currentChallenges.challenges.map(ch => ch.id);
-  if (!validIds.includes(questId)) {
+  const challenge = currentChallenges.challenges.find(ch => ch.id === questId);
+  if (!challenge) {
     return c.json({ error: "INVALID_QUEST_ID", message: "Quest not in current daily challenges" }, 400);
+  }
+  if (challenge.rerolled) {
+    return c.json({ error: "ALREADY_REROLLED", message: "This challenge has already been rerolled today" }, 409);
   }
 
   const payment = await verifyAndRecordSkrPayment({
