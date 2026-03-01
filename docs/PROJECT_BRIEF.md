@@ -45,23 +45,46 @@ On every level-up, the player chooses **1 of 3 random perks**. Your build emerge
 
 The perk pool is weighted by class, so each class naturally builds differently while any class can get any perk.
 
+**Starter Perk:** Every epoch, a bonus perk offer fires at run start — before the first level-up. The build begins at character creation.
+
+**Perk Reroll (10 SKR):** Don't like the level-up options? Spend 10 SKR to refresh the offer once per level-up. The first roll isn't the only hand.
+
 ### The Spending Tension
 
-Resources serve two competing purposes:
+Resources serve three competing purposes:
 
 1. **Spend on gear upgrades** (Armor / Engine / Scanner) → stronger all week → more XP → more levels → more perks → higher power
 2. **Hoard for OVERLOAD** → dump everything into one massive boss crit → more contribution % → better drop odds
+3. **Spend SKR on utilities** → reroll bad perks (10 SKR), reroll daily challenges (8 SKR), unlock second mission slot (20 SKR), amplify OVERLOAD (18 SKR)
 
 This is the core economic decision every epoch. There is no correct answer.
 
-### SKR Utility Layer (Optional)
+### Daily Challenges
 
-Weekend boss flow also includes optional SKR actions:
+Every day, 3 challenges refresh with new goals tied to real progression. Each has a progress bar and a completion reward.
 
-- **Reconnect Protocol** -- instant recovery from `destabilized` (25 SKR, max 1 per epoch)
-- **Overload Amplifier** -- +10% OVERLOAD damage (18 SKR, max 1 per epoch)
-- **Raid License** -- +5% passive contribution efficiency (35 SKR, max 1 per epoch)
-- `destabilized` state still has a **free timed auto-recovery** path (no SKR required)
+Challenge types: complete missions, earn scrap, deal boss damage, join the boss fight, complete specific mission types, participate in raids. Progress tracks automatically from normal play.
+
+**Reroll:** Spend 8 SKR to swap out any single challenge. Creates daily SKR demand beyond the boss weekend.
+
+### Second Mission Slot
+
+Unlock a parallel fast slot (scout missions only) for 20 SKR per epoch. Run a Quick Swap in the background while your main mission is active. Double the weekly resource throughput — useful all week, priced to create a meaningful decision.
+
+### SKR Utility Layer
+
+SKR is used throughout the week — not just during the boss fight:
+
+| Purchase | Cost | When |
+|----------|------|------|
+| Perk Reroll | 10 SKR | Any level-up |
+| Challenge Reroll | 8 SKR | Daily |
+| Second Mission Slot | 20 SKR | Epoch start |
+| Overload Amplifier | 18 SKR | Boss weekend |
+| Reconnect Protocol | 25 SKR | Boss weekend |
+| Raid License | 35 SKR | Boss weekend |
+
+`destabilized` state still has a **free timed auto-recovery** path (no SKR required).
 
 ### World Boss -- Protocol Leviathan
 
@@ -73,6 +96,9 @@ The endgame. A community event every weekend.
 - **OVERLOAD** -- dump remaining resources into one critical strike burst (HP drop visible instantly to all players via websocket)
 - Optional SKR utility actions can be purchased during the fight (epoch-capped, no guaranteed win)
 - **Sunday 23:59 UTC:** If the community kills the boss, drop rolls happen based on contribution %. If the boss survives, nobody gets drops.
+
+**Surge Windows:**
+Three windows per weekend — **Saturday 08:00**, **Saturday 20:00**, **Sunday 08:00** UTC — 45 minutes each. During a surge, passive contributions deal 2× damage. A push notification fires 10 minutes before each window opens. Players know when to OVERLOAD for maximum impact.
 
 ### Boss Drop Table
 
@@ -90,6 +116,23 @@ The endgame. A community event every weekend.
 | Level, resources, upgrades, perks, streak, lives | Permanent rare loot (boss drops) |
 | Weekly buffs (1 epoch only) | NFT artifacts, achievement badges, inventory capacity |
 | Boss monetization flags (reconnect/amp/license) | SKR wallet balance (on-chain token) |
+| Daily challenges | Lifetime stats (missions, boss kills, raids, epochs) |
+| Fast slot unlock | Leaderboard titles (earned from lifetime stats) |
+
+### Lifetime Cosmetic Milestones
+
+Lifetime stats accumulate across all epochs and unlock display titles on the leaderboard:
+
+| Title | Requirement |
+|-------|-------------|
+| Node Operator | 10 missions completed |
+| Network Ghost | 100 missions completed |
+| Leviathan Hunter | 10 boss kills |
+| Syndicate | 10 raids completed |
+| Season Veteran | 5 epochs survived |
+| Epoch Champion | 20 epochs survived |
+
+Titles are cosmetic only — zero gameplay advantage. Visible to everyone on the leaderboard.
 
 ---
 
@@ -154,7 +197,7 @@ All game state is **server-authoritative**:
 | Mobile Client | Expo SDK 53 + React Native + Expo Router + TypeScript |
 | Web Client | React 19 + Vite + TypeScript + Tailwind CSS + shadcn/ui |
 | Backend | Hono (TypeScript) on Node.js + SQLite (better-sqlite3) |
-| On-Chain | Anchor (3 programs: VRF, progress tracking, boss HP — all via MagicBlock) |
+| On-Chain | Anchor (1 unified program: player progress + boss HP + VRF — all via MagicBlock ER, deployed devnet) |
 | NFTs | Metaplex Core (Umi + mpl-core) |
 | Wallet | Mobile Wallet Adapter v2 + `@wallet-ui/react-native-web3js` (mobile), `@solana/wallet-adapter-react` (web) |
 | Monorepo | pnpm workspaces |
@@ -167,9 +210,30 @@ All game state is **server-authoritative**:
 
 Solana Mobile needs apps that people open **every day**, not once. Seeker Node creates a weekly roguelike loop where the boss fight is the social event, the rare drop is the chase, and the wallet is not just a login button -- it is your loot vault and proof of legend.
 
-Each integration (Mobile Wallet Adapter, MagicBlock VRF, Metaplex Core NFTs) serves a real gameplay purpose -- nothing is bolted on.
+Stickiness is built in at multiple layers:
+- **Daily:** challenges reset and missions complete — reasons to open every morning
+- **Weekly:** the surge windows create real-time urgency on specific days and hours
+- **Epoch:** the boss weekend is a social event for the entire Seeker audience
+- **Lifetime:** permanent drops, titles, and stats compound across every epoch
+
+Each integration (Mobile Wallet Adapter, MagicBlock ER, Metaplex Core NFTs, SKR) serves a real gameplay purpose -- nothing is bolted on.
 
 > "A cyberpunk roguelike idle game where your Solana wallet is your operator badge, your loot vault, and your proof of legend."
+
+---
+
+## Core Engagement Loop (Updated)
+
+```
+Monday    → Pick class, start fresh + receive starter perk offer
+Daily     → Check & complete 3 daily challenges (refresh every day)
+Mon–Fri   → Launch missions → wait → claim → upgrade → choose perks
+           (unlock fast slot for parallel Quick Swap runs)
+Sat/Sun   → Surge windows fire at 08:00, 20:00, 08:00 UTC (push notification 10min before)
+Saturday  → World Boss spawns → all missions lock → Join the Hunt
+Weekend   → OVERLOAD during surge for max impact; optional SKR utilities
+Sun 23:59 → Epoch ends → boss drops roll → full reset → repeat
+```
 
 ---
 
@@ -179,3 +243,4 @@ Each integration (Mobile Wallet Adapter, MagicBlock VRF, Metaplex Core NFTs) ser
 - Seasonal Leviathans with themed drop tables and evolving lore
 - Expanded NFT economy (tradable relics, guild banners, limited-edition artifacts)
 - Guild leaderboards and coordinated boss strategies
+- Additional mission tiers and class-specific perks
