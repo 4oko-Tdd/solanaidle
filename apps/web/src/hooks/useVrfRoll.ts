@@ -15,7 +15,7 @@ const VRF_ROLLER_PROGRAM_ID = new PublicKey(
 );
 
 // MagicBlock VRF constants (from ephemeral-vrf-sdk::consts)
-// These are the devnet addresses — update for mainnet
+// NOTE: These are devnet addresses — must be updated for mainnet deployment
 const VRF_PROGRAM_ID = new PublicKey(
   "VRFzBcmMEXpDUcTpSmXbcNMKjLPKuAHCFb3jRKr1V4L"
 );

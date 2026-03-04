@@ -1,7 +1,9 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
+import { secureHeaders } from "hono/secure-headers";
 import { serve } from "@hono/node-server";
+import type { Context, Next } from "hono";
 import { initSchema } from "./db/schema.js";
 import auth from "./routes/auth.js";
 import character from "./routes/character.js";
@@ -19,11 +21,42 @@ import perks from "./routes/perk-routes.js";
 import collection from "./routes/collection-routes.js";
 import challenges from "./routes/challenges.js";
 
+// ── Rate limiter ──
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+function rateLimit(maxRequests: number, windowMs: number) {
+  return async (c: Context, next: Next) => {
+    const ip = c.req.header("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    const now = Date.now();
+    const entry = rateLimitMap.get(ip);
+    if (!entry || now > entry.resetAt) {
+      rateLimitMap.set(ip, { count: 1, resetAt: now + windowMs });
+    } else {
+      entry.count++;
+      if (entry.count > maxRequests) {
+        return c.json({ error: "RATE_LIMITED", message: "Too many requests" }, 429);
+      }
+    }
+    await next();
+  };
+}
+// Clean up stale entries every 5 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, val] of rateLimitMap) {
+    if (now > val.resetAt) rateLimitMap.delete(key);
+  }
+}, 300_000);
+
 const app = new Hono().basePath("/api");
 
 app.use("*", logger());
+app.use("*", secureHeaders());
+const CORS_ORIGIN = process.env.CORS_ORIGIN;
+if (!CORS_ORIGIN && process.env.NODE_ENV === "production") {
+  throw new Error("FATAL: CORS_ORIGIN environment variable is required in production");
+}
 app.use("*", cors({
-  origin: process.env.CORS_ORIGIN || "*",
+  origin: CORS_ORIGIN || "*",
   allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowHeaders: ["Content-Type", "Authorization"],
 }));
@@ -31,6 +64,12 @@ app.use("*", cors({
 app.get("/health", (c) => {
   return c.json({ status: "ok", timestamp: new Date().toISOString() });
 });
+
+// Rate limit: auth (20 req/min per IP), boss (60 req/min per IP)
+app.use("/auth/*", rateLimit(20, 60_000));
+app.use("/boss/*", rateLimit(60, 60_000));
+app.use("/missions/*", rateLimit(30, 60_000));
+app.use("/daily/*", rateLimit(10, 60_000));
 
 app.route("/auth", auth);
 app.route("/character", character);
@@ -52,8 +91,8 @@ initSchema();
 const { ensureCollections } = await import("./services/metaplex-service.js");
 ensureCollections().catch((err) => console.error("Collection init error:", err));
 
-// Dev routes — auth-protected, available in all environments for demo/testing
-{
+// Dev routes — only available in non-production environments
+if (process.env.NODE_ENV !== "production") {
   app.post("/dev/skip-timer", async (c) => {
     // Inline auth check
     const header = c.req.header("Authorization");

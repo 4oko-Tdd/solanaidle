@@ -16,6 +16,7 @@ import { rollBossDrops, applyDrops } from "../services/drop-service.js";
 import { getWeekStart } from "../services/boss-service.js";
 import { getBossPdaAddress, BOSS_ER_CONSTANTS } from "../services/boss-er-service.js";
 import { getSkrBalance } from "../services/skr-service.js";
+import db from "../db/database.js";
 
 type Env = { Variables: { wallet: string } };
 
@@ -151,8 +152,8 @@ app.post("/raid-license", async (c) => {
   return c.json(result);
 });
 
-// GET /boss/results
-app.get("/results", (c) => {
+// POST /boss/results — claim boss drops (once per boss per player)
+app.post("/results", (c) => {
   const wallet = c.get("wallet");
   const boss = getCurrentBoss();
   if (!boss) {
@@ -172,10 +173,18 @@ app.get("/results", (c) => {
   const results = resolveBoss(boss.id);
   const playerEntry = results.participants.find((p) => p.wallet === wallet);
 
+  // Check if drops already claimed
+  const alreadyClaimed = db.prepare(
+    "SELECT 1 FROM boss_drops_claimed WHERE wallet_address = ? AND boss_id = ?"
+  ).get(wallet, boss.id);
+
   let drops = null;
-  if (playerEntry && playerEntry.contribution > 0) {
+  if (playerEntry && playerEntry.contribution > 0 && !alreadyClaimed) {
     drops = rollBossDrops(wallet, playerEntry.contribution);
     applyDrops(wallet, drops, getWeekStart());
+    db.prepare(
+      "INSERT INTO boss_drops_claimed (wallet_address, boss_id, claimed_at) VALUES (?, ?, ?)"
+    ).run(wallet, boss.id, new Date().toISOString());
   }
 
   return c.json({
@@ -184,6 +193,7 @@ app.get("/results", (c) => {
     playerContribution: playerEntry?.contribution ?? 0,
     playerDamage: playerEntry?.totalDamage ?? 0,
     drops,
+    alreadyClaimed: !!alreadyClaimed,
   });
 });
 

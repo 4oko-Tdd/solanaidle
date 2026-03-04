@@ -84,46 +84,50 @@ export function upgradeTrack(
 ): { levels: { armor: number; engine: number; scanner: number }; inventory: Inventory } {
   const config = TRACK_CONFIGS[track];
 
-  const run = db.prepare(
-    `SELECT ${config.column} as level FROM weekly_runs WHERE id = ?`
-  ).get(runId) as { level: number } | undefined;
-  if (!run) throw new Error("RUN_NOT_FOUND");
+  const txn = db.transaction(() => {
+    const run = db.prepare(
+      `SELECT ${config.column} as level FROM weekly_runs WHERE id = ?`
+    ).get(runId) as { level: number } | undefined;
+    if (!run) throw new Error("RUN_NOT_FOUND");
 
-  const currentLevel = run.level;
-  if (currentLevel >= MAX_TRACK_LEVEL) throw new Error("MAX_LEVEL");
+    const currentLevel = run.level;
+    if (currentLevel >= MAX_TRACK_LEVEL) throw new Error("MAX_LEVEL");
 
-  const nextUpgrade = config.upgrades.find(u => u.level === currentLevel + 1)!;
-  const inv = db.prepare(
-    "SELECT scrap, crystal, artifact FROM inventories WHERE character_id = ?"
-  ).get(characterId) as Inventory;
+    const nextUpgrade = config.upgrades.find(u => u.level === currentLevel + 1)!;
+    const inv = db.prepare(
+      "SELECT scrap, crystal, artifact FROM inventories WHERE character_id = ?"
+    ).get(characterId) as Inventory;
 
-  const canAfford =
-    inv.scrap >= nextUpgrade.cost.scrap &&
-    inv.crystal >= (nextUpgrade.cost.crystal ?? 0) &&
-    inv.artifact >= (nextUpgrade.cost.artifact ?? 0);
-  if (!canAfford) throw new Error("INSUFFICIENT_RESOURCES");
+    const canAfford =
+      inv.scrap >= nextUpgrade.cost.scrap &&
+      inv.crystal >= (nextUpgrade.cost.crystal ?? 0) &&
+      inv.artifact >= (nextUpgrade.cost.artifact ?? 0);
+    if (!canAfford) throw new Error("INSUFFICIENT_RESOURCES");
 
-  db.prepare(
-    "UPDATE inventories SET scrap = scrap - ?, crystal = crystal - ?, artifact = artifact - ? WHERE character_id = ?"
-  ).run(nextUpgrade.cost.scrap, nextUpgrade.cost.crystal ?? 0, nextUpgrade.cost.artifact ?? 0, characterId);
+    db.prepare(
+      "UPDATE inventories SET scrap = scrap - ?, crystal = crystal - ?, artifact = artifact - ? WHERE character_id = ?"
+    ).run(nextUpgrade.cost.scrap, nextUpgrade.cost.crystal ?? 0, nextUpgrade.cost.artifact ?? 0, characterId);
 
-  db.prepare(
-    `UPDATE weekly_runs SET ${config.column} = ? WHERE id = ?`
-  ).run(currentLevel + 1, runId);
+    db.prepare(
+      `UPDATE weekly_runs SET ${config.column} = ? WHERE id = ?`
+    ).run(currentLevel + 1, runId);
 
-  const updatedRun = db.prepare(
-    "SELECT armor_level, engine_level, scanner_level FROM weekly_runs WHERE id = ?"
-  ).get(runId) as any;
-  const updatedInv = db.prepare(
-    "SELECT scrap, crystal, artifact FROM inventories WHERE character_id = ?"
-  ).get(characterId) as Inventory;
+    const updatedRun = db.prepare(
+      "SELECT armor_level, engine_level, scanner_level FROM weekly_runs WHERE id = ?"
+    ).get(runId) as any;
+    const updatedInv = db.prepare(
+      "SELECT scrap, crystal, artifact FROM inventories WHERE character_id = ?"
+    ).get(characterId) as Inventory;
 
-  return {
-    levels: {
-      armor: updatedRun.armor_level,
-      engine: updatedRun.engine_level,
-      scanner: updatedRun.scanner_level,
-    },
-    inventory: updatedInv,
-  };
+    return {
+      levels: {
+        armor: updatedRun.armor_level,
+        engine: updatedRun.engine_level,
+        scanner: updatedRun.scanner_level,
+      },
+      inventory: updatedInv,
+    };
+  });
+
+  return txn();
 }

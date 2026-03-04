@@ -74,7 +74,9 @@ export function useVrfRoll(): UseVrfRollReturn {
       setError(null);
 
       // Create connection on demand — avoids a persistent WebSocket at module scope
-      const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
+      const cluster = (process.env.EXPO_PUBLIC_SOLANA_CLUSTER || "devnet") as "devnet" | "mainnet-beta" | "testnet";
+      const rpcUrl = process.env.EXPO_PUBLIC_RPC_URL || clusterApiUrl(cluster);
+      const connection = new Connection(rpcUrl, "confirmed");
 
       const { blockhash } = await connection.getLatestBlockhash();
 
@@ -82,7 +84,7 @@ export function useVrfRoll(): UseVrfRollReturn {
       const signature = await transact(async (wallet) => {
         // Authorize the session (re-uses existing session if active)
         const authResult = await wallet.authorize({
-          cluster: "devnet",
+          cluster: cluster,
           identity: {
             name: "Seeker Node",
             uri: "https://seekernode.app",

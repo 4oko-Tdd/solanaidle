@@ -30,8 +30,7 @@ const MAX_AGE_SECONDS = 300; // 5 minutes
 const RPC_URL = process.env.SOLANA_RPC_URL || "https://api.devnet.solana.com";
 const connection = new Connection(RPC_URL, "confirmed");
 
-// Track consumed VRF accounts to prevent reuse
-const consumedVrfAccounts = new Set<string>();
+// VRF consumption tracked in SQLite (survives restarts)
 
 export interface VrfResultData {
   player: string;
@@ -99,21 +98,13 @@ export function validateVrfResult(
 }
 
 /**
- * Mark a VRF account as consumed (prevent reuse).
+ * Mark a VRF account as consumed (prevent reuse). Persisted to SQLite.
  */
-export function markVrfConsumed(vrfAccountKey: string): boolean {
-  if (consumedVrfAccounts.has(vrfAccountKey)) {
-    return false; // already consumed
-  }
-  consumedVrfAccounts.add(vrfAccountKey);
-
-  // Clean old entries periodically (keep set from growing forever)
-  if (consumedVrfAccounts.size > 10000) {
-    const entries = Array.from(consumedVrfAccounts);
-    entries.slice(0, 5000).forEach((e) => consumedVrfAccounts.delete(e));
-  }
-
-  return true;
+export function markVrfConsumed(vrfAccountKey: string, wallet: string): boolean {
+  const result = db.prepare(
+    "INSERT OR IGNORE INTO consumed_vrf (vrf_account, wallet_address) VALUES (?, ?)"
+  ).run(vrfAccountKey, wallet);
+  return result.changes > 0;
 }
 
 /**
@@ -145,7 +136,7 @@ export async function consumeVrf(
       return { error: validation.error! };
     }
 
-    if (!markVrfConsumed(vrfAccountKey)) {
+    if (!markVrfConsumed(vrfAccountKey, expectedWallet)) {
       return { error: "VRF result already consumed" };
     }
 
@@ -246,9 +237,5 @@ export async function computeEpochBonus(
 }
 
 function fallbackRandomBytes(): Uint8Array {
-  const bytes = new Uint8Array(32);
-  for (let i = 0; i < 32; i++) {
-    bytes[i] = Math.floor(Math.random() * 256);
-  }
-  return bytes;
+  return new Uint8Array(crypto.randomBytes(32));
 }

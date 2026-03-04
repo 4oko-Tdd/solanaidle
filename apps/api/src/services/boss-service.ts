@@ -1,4 +1,4 @@
-import { randomUUID } from "crypto";
+import { randomUUID, randomInt } from "crypto";
 import db from "../db/database.js";
 import {
   BOSS_BASE_HP,
@@ -170,6 +170,18 @@ function ensureBossEpochState(walletAddress: string, weekStart: string): BossEpo
     .get(walletAddress, weekStart) as BossEpochStateRow;
 }
 
+
+/** Reset all participants of a boss from 'in_boss_fight' back to 'idle'. */
+function releaseBossFighters(bossId: string): void {
+  const participants = db
+    .prepare("SELECT wallet_address FROM boss_participants WHERE boss_id = ?")
+    .all(bossId) as { wallet_address: string }[];
+  for (const p of participants) {
+    db.prepare(
+      "UPDATE characters SET state = 'idle' WHERE wallet_address = ? AND state = 'in_boss_fight'"
+    ).run(p.wallet_address);
+  }
+}
 
 // ── Core functions ──
 
@@ -346,7 +358,7 @@ export function calculatePassiveDamage(
     now - lastRollAt > DESTABILIZE_ROLL_INTERVAL_MS;
 
   if (canRollDestabilize) {
-    const rolledDestabilized = Math.random() < DESTABILIZE_ROLL_CHANCE;
+    const rolledDestabilized = randomInt(0, 10000) / 10000 < DESTABILIZE_ROLL_CHANCE;
     db.prepare(
       "UPDATE boss_epoch_state SET last_roll_at = ?, destabilized = ?, destabilized_at = ? WHERE wallet_address = ? AND week_start = ?"
     ).run(
@@ -514,6 +526,7 @@ export async function useOverload(
     .prepare("SELECT killed FROM world_boss WHERE id = ?")
     .get(bossId) as { killed: number } | undefined;
   if (bossAfterOverload?.killed === 1) {
+    releaseBossFighters(bossId);
     finalizeBossOnChain(weekStartTsOverload).catch(() => {});
     const bossParticipants = db
       .prepare("SELECT wallet_address FROM boss_participants WHERE boss_id = ?")
@@ -633,8 +646,16 @@ export async function useReconnectProtocol(
   return { success: true, skrBalance: await getSkrBalance(walletAddress) };
 }
 
-/** Recalculate all passive damage and apply to boss HP. */
+// Throttle passive damage recalculation (once per 30s per boss)
+const lastPassiveUpdate = new Map<string, number>();
+const PASSIVE_UPDATE_THROTTLE_MS = 30_000;
+
+/** Recalculate all passive damage and apply to boss HP (throttled). */
 export function updateAllPassiveDamage(bossId: string): void {
+  const now = Date.now();
+  const lastUpdate = lastPassiveUpdate.get(bossId) ?? 0;
+  if (now - lastUpdate < PASSIVE_UPDATE_THROTTLE_MS) return;
+  lastPassiveUpdate.set(bossId, now);
   const participants = db
     .prepare("SELECT wallet_address FROM boss_participants WHERE boss_id = ?")
     .all(bossId) as { wallet_address: string }[];
@@ -675,8 +696,9 @@ export function updateAllPassiveDamage(bossId: string): void {
   const weekStartTsPassive = Math.floor(new Date(weekStartPassive).getTime() / 1000);
   applyDamageOnER(weekStartTsPassive, totalDamage, participants.length, boss.max_hp).catch(() => {});
 
-  // If boss was killed, finalize on-chain and track lifetime boss_kills
+  // If boss was killed, finalize on-chain, release fighters, and track lifetime boss_kills
   if (newHp <= 0) {
+    releaseBossFighters(bossId);
     finalizeBossOnChain(weekStartTsPassive).catch(() => {});
     for (const p of participants) {
       try { incrementLifetimeStat(p.wallet_address, "boss_kills"); } catch {}

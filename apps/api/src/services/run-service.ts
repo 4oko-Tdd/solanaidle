@@ -37,34 +37,38 @@ export function getActiveRun(wallet: string): WeeklyRun | null {
 // Start a new run for the current week
 export function startRun(wallet: string, classId: ClassId): WeeklyRun {
   const { weekStart, weekEnd } = getWeekBounds();
-  // Check if already has a run this week
-  const existing = db
-    .prepare(
-      "SELECT id FROM weekly_runs WHERE wallet_address = ? AND week_start = ?"
-    )
-    .get(wallet, weekStart);
-  if (existing) throw new Error("CLASS_ALREADY_CHOSEN");
 
-  const id = crypto.randomUUID();
-  db.prepare(
-    `INSERT INTO weekly_runs (id, wallet_address, class_id, week_start, week_end, lives_remaining)
-     VALUES (?, ?, ?, ?, ?, ?)`
-  ).run(id, wallet, classId, weekStart, weekEnd, RUN_LIVES);
+  const txn = db.transaction(() => {
+    // Check if already has a run this week
+    const existing = db
+      .prepare(
+        "SELECT id FROM weekly_runs WHERE wallet_address = ? AND week_start = ?"
+      )
+      .get(wallet, weekStart);
+    if (existing) throw new Error("CLASS_ALREADY_CHOSEN");
 
-  // Reset resources to 0 for the new run
-  const char = db.prepare("SELECT id FROM characters WHERE wallet_address = ?").get(wallet) as { id: string } | undefined;
-  if (char) {
+    const id = crypto.randomUUID();
     db.prepare(
-      "UPDATE inventories SET scrap = 0, crystal = 0, artifact = 0 WHERE character_id = ?"
-    ).run(char.id);
-    // Reset character level to 1
-    db.prepare(
-      "UPDATE characters SET level = 1, xp = 0 WHERE id = ?"
-    ).run(char.id);
-  }
+      `INSERT INTO weekly_runs (id, wallet_address, class_id, week_start, week_end, lives_remaining)
+       VALUES (?, ?, ?, ?, ?, ?)`
+    ).run(id, wallet, classId, weekStart, weekEnd, RUN_LIVES);
 
-  insertEvent(id, "run_start", { classId, weekNumber: getWeekNumber() });
+    // Reset resources to 0 for the new run
+    const char = db.prepare("SELECT id FROM characters WHERE wallet_address = ?").get(wallet) as { id: string } | undefined;
+    if (char) {
+      db.prepare(
+        "UPDATE inventories SET scrap = 0, crystal = 0, artifact = 0 WHERE character_id = ?"
+      ).run(char.id);
+      // Reset character level to 1
+      db.prepare(
+        "UPDATE characters SET level = 1, xp = 0 WHERE id = ?"
+      ).run(char.id);
+    }
 
+    insertEvent(id, "run_start", { classId, weekNumber: getWeekNumber() });
+  });
+
+  txn();
   return getActiveRun(wallet)!;
 }
 

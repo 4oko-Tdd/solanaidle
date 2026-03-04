@@ -43,6 +43,19 @@ export function getCharacter(wallet: string): Character | null {
     row.revive_at = null;
   }
 
+  // Auto-recover from stale in_boss_fight (boss dead or absent)
+  if (row.state === "in_boss_fight") {
+    const activeBoss = db.prepare(
+      "SELECT bp.boss_id FROM boss_participants bp JOIN world_boss wb ON wb.id = bp.boss_id WHERE bp.wallet_address = ? AND wb.killed = 0"
+    ).get(wallet) as { boss_id: string } | undefined;
+    if (!activeBoss) {
+      db.prepare(
+        "UPDATE characters SET state = 'idle' WHERE id = ?"
+      ).run(row.id);
+      row.state = "idle";
+    }
+  }
+
   return rowToCharacter(row);
 }
 

@@ -87,9 +87,15 @@ runs.get("/ended", (c) => {
   return c.json(run);
 });
 
-// Get events for a run
+// Get events for a run (ownership-checked)
 runs.get("/:id/events", (c) => {
+  const wallet = c.get("wallet");
   const runId = c.req.param("id");
+  // Verify run belongs to this wallet
+  const run = db.prepare("SELECT wallet_address FROM weekly_runs WHERE id = ?").get(runId) as { wallet_address: string } | undefined;
+  if (!run || run.wallet_address !== wallet) {
+    return c.json({ error: "NOT_FOUND", message: "Run not found" }, 404);
+  }
   const events = getRunEvents(runId);
   return c.json(events);
 });
@@ -106,14 +112,18 @@ runs.post("/:id/finalize", async (c) => {
     );
   }
 
+  // Verify run belongs to this wallet
+  const runRow = db.prepare("SELECT wallet_address FROM weekly_runs WHERE id = ?").get(runId) as { wallet_address: string } | undefined;
+  if (!runRow || runRow.wallet_address !== wallet) {
+    return c.json({ error: "NOT_FOUND", message: "Run not found" }, 404);
+  }
+
   // End the run if still active
   const run = getActiveRun(wallet);
   if (run && run.id === runId) {
     endRun(runId);
     // Voluntary epoch finalization — count as epoch survived for cosmetic milestones
     try { incrementLifetimeStat(wallet, "epochs_survived"); } catch {}
-  } else if (!run && !runId) {
-    return c.json({ error: "RUN_NOT_FOUND", message: "Run not found" }, 404);
   }
 
   storeEndSignature(runId, body.signature);

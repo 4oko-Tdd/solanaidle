@@ -35,6 +35,11 @@ COPY --from=build /deploy .
 # SQLite data lives here — mount a named volume to persist across restarts
 RUN apk add --no-cache curl && mkdir -p /app/data
 
+# Create non-root user and set ownership
+RUN addgroup -S app && adduser -S app -G app && \
+    chown -R app:app /app
+USER app
+
 ENV NODE_ENV=production
 EXPOSE 3000
 

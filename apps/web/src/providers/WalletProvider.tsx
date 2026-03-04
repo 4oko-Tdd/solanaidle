@@ -11,9 +11,11 @@ import {
 } from "@solana-mobile/wallet-adapter-mobile";
 import { clusterApiUrl } from "@solana/web3.js";
 
+const SOLANA_CLUSTER = (import.meta.env.VITE_SOLANA_CLUSTER || "devnet") as "devnet" | "mainnet-beta" | "testnet";
+
 export function WalletProvider({ children }: { children: React.ReactNode }) {
   const endpoint = useMemo(
-    () => import.meta.env.VITE_RPC_URL || clusterApiUrl("devnet"),
+    () => import.meta.env.VITE_RPC_URL || clusterApiUrl(SOLANA_CLUSTER),
     [],
   );
 
@@ -27,7 +29,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
           icon: "favicon.ico",
         },
         authorizationResultCache: createDefaultAuthorizationResultCache(),
-        cluster: "devnet",
+        cluster: SOLANA_CLUSTER,
         onWalletNotFound: createDefaultWalletNotFoundHandler(),
       }),
     ],
