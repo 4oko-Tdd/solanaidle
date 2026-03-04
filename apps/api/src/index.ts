@@ -3,6 +3,7 @@ import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { secureHeaders } from "hono/secure-headers";
 import { serve } from "@hono/node-server";
+import { randomUUID } from "crypto";
 import type { Context, Next } from "hono";
 import { initSchema } from "./db/schema.js";
 import auth from "./routes/auth.js";
@@ -49,6 +50,13 @@ setInterval(() => {
 
 const app = new Hono().basePath("/api");
 
+// Request ID middleware — attach unique ID to every request for tracing
+app.use("*", async (c: Context, next: Next) => {
+  const requestId = c.req.header("x-request-id") || randomUUID();
+  c.header("x-request-id", requestId);
+  c.set("requestId", requestId);
+  await next();
+});
 app.use("*", logger());
 app.use("*", secureHeaders());
 const CORS_ORIGIN = process.env.CORS_ORIGIN;
@@ -61,8 +69,23 @@ app.use("*", cors({
   allowHeaders: ["Content-Type", "Authorization"],
 }));
 
-app.get("/health", (c) => {
-  return c.json({ status: "ok", timestamp: new Date().toISOString() });
+app.get("/health", async (c) => {
+  const checks: Record<string, string> = {};
+
+  // DB check
+  try {
+    const dbMod = await import("./db/database.js");
+    dbMod.default.prepare("SELECT 1").get();
+    checks.database = "ok";
+  } catch {
+    checks.database = "error";
+  }
+
+  const allOk = Object.values(checks).every((v) => v === "ok");
+  return c.json(
+    { status: allOk ? "ok" : "degraded", timestamp: new Date().toISOString(), checks },
+    allOk ? 200 : 503
+  );
 });
 
 // Rate limit: auth (20 req/min per IP), boss (60 req/min per IP)

@@ -9,9 +9,9 @@ if (!JWT_SECRET) {
   if (process.env.NODE_ENV === "production") {
     throw new Error("FATAL: JWT_SECRET environment variable is required in production");
   }
-  console.warn("[Auth] JWT_SECRET not set — using insecure dev default. DO NOT use in production.");
+  console.warn("[Auth] JWT_SECRET not set — using insecure dev default. Set JWT_SECRET env var before deploying.");
 }
-const resolvedSecret = JWT_SECRET || "dev-secret-change-in-prod";
+const resolvedSecret = JWT_SECRET || "unsafe-dev-only-secret-" + process.pid;
 const NONCE_EXPIRY_MINUTES = 5;
 
 export function createNonce(): string {

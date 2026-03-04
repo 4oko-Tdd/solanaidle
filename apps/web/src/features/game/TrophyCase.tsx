@@ -11,7 +11,8 @@ const ACHIEVEMENT_ICONS: Record<AchievementId, string> = {
 };
 
 const EXPLORER_URL = "https://explorer.solana.com/address";
-const CLUSTER = "?cluster=devnet";
+const SOLANA_CLUSTER = import.meta.env.VITE_SOLANA_CLUSTER || "devnet";
+const CLUSTER = SOLANA_CLUSTER === "mainnet-beta" ? "" : `?cluster=${SOLANA_CLUSTER}`;
 
 function shortenAddress(addr: string): string {
   return addr.slice(0, 4) + "..." + addr.slice(-4);

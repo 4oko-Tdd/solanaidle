@@ -13,7 +13,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  console.log("[RootLayout] render");
+  if (__DEV__) console.log("[RootLayout] render");
   const [assetsLoaded, setAssetsLoaded] = useState(false);
   const [fontsLoaded, fontsError] = useFonts({
     Orbitron_400Regular,
@@ -24,7 +24,7 @@ export default function RootLayout() {
     Rajdhani_700Bold,
   });
 
-  console.log("[RootLayout] fontsLoaded =", fontsLoaded, "error =", fontsError);
+  if (__DEV__) console.log("[RootLayout] fontsLoaded =", fontsLoaded, "error =", fontsError);
 
   useEffect(() => {
     let cancelled = false;
@@ -60,17 +60,17 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (fontsLoaded && assetsLoaded) {
-      console.log("[RootLayout] fonts loaded, hiding splash");
+      if (__DEV__) console.log("[RootLayout] fonts loaded, hiding splash");
       SplashScreen.hideAsync();
     }
   }, [fontsLoaded, assetsLoaded]);
 
   if (!fontsLoaded || !assetsLoaded) {
-    console.log("[RootLayout] waiting for startup assets...");
+    if (__DEV__) console.log("[RootLayout] waiting for startup assets...");
     return null;
   }
 
-  console.log("[RootLayout] rendering tree");
+  if (__DEV__) console.log("[RootLayout] rendering tree");
 
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: "#0a1628" }}>

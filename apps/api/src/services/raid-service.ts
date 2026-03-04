@@ -110,7 +110,7 @@ export function startRaid(
   if (initiatorCharId) {
     try {
       trackChallengeProgress(wallet, "raid", 1, initiatorCharId);
-    } catch {}
+    } catch (e) { console.error("[Raid] challenge progress failed:", e); }
   }
 
   return getActiveRaid(guildId)!;
@@ -195,10 +195,10 @@ export function claimRaid(
   }
 
   // Achievement: Raid Victor
-  checkAndGrantAchievements(wallet, char.id, "raid_claim", {}).catch(() => {});
+  checkAndGrantAchievements(wallet, char.id, "raid_claim", {}).catch((e) => console.error("[Raid] achievement check failed:", e));
 
   // Track lifetime stat for cosmetic milestones
-  try { incrementLifetimeStat(wallet, "raids_completed"); } catch {}
+  try { incrementLifetimeStat(wallet, "raids_completed"); } catch (e) { console.error("[Raid] lifetime stat failed:", e); }
 
   return {
     lootMultiplier: raid.lootMultiplier,

@@ -110,6 +110,19 @@ export function initSchema() {
     );
     CREATE INDEX IF NOT EXISTS idx_run_events_run ON run_events(run_id);
 
+    CREATE INDEX IF NOT EXISTS idx_characters_wallet ON characters(wallet_address);
+    CREATE INDEX IF NOT EXISTS idx_weekly_runs_wallet_week ON weekly_runs(wallet_address, week_start);
+    CREATE INDEX IF NOT EXISTS idx_weekly_runs_active ON weekly_runs(wallet_address, active);
+    CREATE INDEX IF NOT EXISTS idx_boss_participants_boss ON boss_participants(boss_id);
+    CREATE INDEX IF NOT EXISTS idx_boss_participants_wallet ON boss_participants(wallet_address);
+    CREATE INDEX IF NOT EXISTS idx_active_missions_character ON active_missions(character_id);
+    CREATE INDEX IF NOT EXISTS idx_daily_logins_wallet ON daily_logins(wallet_address);
+    CREATE INDEX IF NOT EXISTS idx_permanent_loot_wallet ON permanent_loot(wallet_address);
+    CREATE INDEX IF NOT EXISTS idx_leaderboard_week ON leaderboard(week_start, score DESC);
+    CREATE INDEX IF NOT EXISTS idx_challenge_progress_wallet ON challenge_progress(wallet_address, period_key);
+    CREATE INDEX IF NOT EXISTS idx_skr_spends_wallet ON skr_spends(wallet_address);
+    CREATE INDEX IF NOT EXISTS idx_boss_epoch_state_wallet ON boss_epoch_state(wallet_address, week_start);
+
     CREATE TABLE IF NOT EXISTS daily_logins (
       wallet_address TEXT PRIMARY KEY,
       streak_day INTEGER NOT NULL DEFAULT 1,

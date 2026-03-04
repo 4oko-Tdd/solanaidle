@@ -72,7 +72,7 @@ export function RunEndScreen({ run, signMessage, onFinalized }: Props) {
   useEffect(() => {
     api<RunEvent[]>(`/runs/${run.id}/events`)
       .then(setEvents)
-      .catch(() => {});
+      .catch((e) => console.warn("[RunEndScreen] Failed to fetch events:", e));
   }, [run.id]);
 
   const deaths = events.filter((e) => e.eventType === "mission_fail" && !(e.data as any).escaped).length;
@@ -276,7 +276,7 @@ export function RunEndScreen({ run, signMessage, onFinalized }: Props) {
         {/* Explorer link */}
         {bonus.vrfVerified && bonus.vrfAccount && (
           <a
-            href={`https://explorer.solana.com/address/${bonus.vrfAccount}?cluster=devnet`}
+            href={`https://explorer.solana.com/address/${bonus.vrfAccount}${(import.meta.env.VITE_SOLANA_CLUSTER || "devnet") === "mainnet-beta" ? "" : `?cluster=${import.meta.env.VITE_SOLANA_CLUSTER || "devnet"}`}`}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center justify-center gap-1.5 text-xs text-neon-cyan/60 hover:text-neon-cyan transition-colors"

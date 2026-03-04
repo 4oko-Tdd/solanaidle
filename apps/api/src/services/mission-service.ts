@@ -383,7 +383,7 @@ export async function claimMission(
     if (walletAddress) {
       checkAndGrantAchievements(walletAddress, characterId, "mission_success", {
         streak: currentStreak,
-      }).catch(() => {});
+      }).catch((e) => console.error("[Mission] achievement check failed:", e));
     }
   }
 
@@ -397,12 +397,12 @@ export async function claimMission(
       if (missionRow.mission_id === "expedition") {
         trackChallengeProgress(walletAddress, "liquidity_run", 1, characterId);
       }
-    } catch {}
+    } catch (e) { console.error("[Mission] challenge progress failed:", e); }
   }
 
   // Track lifetime stat for cosmetic milestones
   if (walletAddress) {
-    try { incrementLifetimeStat(walletAddress, "missions_completed"); } catch {}
+    try { incrementLifetimeStat(walletAddress, "missions_completed"); } catch (e) { console.error("[Mission] lifetime stat failed:", e); }
   }
 
   // Update on-chain progress via ER (server-side, fire-and-forget)
@@ -423,7 +423,7 @@ export async function claimMission(
         deathCount?.cnt ?? 0,
         runRow.boss_defeated === 1,
         runRow.class_id
-      ).catch(() => {});
+      ).catch((e) => console.error("[Mission] ER progress update failed:", e));
     }
   }
 
