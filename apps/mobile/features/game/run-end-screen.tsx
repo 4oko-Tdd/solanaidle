@@ -90,7 +90,7 @@ export function RunEndScreen({ run, signMessage, onClose }: Props) {
   useEffect(() => {
     api<RunEvent[]>(`/runs/${run.id}/events`)
       .then(setEvents)
-      .catch(() => {});
+      .catch((e) => console.warn("[RunEndScreen] Failed to fetch events:", e));
   }, [run.id]);
 
   const deaths = events.filter(
@@ -259,7 +259,7 @@ export function RunEndScreen({ run, signMessage, onClose }: Props) {
             <Pressable
               onPress={() =>
                 Linking.openURL(
-                  `https://explorer.solana.com/address/${bonus.vrfAccount}?cluster=devnet`
+                  `https://explorer.solana.com/address/${bonus.vrfAccount}${(process.env.EXPO_PUBLIC_SOLANA_CLUSTER || "devnet") === "mainnet-beta" ? "" : `?cluster=${process.env.EXPO_PUBLIC_SOLANA_CLUSTER || "devnet"}`}`
                 )
               }
               className="rounded-lg border border-neon-cyan/25 bg-neon-cyan/5 py-2"

@@ -120,7 +120,7 @@ export function endRun(runId: string): void {
       checkAndGrantAchievements(run.wallet_address, char.id, "run_end", {
         score: run.score,
         rank: 1,
-      }).catch(() => {});
+      }).catch((e) => console.error("[Run] achievement check failed:", e));
     }
   }
 }

@@ -10,18 +10,15 @@ import {
   clusterApiUrl,
 } from "@solana/web3.js";
 
-// Program ID — must match deployed vrf-roller program
+// Program IDs — configurable via env vars, default to devnet
 const VRF_ROLLER_PROGRAM_ID = new PublicKey(
-  "6poGeFLevD7oDWtY9FYHHXQ669vwJvMRa8R5iT98ESKN"
+  process.env.EXPO_PUBLIC_VRF_ROLLER_PROGRAM_ID || "6poGeFLevD7oDWtY9FYHHXQ669vwJvMRa8R5iT98ESKN"
 );
-
-// MagicBlock VRF constants (from ephemeral-vrf-sdk::consts)
-// These are the devnet addresses — update for mainnet
 const VRF_PROGRAM_ID = new PublicKey(
-  "VRFzBcmMEXpDUcTpSmXbcNMKjLPKuAHCFb3jRKr1V4L"
+  process.env.EXPO_PUBLIC_VRF_PROGRAM_ID || "VRFzBcmMEXpDUcTpSmXbcNMKjLPKuAHCFb3jRKr1V4L"
 );
 const DEFAULT_ORACLE_QUEUE = new PublicKey(
-  "Eo1tMemqVhYsBGfMxiMGvBFrdpt8v57sz1GBxoxDCDi2"
+  process.env.EXPO_PUBLIC_VRF_ORACLE_QUEUE || "Eo1tMemqVhYsBGfMxiMGvBFrdpt8v57sz1GBxoxDCDi2"
 );
 const VRF_PROGRAM_IDENTITY_SEED = new TextEncoder().encode("identity");
 

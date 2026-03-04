@@ -196,7 +196,8 @@ export function getOrSpawnBoss(): Boss | null {
 
   if (existing) return mapBoss(existing);
 
-  // Spawn new boss
+  // Spawn new boss — use INSERT OR IGNORE to prevent race condition
+  // (week_start has a UNIQUE constraint on world_boss)
   const playerCount = getActivePlayerCount();
   const maxHp = Math.max(
     BOSS_BASE_HP,
@@ -205,14 +206,22 @@ export function getOrSpawnBoss(): Boss | null {
   const id = randomUUID();
   const now = new Date().toISOString();
 
-  db.prepare(
-    `INSERT INTO world_boss (id, name, max_hp, current_hp, week_start, spawned_at, killed)
+  const result = db.prepare(
+    `INSERT OR IGNORE INTO world_boss (id, name, max_hp, current_hp, week_start, spawned_at, killed)
      VALUES (?, ?, ?, ?, ?, ?, 0)`
   ).run(id, BOSS_NAME, maxHp, maxHp, weekStart, now);
 
+  // If another request beat us, fetch the existing boss
+  if (result.changes === 0) {
+    const raced = db
+      .prepare("SELECT * FROM world_boss WHERE week_start = ?")
+      .get(weekStart) as BossRow | undefined;
+    return raced ? mapBoss(raced) : null;
+  }
+
   // Initialize boss PDA on-chain and delegate to ER
   const weekStartTs = Math.floor(new Date(weekStart).getTime() / 1000);
-  initializeBossOnChain(weekStartTs, maxHp).catch(() => {});
+  initializeBossOnChain(weekStartTs, maxHp).catch((e) => console.error("[Boss] ER init failed:", e));
 
   return {
     id,
@@ -295,7 +304,7 @@ export function joinBossFight(
   // Track challenge progress for boss_join
   try {
     trackChallengeProgress(walletAddress, "boss_join", 1, char.id);
-  } catch {}
+  } catch (e) { console.error("[Boss] challenge/stat tracking failed:", e); }
 
   const participant: Participant = {
     bossId: boss.id,
@@ -504,7 +513,7 @@ export async function useOverload(
   // Track challenge progress for overload
   try {
     trackChallengeProgress(walletAddress, "overload", 1, char.id);
-  } catch {}
+  } catch (e) { console.error("[Boss] challenge/stat tracking failed:", e); }
 
   // Store player signature as proof of OVERLOAD authorization
   if (playerSignature) {
@@ -518,7 +527,7 @@ export async function useOverload(
   const weekStartTsOverload = Math.floor(new Date(weekStartOverload).getTime() / 1000);
   const overloadStatus = getBossStatus(bossId);
   if (overloadStatus?.boss) {
-    applyDamageOnER(weekStartTsOverload, overloadStatus.totalDamage, overloadStatus.participantCount, overloadStatus.boss.maxHp).catch(() => {});
+    applyDamageOnER(weekStartTsOverload, overloadStatus.totalDamage, overloadStatus.participantCount, overloadStatus.boss.maxHp).catch((e) => console.error("[Boss] ER overload damage failed:", e));
   }
 
   // If boss was killed, finalize on-chain and track lifetime boss_kills
@@ -527,12 +536,12 @@ export async function useOverload(
     .get(bossId) as { killed: number } | undefined;
   if (bossAfterOverload?.killed === 1) {
     releaseBossFighters(bossId);
-    finalizeBossOnChain(weekStartTsOverload).catch(() => {});
+    finalizeBossOnChain(weekStartTsOverload).catch((e) => console.error("[Boss] ER finalize failed:", e));
     const bossParticipants = db
       .prepare("SELECT wallet_address FROM boss_participants WHERE boss_id = ?")
       .all(bossId) as { wallet_address: string }[];
     for (const p of bossParticipants) {
-      try { incrementLifetimeStat(p.wallet_address, "boss_kills"); } catch {}
+      try { incrementLifetimeStat(p.wallet_address, "boss_kills"); } catch (e) { console.error("[Boss] lifetime stat failed:", e); }
     }
   }
 
@@ -694,14 +703,14 @@ export function updateAllPassiveDamage(bossId: string): void {
   // Push damage to ER
   const weekStartPassive = getWeekStart();
   const weekStartTsPassive = Math.floor(new Date(weekStartPassive).getTime() / 1000);
-  applyDamageOnER(weekStartTsPassive, totalDamage, participants.length, boss.max_hp).catch(() => {});
+  applyDamageOnER(weekStartTsPassive, totalDamage, participants.length, boss.max_hp).catch((e) => console.error("[Boss] ER passive damage failed:", e));
 
   // If boss was killed, finalize on-chain, release fighters, and track lifetime boss_kills
   if (newHp <= 0) {
     releaseBossFighters(bossId);
-    finalizeBossOnChain(weekStartTsPassive).catch(() => {});
+    finalizeBossOnChain(weekStartTsPassive).catch((e) => console.error("[Boss] ER finalize (passive kill) failed:", e));
     for (const p of participants) {
-      try { incrementLifetimeStat(p.wallet_address, "boss_kills"); } catch {}
+      try { incrementLifetimeStat(p.wallet_address, "boss_kills"); } catch (e) { console.error("[Boss] lifetime stat failed:", e); }
     }
   }
 }

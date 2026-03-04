@@ -123,7 +123,7 @@ runs.post("/:id/finalize", async (c) => {
   if (run && run.id === runId) {
     endRun(runId);
     // Voluntary epoch finalization — count as epoch survived for cosmetic milestones
-    try { incrementLifetimeStat(wallet, "epochs_survived"); } catch {}
+    try { incrementLifetimeStat(wallet, "epochs_survived"); } catch (e) { console.error("[Run] lifetime stat failed:", e); }
   }
 
   storeEndSignature(runId, body.signature);
