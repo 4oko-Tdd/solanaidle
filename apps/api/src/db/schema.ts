@@ -206,6 +206,19 @@ export function initSchema() {
       max_slots INTEGER NOT NULL DEFAULT 3
     );
 
+    CREATE TABLE IF NOT EXISTS boss_drops_claimed (
+      wallet_address TEXT NOT NULL,
+      boss_id TEXT NOT NULL REFERENCES world_boss(id),
+      claimed_at TEXT NOT NULL DEFAULT (datetime('now')),
+      PRIMARY KEY (wallet_address, boss_id)
+    );
+
+    CREATE TABLE IF NOT EXISTS consumed_vrf (
+      vrf_account TEXT PRIMARY KEY,
+      wallet_address TEXT NOT NULL,
+      consumed_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
     CREATE TABLE IF NOT EXISTS character_perks (
       id TEXT PRIMARY KEY,
       run_id TEXT NOT NULL,

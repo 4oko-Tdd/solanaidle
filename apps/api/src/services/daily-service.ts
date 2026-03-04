@@ -62,40 +62,44 @@ export function claimDaily(
   wallet: string,
   characterId: string
 ): { reward: DailyReward; newStreakDay: number } {
-  const today = getTodayUTC();
-  const yesterday = getYesterdayUTC();
+  const txn = db.transaction(() => {
+    const today = getTodayUTC();
+    const yesterday = getYesterdayUTC();
 
-  const row = db
-    .prepare("SELECT * FROM daily_logins WHERE wallet_address = ?")
-    .get(wallet) as DailyRow | undefined;
+    const row = db
+      .prepare("SELECT * FROM daily_logins WHERE wallet_address = ?")
+      .get(wallet) as DailyRow | undefined;
 
-  if (row && row.last_claim_date === today) {
-    throw new Error("ALREADY_CLAIMED_TODAY");
-  }
+    if (row && row.last_claim_date === today) {
+      throw new Error("ALREADY_CLAIMED_TODAY");
+    }
 
-  let streakDay: number;
-  if (!row) {
-    streakDay = 1;
+    let streakDay: number;
+    if (!row) {
+      streakDay = 1;
+      db.prepare(
+        "INSERT INTO daily_logins (wallet_address, streak_day, last_claim_date) VALUES (?, ?, ?)"
+      ).run(wallet, 1, today);
+    } else if (row.last_claim_date === yesterday) {
+      streakDay = row.streak_day >= 7 ? 1 : row.streak_day + 1;
+      db.prepare(
+        "UPDATE daily_logins SET streak_day = ?, last_claim_date = ? WHERE wallet_address = ?"
+      ).run(streakDay, today, wallet);
+    } else {
+      streakDay = 1;
+      db.prepare(
+        "UPDATE daily_logins SET streak_day = 1, last_claim_date = ? WHERE wallet_address = ?"
+      ).run(today, wallet);
+    }
+
+    const reward = DAILY_REWARDS[streakDay - 1];
+
     db.prepare(
-      "INSERT INTO daily_logins (wallet_address, streak_day, last_claim_date) VALUES (?, ?, ?)"
-    ).run(wallet, 1, today);
-  } else if (row.last_claim_date === yesterday) {
-    streakDay = row.streak_day >= 7 ? 1 : row.streak_day + 1;
-    db.prepare(
-      "UPDATE daily_logins SET streak_day = ?, last_claim_date = ? WHERE wallet_address = ?"
-    ).run(streakDay, today, wallet);
-  } else {
-    streakDay = 1;
-    db.prepare(
-      "UPDATE daily_logins SET streak_day = 1, last_claim_date = ? WHERE wallet_address = ?"
-    ).run(today, wallet);
-  }
+      "UPDATE inventories SET scrap = scrap + ?, crystal = crystal + ?, artifact = artifact + ? WHERE character_id = ?"
+    ).run(reward.scrap, reward.crystal, reward.artifact, characterId);
 
-  const reward = DAILY_REWARDS[streakDay - 1];
+    return { reward, newStreakDay: streakDay };
+  });
 
-  db.prepare(
-    "UPDATE inventories SET scrap = scrap + ?, crystal = crystal + ?, artifact = artifact + ? WHERE character_id = ?"
-  ).run(reward.scrap, reward.crystal, reward.artifact, characterId);
-
-  return { reward, newStreakDay: streakDay };
+  return txn();
 }

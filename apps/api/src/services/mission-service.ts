@@ -1,4 +1,4 @@
-import { randomUUID } from "crypto";
+import { randomUUID, randomInt as cryptoRandomInt } from "crypto";
 import db from "../db/database.js";
 import {
   getMission,
@@ -47,7 +47,7 @@ interface CharacterRow {
 }
 
 function randomInt(min: number, max: number): number {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
+  return cryptoRandomInt(min, max + 1);
 }
 
 export function getActiveMission(characterId: string): ActiveMission | null {
@@ -97,8 +97,6 @@ export function startMission(
     } else {
       throw new Error("FAST_SLOT_LOCKED");
     }
-    const existingFast = db.prepare("SELECT id FROM active_missions WHERE character_id = ? AND slot = 'fast'").get(characterId);
-    if (existingFast) throw new Error("MISSION_IN_PROGRESS");
   }
 
   // Tier gating (main slot only)
@@ -133,41 +131,51 @@ export function startMission(
   const stacks = slot === 'main' ? Math.min(Math.max(rerollStacks ?? 0, 0), MAX_REROLL_STACKS) : 0;
   const useInsurance = slot === 'main' && insured ? 1 : 0;
 
-  if (stacks > 0 || useInsurance) {
-    const inv = db.prepare(
-      "SELECT scrap, crystal FROM inventories WHERE character_id = ?"
-    ).get(characterId) as { scrap: number; crystal: number };
-
-    const scrapCost = stacks * REROLL_COST_PER_STACK;
-    const crystalCost = useInsurance ? INSURANCE_COST : 0;
-    if (inv.scrap < scrapCost) throw new Error("INSUFFICIENT_RESOURCES");
-    if (inv.crystal < crystalCost) throw new Error("INSUFFICIENT_RESOURCES");
-
-    if (scrapCost > 0 || crystalCost > 0) {
-      db.prepare(
-        "UPDATE inventories SET scrap = scrap - ?, crystal = crystal - ? WHERE character_id = ?"
-      ).run(scrapCost, crystalCost, characterId);
+  // Wrap all DB writes in a transaction to prevent race conditions
+  const txn = db.transaction(() => {
+    if (slot === 'fast') {
+      const existingFast = db.prepare("SELECT id FROM active_missions WHERE character_id = ? AND slot = 'fast'").get(characterId);
+      if (existingFast) throw new Error("MISSION_IN_PROGRESS");
     }
-  }
 
-  const now = new Date();
-  const endsAt = new Date(now.getTime() + duration * 1000);
+    if (stacks > 0 || useInsurance) {
+      const inv = db.prepare(
+        "SELECT scrap, crystal FROM inventories WHERE character_id = ?"
+      ).get(characterId) as { scrap: number; crystal: number };
 
-  const id = randomUUID();
-  db.prepare(
-    "INSERT INTO active_missions (id, character_id, mission_id, started_at, ends_at, reroll_stacks, insured, run_id, slot) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
-  ).run(id, characterId, missionId, now.toISOString(), endsAt.toISOString(), stacks, useInsurance, runId ?? null, slot);
+      const scrapCost = stacks * REROLL_COST_PER_STACK;
+      const crystalCost = useInsurance ? INSURANCE_COST : 0;
+      if (inv.scrap < scrapCost) throw new Error("INSUFFICIENT_RESOURCES");
+      if (inv.crystal < crystalCost) throw new Error("INSUFFICIENT_RESOURCES");
 
-  // Only set character state to 'on_mission' for main slot
-  if (slot === 'main') {
-    db.prepare("UPDATE characters SET state = 'on_mission' WHERE id = ?").run(characterId);
-  }
+      if (scrapCost > 0 || crystalCost > 0) {
+        db.prepare(
+          "UPDATE inventories SET scrap = scrap - ?, crystal = crystal - ? WHERE character_id = ?"
+        ).run(scrapCost, crystalCost, characterId);
+      }
+    }
 
-  return {
-    missionId: mission.id as MissionId,
-    startedAt: now.toISOString(),
-    endsAt: endsAt.toISOString(),
-  };
+    const now = new Date();
+    const endsAt = new Date(now.getTime() + duration * 1000);
+
+    const id = randomUUID();
+    db.prepare(
+      "INSERT INTO active_missions (id, character_id, mission_id, started_at, ends_at, reroll_stacks, insured, run_id, slot) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+    ).run(id, characterId, missionId, now.toISOString(), endsAt.toISOString(), stacks, useInsurance, runId ?? null, slot);
+
+    // Only set character state to 'on_mission' for main slot
+    if (slot === 'main') {
+      db.prepare("UPDATE characters SET state = 'on_mission' WHERE id = ?").run(characterId);
+    }
+
+    return {
+      missionId: mission.id as MissionId,
+      startedAt: now.toISOString(),
+      endsAt: endsAt.toISOString(),
+    };
+  });
+
+  return txn();
 }
 
 export async function claimMission(
@@ -200,7 +208,7 @@ export async function claimMission(
 
   const mission = getMission(missionRow.mission_id)!;
 
-  // Delete active mission
+  // Delete active mission first (inside the same sync flow) to prevent double-claim
   db.prepare("DELETE FROM active_missions WHERE id = ?").run(missionRow.id);
 
   // Roll for success
@@ -227,7 +235,7 @@ export async function claimMission(
     finalFailRate = Math.max(0, finalFailRate - missionRow.reroll_stacks * REROLL_REDUCTION_PER_STACK);
   }
 
-  const roll = Math.random() * 100;
+  const roll = cryptoRandomInt(0, 10000) / 100;
 
   if (roll < finalFailRate) {
     // FAILURE

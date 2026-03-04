@@ -1,4 +1,4 @@
-import { randomUUID } from "crypto";
+import { randomUUID, randomInt } from "crypto";
 import db from "../db/database.js";
 import {
   BOSS_DROP_CHANCES,
@@ -60,11 +60,11 @@ function rollChance(
     BOSS_DROP_CHANCES[category as keyof typeof BOSS_DROP_CHANCES];
   const multiplier = CONTRIBUTION_MULTIPLIERS[category] ?? 1;
   const finalChance = baseChance * (1 + contributionPercent * multiplier);
-  return Math.random() < finalChance;
+  return randomInt(0, 10000) / 10000 < finalChance;
 }
 
 function pickRandom<T>(arr: readonly T[]): T {
-  return arr[Math.floor(Math.random() * arr.length)];
+  return arr[randomInt(0, arr.length)];
 }
 
 // ── Public API ──
