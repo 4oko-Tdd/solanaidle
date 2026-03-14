@@ -105,8 +105,6 @@ API health check: `GET https://solanaidle.findparty.online/api/health`
 | [On-Chain Guide](docs/ONCHAIN.md) | Anchor programs, ER delegation, PDA lifecycle, verification |
 | [Game Design](docs/GAME_DESIGN.md) | Core loop, classes, missions, perks, boss mechanics |
 | [API Reference](docs/API.md) | All backend endpoints with request/response examples |
-| [Monetization Plan](docs/MONETIZATION_PLAN.md) | SKR utility actions, pricing, and spend-routing model |
-| [Project Brief](docs/PROJECT_BRIEF.md) | Vision and game concept |
 
 ## License
 
